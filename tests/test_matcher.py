@@ -37,10 +37,11 @@ def test_strong_match_returns_supported() -> None:
         "Transformers for State-of-the-Art NLP",
         "We show that transformers achieve state-of-the-art results in NLP tasks.",
     )
-    metadata_score, support_score, verdict, reasoning = match_claim_to_source(
+    metadata_score, support_score, verdict, reasoning, _ = match_claim_to_source(
         claim, candidate
     )
-    assert verdict == Verdict.SUPPORTED
+    # Offline matcher returns PARTIALLY_SUPPORTED, never SUPPORTED
+    assert verdict == Verdict.PARTIALLY_SUPPORTED
     assert support_score >= 60
     assert metadata_score > 0
 
@@ -54,7 +55,7 @@ def test_weak_overlap_returns_insufficient_information() -> None:
         "Organic farming techniques in modern agriculture",
         "A study of organic farming and sustainable agriculture methods.",
     )
-    _, support_score, verdict, _ = match_claim_to_source(claim, candidate)
+    _, support_score, verdict, _, _ = match_claim_to_source(claim, candidate)
     assert verdict in (Verdict.INSUFFICIENT_INFORMATION, Verdict.UNRELATED)
     assert support_score < 40
 
@@ -69,7 +70,7 @@ def test_partial_support() -> None:
         "Deep learning models have been shown to improve image classification "
         "accuracy across multiple benchmark datasets including ImageNet and CIFAR.",
     )
-    _, support_score, verdict, _ = match_claim_to_source(claim, candidate)
+    _, support_score, verdict, _, _ = match_claim_to_source(claim, candidate)
     assert verdict in (Verdict.PARTIALLY_SUPPORTED, Verdict.SUPPORTED)
     assert support_score > 0
 
@@ -83,7 +84,7 @@ def test_metadata_score_uses_query_tokens() -> None:
         "Machine Learning with Neural Networks",
         "An overview of machine learning.",
     )
-    metadata_score, _, _, _ = match_claim_to_source(claim, candidate)
+    metadata_score, _, _, _, _ = match_claim_to_source(claim, candidate)
     assert metadata_score > 0
 
 
@@ -96,20 +97,20 @@ def test_no_abstract_gives_low_support() -> None:
         "Unrelated Title About Chemistry",
         "",
     )
-    _, support_score, verdict, _ = match_claim_to_source(claim, candidate)
+    _, support_score, verdict, _, _ = match_claim_to_source(claim, candidate)
     assert support_score < 50
 
 
 def test_reasoning_is_nonempty() -> None:
     claim = _make_claim("Some claim", "some claim query")
     candidate = _make_candidate("Some title", "Some abstract text.")
-    _, _, _, reasoning = match_claim_to_source(claim, candidate)
+    _, _, _, reasoning, _ = match_claim_to_source(claim, candidate)
     assert len(reasoning) > 10
 
 
 def test_scores_are_bounded() -> None:
     claim = _make_claim("A claim", "claim query")
     candidate = _make_candidate("A title", "An abstract.")
-    metadata_score, support_score, _, _ = match_claim_to_source(claim, candidate)
+    metadata_score, support_score, _, _, _ = match_claim_to_source(claim, candidate)
     assert 0 <= metadata_score <= 100
     assert 0 <= support_score <= 100
