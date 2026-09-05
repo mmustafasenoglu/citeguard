@@ -199,10 +199,7 @@ def extract_claims_with_llm(
         except ValueError:
             severity = Severity.LOW
         search_query = str(item.get("search_query", text))[:200]
-        has_citation = bool(
-            item.get("has_existing_citation")
-            or any(ct in text for ct in citation_texts)
-        )
+        has_citation = any(ct in text for ct in citation_texts)
         linked = [c for c in paragraph_citations if c.raw_text in text]
         claims.append(
             Claim(

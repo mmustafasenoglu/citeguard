@@ -75,3 +75,34 @@ def test_parse_json_response_array() -> None:
 def test_parse_json_response_object() -> None:
     data = {"key": "value"}
     assert _parse_json_response(json.dumps(data)) == data
+
+
+def test_llm_citation_override(monkeypatch) -> None:
+    """LLM claims has_existing_citation=True but parser finds none."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+
+    fake_response = json.dumps([
+        {
+            "text": "Smoking increases cancer risk.",
+            "search_query": "smoking cancer risk",
+            "claim_type": "causal",
+            "severity": "high",
+            "has_existing_citation": True,
+        }
+    ])
+
+    def _fake_call(
+        api_key, system, user_message, *, model="m", max_tokens=2048, timeout=30
+    ):
+        return fake_response
+
+    monkeypatch.setattr("citeguard.llm._call_anthropic", _fake_call)
+
+    result = extract_claims_with_llm(
+        "Smoking increases cancer risk.",
+        0,
+        [],
+    )
+    assert result is not None
+    assert len(result) == 1
+    assert result[0].has_existing_citation is False
