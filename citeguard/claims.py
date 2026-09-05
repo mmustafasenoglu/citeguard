@@ -90,7 +90,9 @@ def extract_claims(
             if claim is not None:
                 claims.append(claim)
 
-        _tag_paragraph_final_links(claims, paragraph_citations, paragraph)
+        _tag_paragraph_final_links(
+            claims, paragraph_citations, paragraph, paragraph_index=index
+        )
         _tag_ambiguous_links(claims)
 
     return claims
@@ -231,6 +233,8 @@ def _tag_paragraph_final_links(
     claims: list[Claim],
     paragraph_citations: list[ExistingCitation],
     paragraph: str,
+    *,
+    paragraph_index: int,
 ) -> None:
     """Tag claims whose paragraph-final citation confidence could be upgraded.
 
@@ -247,7 +251,7 @@ def _tag_paragraph_final_links(
         c for c in paragraph_citations if _is_paragraph_final_citation(c, paragraph)
     ]
     for claim in claims:
-        if claim.paragraph_index != claims[0].paragraph_index:
+        if claim.paragraph_index != paragraph_index:
             continue
         if claim.text not in last_sentence:
             continue

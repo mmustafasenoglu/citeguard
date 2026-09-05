@@ -310,3 +310,25 @@ def test_warnings_field_defaults_empty() -> None:
     ]
     claims = extract_claims(paragraphs, [], bibliography_start=None)
     assert claims[0].warnings == []
+
+
+def test_paragraph_final_multi_paragraph() -> None:
+    paragraphs = [
+        "Transformers were introduced in 2017 (Vaswani et al., 2017).",
+        "Social media use has increased among adolescents. "
+        "Higher usage was associated with depressive symptoms (Smith et al., 2023).",
+    ]
+    citations = extract_citations(paragraphs)
+    claims = extract_claims(paragraphs, citations, bibliography_start=None)
+
+    para0_claims = [c for c in claims if c.paragraph_index == 0]
+    para1_claims = [c for c in claims if c.paragraph_index == 1]
+
+    assert len(para0_claims) >= 1
+    assert len(para1_claims) >= 1
+
+    assert para0_claims[0].link_confidence == 100
+
+    last_para1 = para1_claims[-1]
+    assert last_para1.has_existing_citation is True
+    assert last_para1.link_confidence == 100
