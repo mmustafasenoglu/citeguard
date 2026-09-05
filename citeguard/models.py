@@ -54,6 +54,13 @@ class BibliographyIssueKind(str, Enum):
     DUPLICATE_DOI = "duplicate_doi"
 
 
+class EvidenceType(str, Enum):
+    """Source of the evidence passage."""
+
+    ABSTRACT = "abstract"
+    FULL_TEXT = "full_text"
+
+
 @dataclass(slots=True)
 class ExistingCitation:
     """A citation detected in the document text."""
@@ -100,6 +107,22 @@ class SourceCandidate:
 
 
 @dataclass(slots=True)
+class Evidence:
+    """A passage from a source that may support or contradict a claim."""
+
+    text: str
+    source_title: str
+    source_api: str
+    evidence_type: EvidenceType
+    section: str | None = None
+    page: int | None = None
+    lexical_score: int = 0
+    semantic_score: int | None = None
+    entailment_score: int | None = None
+    verdict: Verdict = Verdict.INSUFFICIENT_INFORMATION
+
+
+@dataclass(slots=True)
 class MatchResult:
     """Deterministic matching result between a claim and a source candidate."""
 
@@ -111,6 +134,7 @@ class MatchResult:
     verdict: Verdict
     reasoning: str
     warnings: list[str] = field(default_factory=list)
+    evidence: list[Evidence] = field(default_factory=list)
 
 
 @dataclass(slots=True)
