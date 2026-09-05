@@ -312,10 +312,13 @@ def suggest_command(
 
             match_results: list[MatchResult] = []
             for candidate in candidates:
-                metadata_score, support_score, verdict, reasoning = (
+                metadata_score, support_score, verdict, reasoning, evidence = (
                     match_claim_to_source(claim, candidate)
                 )
-                confidence = overall_confidence(metadata_score, support_score)
+                has_entailment = any(e.entailment_score is not None for e in evidence)
+                confidence = overall_confidence(
+                    metadata_score, support_score, has_entailment=has_entailment
+                )
                 match_results.append(
                     MatchResult(
                         candidate=candidate,
@@ -325,6 +328,7 @@ def suggest_command(
                         overall_confidence=confidence,
                         verdict=verdict,
                         reasoning=reasoning,
+                        evidence=evidence,
                     )
                 )
 
@@ -472,10 +476,13 @@ def check_command(
                 best_match: MatchResult | None = None
                 all_matches: list[MatchResult] = []
                 for candidate in candidates:
-                    metadata_score, support_score, verdict, reasoning = (
+                    metadata_score, support_score, verdict, reasoning, evidence = (
                         match_claim_to_source(claim, candidate)
                     )
-                    confidence = overall_confidence(metadata_score, support_score)
+                    has_entailment = any(e.entailment_score is not None for e in evidence)
+                    confidence = overall_confidence(
+                        metadata_score, support_score, has_entailment=has_entailment
+                    )
                     match_result = MatchResult(
                         candidate=candidate,
                         source_exists=True,
@@ -484,6 +491,7 @@ def check_command(
                         overall_confidence=confidence,
                         verdict=verdict,
                         reasoning=reasoning,
+                        evidence=evidence,
                     )
                     all_matches.append(match_result)
                     if best_match is None or confidence > best_match.overall_confidence:

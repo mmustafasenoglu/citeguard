@@ -51,6 +51,7 @@ def _metrics():
         verification_ratio=1.0,
         support_ratio=1.0,
         bibliography_consistency=1.0,
+        evidence_coverage=1.0,
         health_score=100,
     )
 

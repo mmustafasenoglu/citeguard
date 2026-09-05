@@ -30,13 +30,23 @@ class AuditMetrics:
     verification_ratio: float
     support_ratio: float
     bibliography_consistency: float
+    evidence_coverage: float
     health_score: int
 
 
-def overall_confidence(metadata_match_score: int, claim_support_score: int) -> int:
+def overall_confidence(
+    metadata_match_score: int,
+    claim_support_score: int,
+    *,
+    has_entailment: bool = False,
+) -> int:
     _validate_score(metadata_match_score)
     _validate_score(claim_support_score)
-    return round(metadata_match_score * 0.35 + claim_support_score * 0.65)
+    if has_entailment:
+        # metadata * 0.20 + evidence * 0.25 + entailment * 0.55
+        # claim_support_score already includes the weighted combination
+        return claim_support_score
+    return round(metadata_match_score * 0.40 + claim_support_score * 0.60)
 
 
 def priority_score(result: VerificationResult) -> float:
@@ -46,25 +56,40 @@ def priority_score(result: VerificationResult) -> float:
     return severity * 100 + risk
 
 
+def _has_entailment(result: VerificationResult) -> bool:
+    if result.matched is None:
+        return False
+    return any(ev.entailment_score is not None for ev in result.matched.evidence)
+
+
 def compute_health_score(
     *,
     citation_coverage: float,
     verification_ratio: float,
     support_ratio: float,
     bibliography_consistency: float,
+    evidence_coverage: float,
     uncited_high: int = 0,
     contradictions: int = 0,
     unresolved_high: int = 0,
 ) -> int:
-    for value in (citation_coverage, verification_ratio, support_ratio, bibliography_consistency):
+    scores = (
+        citation_coverage,
+        verification_ratio,
+        support_ratio,
+        bibliography_consistency,
+        evidence_coverage,
+    )
+    for value in scores:
         if not 0 <= value <= 1:
             raise ValueError("Score ratios must be between 0 and 1.")
 
     score = (
-        citation_coverage * 100 * 0.30
-        + verification_ratio * 100 * 0.30
-        + support_ratio * 100 * 0.25
-        + bibliography_consistency * 100 * 0.15
+        citation_coverage * 100 * 0.25
+        + verification_ratio * 100 * 0.25
+        + support_ratio * 100 * 0.20
+        + bibliography_consistency * 100 * 0.10
+        + evidence_coverage * 100 * 0.20
     )
     score -= uncited_high * 2
     score -= contradictions * 4
@@ -105,6 +130,16 @@ def compute_audit_metrics(
         len(supported) / len(verification_results) if verification_results else 1.0
     )
 
+    # Evidence coverage: fraction of verified claims that have evidence.
+    verified_with_evidence = [
+        r
+        for r in verified
+        if r.matched is not None and r.matched.evidence
+    ]
+    evidence_coverage = (
+        len(verified_with_evidence) / len(verified) if verified else 1.0
+    )
+
     # Bibliography consistency: 1 minus normalized issue count.
     bib_issue_count = len(bibliography_issues)
     max_expected_issues = max(total_claims, 1)
@@ -136,6 +171,7 @@ def compute_audit_metrics(
         verification_ratio=verification_ratio,
         support_ratio=support_ratio,
         bibliography_consistency=bibliography_consistency,
+        evidence_coverage=evidence_coverage,
         uncited_high=uncited_high,
         contradictions=contradiction_count,
         unresolved_high=unresolved_high,
@@ -155,6 +191,7 @@ def compute_audit_metrics(
         verification_ratio=round(verification_ratio, 3),
         support_ratio=round(support_ratio, 3),
         bibliography_consistency=round(bibliography_consistency, 3),
+        evidence_coverage=round(evidence_coverage, 3),
         health_score=health,
     )
 
