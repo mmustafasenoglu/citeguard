@@ -1,5 +1,13 @@
 # AGENTS.md
 
+## Project links
+
+- **Repository:** https://github.com/mmustafasenoglu/citeguard
+- **Issues:** https://github.com/mmustafasenoglu/citeguard/issues
+- **Discussions:** https://github.com/mmustafasenoglu/citeguard/discussions
+- **Security:** https://github.com/mmustafasenoglu/citeguard/security/advisories
+- **PyPI:** https://pypi.org/project/citeguard (planned)
+
 ## Project overview
 
 citeguard is an alpha Python CLI for auditing citations in academic documents. It parses
