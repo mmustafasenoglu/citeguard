@@ -619,6 +619,24 @@ def _print_check_terminal(
                 f" [verdict: {verdict}]"
             )
 
+    if verbose and sorted_claims:
+        console.print("\n[cyan]Evidence[/cyan]")
+        for result in sorted_claims[:5]:
+            matched = result.matched
+            if matched and matched.evidence:
+                sev = result.claim.severity.value
+                color = _severity_color(sev)
+                console.print(
+                    f"  [{color}]{sev.upper()}[/{color}]"
+                    f" [verdict: {matched.verdict.value}]"
+                    f" (confidence: {matched.overall_confidence})"
+                )
+                console.print(f"    Claim: {result.claim.text[:80]}")
+                for i, ev in enumerate(matched.evidence[:2], 1):
+                    console.print(f"    Evidence {i} (relevance: {ev.lexical_score}/100):")
+                    console.print(f"      {ev.text[:120]}")
+                    console.print(f"      [dim]Source: {ev.source_title}[/dim]")
+
     if bib_issues:
         console.print("\n[yellow]Bibliography issues[/yellow]")
         for issue in bib_issues:

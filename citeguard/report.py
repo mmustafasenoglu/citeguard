@@ -8,6 +8,7 @@ from .bibliography import bibliography_issues
 from .linking import link_citations_to_contexts
 from .models import (
     Claim,
+    Evidence,
     ParsedDocument,
     ReferenceVerification,
     VerificationResult,
@@ -124,6 +125,7 @@ def check_report(
             "verification_ratio": metrics.verification_ratio,
             "support_ratio": metrics.support_ratio,
             "bibliography_consistency": metrics.bibliography_consistency,
+            "evidence_coverage": metrics.evidence_coverage,
         },
         "claims": [_claim_item(c) for c in claims],
         "verification_results": [_verification_item(r) for r in verification_results],
@@ -203,6 +205,21 @@ def _verification_item(result: ReferenceVerification) -> dict[str, Any]:
     }
 
 
+def _evidence_item(evidence: Evidence) -> dict[str, Any]:
+    return {
+        "text": evidence.text,
+        "source_title": evidence.source_title,
+        "source_api": evidence.source_api,
+        "type": evidence.evidence_type.value,
+        "section": evidence.section,
+        "page": evidence.page,
+        "relevance_score": evidence.lexical_score,
+        "semantic_score": evidence.semantic_score,
+        "entailment_score": evidence.entailment_score,
+        "verdict": evidence.verdict.value,
+    }
+
+
 def _claim_item(claim: Claim) -> dict[str, Any]:
     return {
         "text": claim.text,
@@ -232,6 +249,7 @@ def _suggestion_item(result: VerificationResult) -> dict[str, Any]:
                 "claim_support_score": s.claim_support_score,
                 "overall_confidence": s.overall_confidence,
                 "verdict": s.verdict.value,
+                "evidence": [_evidence_item(e) for e in s.evidence],
             }
             for s in result.suggestions
         ],
@@ -254,6 +272,7 @@ def _verification_result_item(result: VerificationResult) -> dict[str, Any]:
                 "doi": matched.candidate.doi,
                 "overall_confidence": matched.overall_confidence,
                 "verdict": matched.verdict.value,
+                "evidence": [_evidence_item(e) for e in matched.evidence],
             }
             if matched
             else None
@@ -351,6 +370,23 @@ def markdown_check_report(
             txt = result.claim.text
             _md(f"- **{sev}** (confidence: {confidence})"
                 f" - {txt} [verdict: {verdict}]")
+        _md("")
+
+    # Evidence section for claims with matched sources
+    if verification_for_claims:
+        _md("## Evidence\n")
+        for result in verification_for_claims:
+            matched = result.matched
+            if matched and matched.evidence:
+                sev = result.claim.severity.value.upper()
+                txt = result.claim.text
+                _md(f"### Claim: {txt}\n")
+                _md(f"- Severity: **{sev}** | Verdict: **{matched.verdict.value}**")
+                _md(f"- Confidence: **{matched.overall_confidence}/100**\n")
+                for i, ev in enumerate(matched.evidence[:3], 1):
+                    _md(f"**Evidence {i}** (relevance: {ev.lexical_score}/100)")
+                    _md(f"> {ev.text}")
+                    _md(f"> *Source: {ev.source_title}*\n")
         _md("")
 
     _md("---\n")
