@@ -1,0 +1,39 @@
+{
+  "schema_version": "1",
+  "document": "examples/example-paper.md",
+  "summary": {
+    "paragraphs": 5,
+    "detected_citations": 1,
+    "bibliography_entries": 1,
+    "bibliography_issues": 0
+  },
+  "citations": [
+    {
+      "raw_text": "(Vaswani et al., 2017)",
+      "authors": "Vaswani et al.",
+      "year": 2017,
+      "no_date": false,
+      "doi": null,
+      "numbered_ref": null,
+      "paragraph": 2,
+      "char_offset": 50,
+      "sentence": "Transformer architectures were introduced in 2017 (Vaswani et al., 2017).",
+      "bibliography_entry_indexes": [
+        1
+      ]
+    }
+  ],
+  "bibliography": [
+    {
+      "index": 1,
+      "raw_text": "Vaswani, A. et al. (2017). Attention Is All You Need. arXiv:1706.03762.",
+      "authors": "Vaswani, A. et al",
+      "year": 2017,
+      "no_date": false,
+      "title": "Attention Is All You Need",
+      "doi": null,
+      "numbered_ref": null
+    }
+  ],
+  "issues": []
+}

@@ -1,0 +1,95 @@
+{
+  "schema_version": "1",
+  "document": "examples/example-paper.md",
+  "privacy": "Only bibliography metadata was sent to academic providers. Document prose was not sent. Verification does not establish claim support.",
+  "summary": {
+    "health_score": 30,
+    "total_claims": 2,
+    "claims_requiring_citations": 1,
+    "cited_claims": 1,
+    "verified_citations": 0,
+    "weak_matches": 1,
+    "unresolved_citations": 1,
+    "uncited_high_severity_claims": 0,
+    "contradictions": 0,
+    "bibliography_issues": 0,
+    "citation_coverage": 0.5,
+    "verification_ratio": 0.0,
+    "support_ratio": 0.0,
+    "bibliography_consistency": 1.0
+  },
+  "claims": [
+    {
+      "text": "Transformer architectures were introduced in 2017 (Vaswani et al., 2017).",
+      "search_query": "Transformer architectures introduced 2017 Vaswani 2017",
+      "claim_type": "historical",
+      "severity": "medium",
+      "paragraph": 2,
+      "has_existing_citation": true
+    },
+    {
+      "text": "Large language models can generate references that appear plausible but require independent verification.",
+      "search_query": "Large language models generate references appear plausible require independent verification",
+      "claim_type": "general_fact",
+      "severity": "low",
+      "paragraph": 3,
+      "has_existing_citation": false
+    }
+  ],
+  "verification_results": [
+    {
+      "bibliography_entry_index": 1,
+      "bibliography_entry": "Vaswani, A. et al. (2017). Attention Is All You Need. arXiv:1706.03762.",
+      "query": "Attention Is All You Need Vaswani 2017",
+      "status": "verified",
+      "scores": {
+        "author": 100,
+        "year": 0,
+        "title": 100,
+        "doi": null,
+        "overall": 75
+      },
+      "candidate": {
+        "title": "Attention Is All You Need",
+        "authors": [
+          "Ashish Vaswani",
+          "Noam Shazeer",
+          "Niki Parmar",
+          "Jakob Uszkoreit",
+          "Llion Jones",
+          "Aidan N.Gomez",
+          "Lukasz Kaiser",
+          "Illia Polosukhin"
+        ],
+        "year": 2025,
+        "venue": null,
+        "doi": "10.65215/mdcm8z23",
+        "url": "https://doi.org/10.65215/mdcm8z23",
+        "source_api": "crossref"
+      },
+      "warnings": []
+    }
+  ],
+  "bibliography_issues": [],
+  "priority_review": [
+    {
+      "claim_text": "Large language models can generate references that appear plausible but require independent verification.",
+      "claim_type": "general_fact",
+      "severity": "low",
+      "paragraph": 3,
+      "status": "suggested",
+      "matched": {
+        "title": "Why Large Language Models Appear to Be Intelligent and Creative: Because They Generate Bullsh*t!",
+        "authors": [
+          "Daniel M. Berry"
+        ],
+        "year": 2025,
+        "doi": "10.1109/mc.2025.3547458",
+        "overall_confidence": 43,
+        "verdict": "insufficient_information"
+      },
+      "suggestions_count": 0,
+      "warnings": []
+    }
+  ]
+}

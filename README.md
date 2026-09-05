@@ -1,0 +1,218 @@
+# citeguard
+
+**Find missing citations. Verify existing references. Audit academic writing from your terminal.**
+
+[![CI](https://github.com/mmustafasenoglu/citeguard/actions/workflows/tests.yml/badge.svg)](https://github.com/mmustafasenoglu/citeguard/actions/workflows/tests.yml)
+[![Python 3.10–3.12](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+`citeguard` is an open-source CLI for detecting citation-worthy claims, resolving existing academic references, and estimating whether a retrieved source actually supports the surrounding claim.
+
+> **Important:** citeguard does **not** prove that a claim is true. It helps determine whether a real, relevant source can be found and whether that source appears to support the claim. All results require human review.
+
+## Features
+
+- Detect citation-worthy claims with type and severity classification
+- Parse parenthetical, narrative, multi-source, numbered, and DOI citations
+- Support `.md`, `.txt`, and `.docx` files including DOCX table cells
+- Parse English and Turkish bibliography headings
+- Search Semantic Scholar, Crossref, and arXiv for source suggestions
+- Verify bibliography metadata against Crossref (direct DOI lookup + bibliographic fallback)
+- Compute a deterministic Citation Health Score
+- Produce terminal, Markdown, and JSON reports (`--format both` for JSON + Markdown)
+- Link claims to their citing references with sentence-position confidence scores
+- Optional LLM integration via Anthropic API for enhanced claim extraction and source matching
+- Parallel provider queries for faster multi-provider searches
+- Per-provider rate limiting to avoid API throttling
+- Rich progress spinners during long-running searches
+- Full offline baseline — no API keys required for default operation
+
+## Installation
+
+```bash
+git clone https://github.com/mmustafasenoglu/citeguard.git
+cd citeguard
+python3 -m venv .venv
+source .venv/bin/activate
+pip install .
+```
+
+For development:
+
+```bash
+git clone https://github.com/mmustafasenoglu/citeguard.git
+cd citeguard
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+## Quick start
+
+```bash
+# Inspect document parsing (offline, no API keys needed)
+citeguard inspect examples/example-paper.md
+
+# Full citation audit
+citeguard check examples/example-paper.md
+
+# Suggest sources for uncited claims
+citeguard suggest examples/example-paper.md
+
+# Verify bibliography metadata against Crossref
+citeguard verify examples/example-paper.md
+
+# JSON output
+citeguard check examples/example-paper.md --format json
+
+# Markdown report to file
+citeguard check examples/example-paper.md --format md --output report.md
+
+# Both JSON and Markdown at once
+citeguard check examples/example-paper.md --format both --output report
+
+# Verbose mode with progress spinners
+citeguard check examples/example-paper.md --verbose
+
+# Filter by severity
+citeguard check examples/example-paper.md --severity high
+
+# Limit extracted claims
+citeguard check examples/example-paper.md --max-claims 5
+```
+
+### LLM-enhanced mode (optional)
+
+Set `ANTHROPIC_API_KEY` in your `.env` to enable LLM-backed claim extraction and source matching:
+
+```bash
+# Create .env template
+citeguard init
+
+# Edit .env and add your Anthropic API key
+# ANTHROPIC_API_KEY=sk-ant-...
+
+# Now check uses LLM for better claim detection
+citeguard check examples/example-paper.md --verbose
+```
+
+When the API key is absent, citeguard falls back to the deterministic offline baseline automatically.
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `citeguard inspect FILE` | Offline parsing and bibliography detection |
+| `citeguard check FILE` | Full audit: claims, verification, health score |
+| `citeguard suggest FILE` | Search academic providers for uncited claims |
+| `citeguard verify FILE` | Verify bibliography metadata via Crossref |
+| `citeguard init` | Create a local `.env` template for API keys |
+
+### Common options
+
+| Option | Description |
+|--------|-------------|
+| `--format terminal\|json\|md\|both` | Output format (default: terminal) |
+| `--output FILE` | Write report to file |
+| `--max-results INT` | Maximum provider results per query (1–20) |
+| `--threshold INT` | Minimum confidence to report suggestions (0–100) |
+| `--max-claims INT` | Limit number of extracted claims |
+| `--severity high\|medium\|low` | Filter claims by severity |
+| `--no-cache` | Skip provider response cache |
+| `--verbose` | Show progress information with spinners |
+
+## Example: check output
+
+```
+Citation Health Score: 30/100
+
+┌──────────────────────────────────────────┐
+│           Audit Summary                  │
+├─────────────────────────────┬────────────┤
+│ Total claims                │            2 │
+│ Claims requiring citations  │            1 │
+│ Cited claims                │            1 │
+│ Verified citations          │            0 │
+│ Weak matches                │            1 │
+│ Uncited high-severity claims│            0 │
+│ Contradictions              │            0 │
+│ Bibliography issues         │            0 │
+│ Citation coverage           │       50.0%  │
+│ Verification ratio          │        0.0%  │
+│ Support ratio               │        0.0%  │
+│ Bibliography consistency    │      100.0%  │
+└─────────────────────────────┴────────────┘
+
+Priority review list
+  LOW (confidence: 43) - Large language models can generate references that
+  appear plausible but require independent verification. [verdict: insufficient_information]
+```
+
+Example output files are committed under `examples/`:
+
+- `example-inspect.json` / `example-inspect.md` — offline inspection
+- `example-check.json` / `example-check.md` — full audit
+
+Reproduce them with:
+
+```bash
+citeguard inspect examples/example-paper.md --format both --output examples/example-inspect
+citeguard check examples/example-paper.md --format both --output examples/example-check
+```
+
+## Reliability model
+
+citeguard treats these as separate questions:
+
+1. **Source resolution** — can the referenced work be found?
+2. **Metadata match** — do author, year, DOI, title, and other metadata align?
+3. **Claim support** — does the source appear to support the claim?
+4. **Overall confidence** — a deterministic score derived from the previous signals.
+
+A citation can therefore be successfully resolved while receiving a `contradicted` or `unrelated` verdict.
+
+## Privacy
+
+citeguard is a local CLI. The analysis pipeline sends limited content to configured third-party APIs:
+
+- **Academic providers** (Semantic Scholar, Crossref, arXiv): generated search queries derived
+  from claims and bibliography metadata. The full document is not sent.
+- **LLM provider** (Anthropic, optional): paragraphs are sent for claim extraction; claims plus
+  source titles, authors, years, and abstracts are sent for source matching. The full document,
+  bibliography, and API key are not included in prompts.
+- **API keys** are never written to reports, logs, screenshots, or cache files.
+
+citeguard has no telemetry or usage analytics.
+
+## Limitations
+
+- LLM-based claim detection can miss or misclassify claims.
+- Abstract-level evidence may be insufficient to establish claim support.
+- Search providers can fail to index legitimate publications.
+- `unresolved` does **not** mean `fake`.
+- Numbered citation-to-bibliography resolution is deferred beyond v0.1.
+- Full-text evidence verification is not part of v0.1.
+- Citation Health Score is a heuristic prioritization metric, not a measure of scientific correctness.
+
+## Roadmap
+
+See [SPEC.md](SPEC.md) for the full technical specification.
+
+**v0.2 planned features:**
+- Numbered citation-to-bibliography resolution
+- Full-text evidence extraction where legally available
+- OpenAlex / PubMed provider support and retraction metadata
+- LaTeX, Zotero, and BibTeX integrations
+- Pre-commit / CI integrations
+
+## Contributing
+
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, test expectations, and guidelines.
+
+## Security
+
+See [SECURITY.md](SECURITY.md). Never disclose API keys in GitHub issues or logs.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
