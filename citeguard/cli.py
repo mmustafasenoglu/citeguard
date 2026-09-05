@@ -390,6 +390,8 @@ def suggest_command(
 )
 @click.option("--output", type=click.Path(dir_okay=False, path_type=Path))
 @click.option("--verbose", is_flag=True, help="Show detailed progress information.")
+@click.option("--show-evidence", is_flag=True, help="Show evidence passages for matched claims.")
+@click.option("--require-evidence", is_flag=True, help="Only show claims that have evidence.")
 def check_command(
     file: Path,
     max_results: int,
@@ -400,6 +402,8 @@ def check_command(
     output_format: str,
     output: Path | None,
     verbose: bool,
+    show_evidence: bool,
+    require_evidence: bool,
 ) -> None:
     """Run a full citation audit: extract claims, verify references, compute health score."""
     parsed = parse_document(file)
@@ -524,6 +528,12 @@ def check_command(
 
     sorted_claims = priority_list(claim_verification)
 
+    if require_evidence:
+        sorted_claims = [
+            r for r in sorted_claims
+            if r.matched and r.matched.evidence
+        ]
+
     report = check_report(
         parsed,
         bib_results,
@@ -554,7 +564,8 @@ def check_command(
         exit_code = EXIT_FINDINGS if metrics.health_score < 80 else EXIT_SUCCESS
         raise SystemExit(exit_code)
 
-    _print_check_terminal(metrics, claims, sorted_claims, bib_issues, verbose)
+    show_ev = show_evidence or verbose
+    _print_check_terminal(metrics, claims, sorted_claims, bib_issues, verbose, show_ev)
 
     if provider_failed:
         console.print(
@@ -571,6 +582,7 @@ def _print_check_terminal(
     sorted_claims: list[VerificationResult],
     bib_issues: list,
     verbose: bool,
+    show_evidence: bool,
 ) -> None:
     if metrics.health_score >= 80:
         health_color = "green"
@@ -619,7 +631,7 @@ def _print_check_terminal(
                 f" [verdict: {verdict}]"
             )
 
-    if verbose and sorted_claims:
+    if show_evidence and sorted_claims:
         console.print("\n[cyan]Evidence[/cyan]")
         for result in sorted_claims[:5]:
             matched = result.matched
