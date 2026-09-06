@@ -4,6 +4,10 @@ This module provides both an offline contradiction-signal detector and
 an optional LLM-backed entailment classifier.  The offline mode flags
 negation patterns that suggest a risk of contradiction; it does NOT
 make a final supported/contradicted decision on its own.
+
+The LLM-backed classifier uses whatever provider is configured via
+``CITEGUARD_LLM_PROVIDER`` (Anthropic, OpenAI, xAI, Groq, OpenRouter,
+NVIDIA, or custom OpenAI-compatible endpoint).
 """
 
 from __future__ import annotations
@@ -11,7 +15,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from .llm import _api_key, _call_anthropic, _parse_json_response
+from .llm import _call_llm, _parse_json_response
 from .models import Claim, Evidence, SourceCandidate, Verdict
 
 _NEGATION_SIGNALS = re.compile(
@@ -122,17 +126,16 @@ def evaluate_evidence_with_llm(
     evidence: list[Evidence],
     candidate: SourceCandidate,
     *,
-    model: str = "claude-sonnet-4-20250514",
+    model: str | None = None,
     timeout: float = 30,
 ) -> EntailmentResult | None:
     """LLM-backed entailment classifier.
 
-    Sends only the top evidence passages to the LLM.  Returns ``None``
-    when the API key is absent or the call fails, allowing fallback to
-    the offline detector.
+    Sends only the top evidence passages to the configured LLM provider.
+    Returns ``None`` when no API key is available or the call fails,
+    allowing fallback to the offline detector.
     """
-    api_key = _api_key()
-    if not api_key or not evidence:
+    if not evidence:
         return None
 
     evidence_text = "\n".join(
@@ -143,8 +146,8 @@ def evaluate_evidence_with_llm(
         claim_text=claim.text,
         evidence_text=evidence_text,
     )
-    raw = _call_anthropic(
-        api_key, _ENTAILMENT_SYSTEM_PROMPT, prompt,
+    raw = _call_llm(
+        _ENTAILMENT_SYSTEM_PROMPT, prompt,
         model=model, timeout=timeout,
     )
     if not raw:

@@ -1,8 +1,13 @@
 """Optional LLM-backed claim extraction and source matching.
 
-This module wraps Anthropic's Messages API using only stdlib (no SDK dependency).
-When ANTHROPIC_API_KEY is not set, all functions return ``None`` so callers
-can fall back to the deterministic baseline.
+This module wraps multiple LLM providers behind a unified ``LLMBackend``
+protocol.  When no API key is configured, all functions return ``None`` so
+callers can fall back to the deterministic baseline.
+
+Supported providers: Anthropic, OpenAI, xAI/Grok, Groq, OpenRouter,
+NVIDIA NIM, and any OpenAI-compatible custom endpoint (Ollama, LM Studio,
+vLLM, LiteLLM).  Provider selection is driven by ``CITEGUARD_LLM_PROVIDER``
+or auto-detected from available API keys.
 """
 
 from __future__ import annotations
@@ -10,15 +15,11 @@ from __future__ import annotations
 import json
 import os
 import re
-import urllib.error
-import urllib.request
 from typing import Any
 
+from .llm_backends import LLMBackend, resolve_backend
 from .models import Claim, ClaimType, ExistingCitation, Severity
 
-ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages"
-ANTHROPIC_VERSION = "2023-06-01"
-_DEFAULT_MODEL = "claude-sonnet-4-20250514"
 _DEFAULT_TIMEOUT = 30
 
 CLAIM_TYPES = [ct.value for ct in ClaimType]
@@ -76,8 +77,67 @@ Return ONLY the JSON object, nothing else.
 """
 
 
+# ---------------------------------------------------------------------------
+# Backend resolution helpers
+# ---------------------------------------------------------------------------
+
+
+def _resolve(
+    backend: LLMBackend | None = None,
+    *,
+    model: str | None = None,
+) -> tuple[LLMBackend, str] | None:
+    """Resolve (backend, model) or return None when unavailable."""
+    if backend is None:
+        backend = resolve_backend()
+    if backend is None:
+        return None
+    if model is None:
+        model = os.getenv("CITEGUARD_LLM_MODEL", "").strip() or None
+    if model is None:
+        from .config import _PROVIDER_DEFAULT_MODELS
+
+        model = _PROVIDER_DEFAULT_MODELS.get(
+            backend.name, "claude-sonnet-4-20250514",
+        )
+    return backend, model
+
+
+# ---------------------------------------------------------------------------
+# Shared utilities
+# ---------------------------------------------------------------------------
+
+
 def _api_key() -> str | None:
-    return os.getenv("ANTHROPIC_API_KEY")
+    """Return the active provider's API key, or None."""
+    resolved = _resolve()
+    if resolved is None:
+        return None
+    backend, _ = resolved
+    # Extract the key from the environment for the active provider
+    from .config import _resolve_api_key
+
+    return _resolve_api_key(backend.name)
+
+
+def _call_llm(
+    system: str,
+    user_message: str,
+    *,
+    backend: LLMBackend | None = None,
+    model: str | None = None,
+    max_tokens: int = 2048,
+    timeout: float = _DEFAULT_TIMEOUT,
+) -> str | None:
+    """Send a chat request through the resolved backend."""
+    resolved = _resolve(backend, model=model)
+    if resolved is None:
+        return None
+    active, active_model = resolved
+    return active.chat(
+        system, user_message,
+        model=active_model, max_tokens=max_tokens, timeout=timeout,
+    )
 
 
 def _call_anthropic(
@@ -85,43 +145,18 @@ def _call_anthropic(
     system: str,
     user_message: str,
     *,
-    model: str = _DEFAULT_MODEL,
+    model: str = "claude-sonnet-4-20250514",
     max_tokens: int = 2048,
     timeout: float = _DEFAULT_TIMEOUT,
 ) -> str | None:
-    """Send a Messages API request and return the text content, or None on failure."""
-    payload = json.dumps(
-        {
-            "model": model,
-            "max_tokens": max_tokens,
-            "system": system,
-            "messages": [{"role": "user", "content": user_message}],
-        }
-    ).encode("utf-8")
+    """Backward-compatible Anthropic-only call (retained for tests)."""
+    from .llm_backends import AnthropicBackend
 
-    request = urllib.request.Request(
-        ANTHROPIC_ENDPOINT,
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "x-api-key": api_key,
-            "anthropic-version": ANTHROPIC_VERSION,
-        },
-        method="POST",
+    backend = AnthropicBackend()
+    return backend.chat(
+        system, user_message,
+        model=model, max_tokens=max_tokens, timeout=timeout,
     )
-
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            data = json.loads(response.read().decode("utf-8"))
-    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError):
-        return None
-
-    content = data.get("content")
-    if isinstance(content, list) and content and isinstance(content[0], dict):
-        text = content[0].get("text", "")
-        if isinstance(text, str):
-            return text
-    return None
 
 
 def _parse_json_response(text: str) -> Any:
@@ -151,21 +186,26 @@ def _parse_json_response(text: str) -> Any:
     return None
 
 
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+
 def extract_claims_with_llm(
     paragraph: str,
     paragraph_index: int,
     paragraph_citations: list[ExistingCitation],
     *,
-    model: str = _DEFAULT_MODEL,
+    model: str | None = None,
     timeout: float = _DEFAULT_TIMEOUT,
 ) -> list[Claim] | None:
-    """Use Anthropic to extract claims from a single paragraph.
+    """Use the configured LLM provider to extract claims from a paragraph.
 
-    Returns ``None`` when the API key is absent or the call fails,
-    so callers can fall back to the deterministic extractor.
+    Returns ``None`` when no API key is configured or the call fails,
+    allowing fallback to the deterministic extractor.
     """
-    api_key = _api_key()
-    if not api_key:
+    resolved = _resolve(model=model)
+    if resolved is None:
         return None
 
     prompt = _EXTRACT_CLAIMS_PROMPT.format(
@@ -173,8 +213,8 @@ def extract_claims_with_llm(
         claim_types=", ".join(CLAIM_TYPES),
         severities=", ".join(SEVERITIES),
     )
-    raw = _call_anthropic(
-        api_key, _SYSTEM_PROMPT, prompt, model=model, timeout=timeout
+    raw = _call_llm(
+        _SYSTEM_PROMPT, prompt, model=model, timeout=timeout,
     )
     if not raw:
         return None
@@ -265,15 +305,15 @@ def match_source_with_llm(
     source_year: int | None,
     source_abstract: str | None,
     *,
-    model: str = _DEFAULT_MODEL,
+    model: str | None = None,
     timeout: float = _DEFAULT_TIMEOUT,
 ) -> dict[str, Any] | None:
-    """Use Anthropic to evaluate whether a source supports a claim.
+    """Use the configured LLM provider to evaluate claim-source support.
 
-    Returns ``None`` when the API key is absent or the call fails.
+    Returns ``None`` when no API key is configured or the call fails.
     """
-    api_key = _api_key()
-    if not api_key:
+    resolved = _resolve(model=model)
+    if resolved is None:
         return None
 
     prompt = _MATCH_SOURCE_PROMPT.format(
@@ -284,8 +324,8 @@ def match_source_with_llm(
         source_year=source_year if source_year is not None else "unknown",
         source_abstract=source_abstract or "not available",
     )
-    raw = _call_anthropic(
-        api_key, _SYSTEM_PROMPT, prompt, model=model, timeout=timeout
+    raw = _call_llm(
+        _SYSTEM_PROMPT, prompt, model=model, timeout=timeout,
     )
     if not raw:
         return None
