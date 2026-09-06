@@ -383,3 +383,103 @@ def test_check_exits_1_on_findings(tmp_path, monkeypatch) -> None:
 
     result = CliRunner().invoke(main, ["check", str(path)])
     assert result.exit_code == 1
+
+
+def test_check_evidence_pipeline_integration(tmp_path, monkeypatch) -> None:
+    """Integration test: full pipeline with evidence extraction and entailment."""
+    from citeguard.models import SourceCandidate
+
+    path = _doc(
+        tmp_path,
+        "Transformers were introduced in 2017. "
+        "They achieve state-of-the-art results in NLP.",
+    )
+
+    def fake_search(_self, _query, max_results=5):
+        return [
+            SourceCandidate(
+                title="Attention Is All You Need",
+                authors=["Vaswani", "Shazeer", "Parmar"],
+                year=2017,
+                venue="NIPS",
+                doi="10.1000/transformers",
+                url="https://arxiv.org/abs/1706.03762",
+                abstract=(
+                    "We propose a new simple network architecture, the Transformer, "
+                    "based solely on attention mechanisms. The Transformer achieves "
+                    "state-of-the-art results in machine translation tasks."
+                ),
+                source_api="semantic_scholar",
+            )
+        ][:max_results]
+
+    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
+    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
+    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+
+    result = CliRunner().invoke(main, ["check", str(path), "--format", "json"])
+    assert result.exit_code in (0, 1)
+
+    payload = json.loads(result.output)
+    assert "priority_review" in payload
+    assert len(payload["priority_review"]) >= 1
+
+    # Check that evidence is present in the JSON output
+    pr = payload["priority_review"][0]
+    assert "matched" in pr
+    assert pr["matched"] is not None
+    assert "evidence" in pr["matched"]
+    evidence = pr["matched"]["evidence"]
+    assert isinstance(evidence, list)
+    assert len(evidence) >= 1
+    assert "text" in evidence[0]
+    assert "relevance_score" in evidence[0]
+    assert "verdict" in evidence[0]
+
+
+def test_check_require_evidence_filter(tmp_path, monkeypatch) -> None:
+    """--require-evidence filters out claims without evidence."""
+    from citeguard.models import SourceCandidate
+
+    path = _doc(
+        tmp_path,
+        "Transformers were introduced in 2017. "
+        "The sky appears blue during daytime.",
+    )
+
+    def fake_search_transformers(_self, query, max_results=5):
+        if "transformer" in query.lower() or "2017" in query.lower():
+            return [
+                SourceCandidate(
+                    title="Attention Is All You Need",
+                    authors=["Vaswani", "Shazeer", "Parmar"],
+                    year=2017,
+                    venue="NIPS",
+                    doi="10.1000/transformers",
+                    url="https://arxiv.org/abs/1706.03762",
+                    abstract=(
+                        "We propose a new simple network architecture, the Transformer, "
+                        "based solely on attention mechanisms. The Transformer achieves "
+                        "state-of-the-art results in machine translation tasks."
+                    ),
+                    source_api="semantic_scholar",
+                )
+            ][:max_results]
+        return []
+
+    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search_transformers)
+    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search_transformers)
+    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search_transformers)
+
+    # Without --require-evidence: both claims should appear
+    result_all = CliRunner().invoke(main, ["check", str(path), "--format", "json"])
+    payload_all = json.loads(result_all.output)
+    assert len(payload_all["priority_review"]) >= 2
+
+    # With --require-evidence: only claim with evidence should appear
+    result_filtered = CliRunner().invoke(
+        main, ["check", str(path), "--format", "json", "--require-evidence"]
+    )
+    payload_filtered = json.loads(result_filtered.output)
+    assert len(payload_filtered["priority_review"]) == 1
+    assert "Transformers" in payload_filtered["priority_review"][0]["claim_text"]
