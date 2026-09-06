@@ -177,8 +177,16 @@ class LLMRouter:
             self._health[name] = ProviderHealth()
         return self._health[name]
 
-    def _build_chain(self) -> list[str]:
-        """Build ordered provider chain: primary → fallbacks."""
+    def _build_chain(
+        self, provider: str | None = None,
+    ) -> list[str]:
+        """Build ordered provider chain.
+
+        If *provider* is given (task-specific), use only that provider.
+        Otherwise: primary → fallbacks.
+        """
+        if provider:
+            return [provider]
         chain: list[str] = []
         if self._primary_name:
             chain.append(self._primary_name)
@@ -187,19 +195,37 @@ class LLMRouter:
                 chain.append(name)
         return chain
 
+    def _resolve_model_for_provider(
+        self,
+        provider_name: str,
+        caller_model: str | None,
+    ) -> str:
+        """Resolve the model for a specific provider.
+
+        If the caller passed an explicit model, use it for the FIRST
+        provider only.  Subsequent fallback providers use their own
+        default model to avoid sending e.g. "claude-sonnet" to OpenAI.
+        """
+        if caller_model:
+            return caller_model
+
+        from .config import _PROVIDER_DEFAULT_MODELS
+
+        return _PROVIDER_DEFAULT_MODELS.get(provider_name, "default")
+
     def _try_single(
         self,
         backend: LLMBackend,
         system: str,
         user_message: str,
         *,
-        model: str | None = None,
+        model: str,
         max_tokens: int = 2048,
+        json_schema: dict | None = None,
     ) -> LLMResponse:
         """Try a single provider with retry + backoff."""
         cb = self._get_breaker(backend.name)
         health = self._get_health(backend.name)
-        active_model = model or "default"
 
         # Circuit breaker check
         if cb.is_open:
@@ -209,7 +235,7 @@ class LLMRouter:
             return LLMResponse(
                 text=None,
                 provider=backend.name,
-                model=active_model,
+                model=model,
                 latency_ms=0,
                 status_code=0,
                 attempts=0,
@@ -221,9 +247,10 @@ class LLMRouter:
         for attempt in range(1, _MAX_RETRIES + 1):
             resp = backend.chat(
                 system, user_message,
-                model=active_model,
+                model=model,
                 max_tokens=max_tokens,
                 timeout=self._timeout,
+                json_schema=json_schema,
             )
             last_resp = resp
 
@@ -250,6 +277,9 @@ class LLMRouter:
                     _INITIAL_BACKOFF_S * (2 ** (attempt - 1)),
                     _MAX_BACKOFF_S,
                 )
+                # Respect Retry-After header
+                if resp.retry_after is not None:
+                    backoff = min(resp.retry_after, _MAX_BACKOFF_S)
                 log.debug(
                     "Retry %d/%d for %s in %.1fs (status=%d)",
                     attempt, _MAX_RETRIES, backend.name,
@@ -270,7 +300,7 @@ class LLMRouter:
         return last_resp or LLMResponse(
             text=None,
             provider=backend.name,
-            model=active_model,
+            model=model,
             latency_ms=0,
             status_code=0,
             attempts=0,
@@ -282,26 +312,47 @@ class LLMRouter:
         system: str,
         user_message: str,
         *,
+        provider: str | None = None,
         model: str | None = None,
         max_tokens: int = 2048,
         timeout: float | None = None,
+        json_schema: dict[str, object] | None = None,
     ) -> LLMResponse | None:
         """Call through the provider chain with retry and failover.
+
+        Parameters
+        ----------
+        provider:
+            When given (task-specific), only this provider is tried.
+            When ``None``, the global primary → fallback chain is used.
+        model:
+            Model name for the first provider.  Fallback providers use
+            their own default models when *model* is ``None``.
+        json_schema:
+            Optional JSON schema for structured output.  Passed to the
+            backend only when the provider declares ``json_schema=True``.
 
         Returns ``None`` when all providers are exhausted.
         """
         if timeout is not None:
             self._timeout = timeout
 
-        chain = self._build_chain()
+        chain = self._build_chain(provider)
+        first = True
         for provider_name in chain:
             backend = resolve_backend(provider_name)
             if backend is None:
                 continue
 
+            active_model = self._resolve_model_for_provider(
+                provider_name, model if first else None,
+            )
+            first = False
+
             resp = self._try_single(
                 backend, system, user_message,
-                model=model, max_tokens=max_tokens,
+                model=active_model, max_tokens=max_tokens,
+                json_schema=json_schema,
             )
             if resp.text is not None:
                 return resp

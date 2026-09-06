@@ -12,6 +12,7 @@ from citeguard.llm_backends import (
     XAIBackend,
     _extract_text_from_openai,
     _extract_text_from_responses,
+    _RawHTTPResponse,
     auto_detect_provider,
     resolve_backend,
 )
@@ -225,13 +226,16 @@ def test_anthropic_contract(monkeypatch) -> None:
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-key")
     captured: dict = {}
 
-    def fake_post(url, headers, payload, timeout):
+    def fake_post_raw(url, headers, payload, timeout):
         captured["url"] = url
         captured["headers"] = headers
         captured["payload"] = payload
-        return {"content": [{"type": "text", "text": "ok"}]}
+        return _RawHTTPResponse(
+            data={"content": [{"type": "text", "text": "ok"}]},
+            status_code=200, headers={},
+        )
 
-    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
     backend = AnthropicBackend()
     result = backend.chat("sys", "usr", model="claude-3", max_tokens=100)
 
@@ -251,19 +255,22 @@ def test_openai_contract(monkeypatch) -> None:
     monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-key")
     captured: dict = {}
 
-    def fake_post(url, headers, payload, timeout):
+    def fake_post_raw(url, headers, payload, timeout):
         captured["url"] = url
         captured["headers"] = headers
         captured["payload"] = payload
-        return {
-            "output": [
-                {"type": "message", "content": [
-                    {"type": "output_text", "text": "hi"},
-                ]},
-            ],
-        }
+        return _RawHTTPResponse(
+            data={
+                "output": [
+                    {"type": "message", "content": [
+                        {"type": "output_text", "text": "hi"},
+                    ]},
+                ],
+            },
+            status_code=200, headers={},
+        )
 
-    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
     backend = OpenAIBackend()
     result = backend.chat("sys", "usr", model="gpt-4o")
 
@@ -281,19 +288,22 @@ def test_xai_contract(monkeypatch) -> None:
     monkeypatch.setenv("XAI_API_KEY", "xai-test-key")
     captured: dict = {}
 
-    def fake_post(url, headers, payload, timeout):
+    def fake_post_raw(url, headers, payload, timeout):
         captured["url"] = url
         captured["headers"] = headers
         captured["payload"] = payload
-        return {
-            "output": [
-                {"type": "message", "content": [
-                    {"type": "output_text", "text": "grok"},
-                ]},
-            ],
-        }
+        return _RawHTTPResponse(
+            data={
+                "output": [
+                    {"type": "message", "content": [
+                        {"type": "output_text", "text": "grok"},
+                    ]},
+                ],
+            },
+            status_code=200, headers={},
+        )
 
-    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
     backend = XAIBackend()
     result = backend.chat("sys", "usr", model="grok-3")
 
@@ -307,13 +317,16 @@ def test_groq_contract(monkeypatch) -> None:
     monkeypatch.setenv("GROQ_API_KEY", "gsk_test_key")
     captured: dict = {}
 
-    def fake_post(url, headers, payload, timeout):
+    def fake_post_raw(url, headers, payload, timeout):
         captured["url"] = url
         captured["headers"] = headers
         captured["payload"] = payload
-        return {"choices": [{"message": {"content": "groq-res"}}]}
+        return _RawHTTPResponse(
+            data={"choices": [{"message": {"content": "groq-res"}}]},
+            status_code=200, headers={},
+        )
 
-    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
     backend = GroqBackend()
     result = backend.chat("sys", "usr", model="llama-3.3-70b")
 
@@ -329,13 +342,16 @@ def test_openrouter_contract(monkeypatch) -> None:
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test")
     captured: dict = {}
 
-    def fake_post(url, headers, payload, timeout):
+    def fake_post_raw(url, headers, payload, timeout):
         captured["url"] = url
         captured["headers"] = headers
         captured["payload"] = payload
-        return {"choices": [{"message": {"content": "or-res"}}]}
+        return _RawHTTPResponse(
+            data={"choices": [{"message": {"content": "or-res"}}]},
+            status_code=200, headers={},
+        )
 
-    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
     backend = OpenRouterBackend()
     result = backend.chat("sys", "usr", model="anthropic/claude-3")
 
@@ -352,13 +368,16 @@ def test_nvidia_contract(monkeypatch) -> None:
     monkeypatch.setenv("NVIDIA_API_KEY", "nvapi-test")
     captured: dict = {}
 
-    def fake_post(url, headers, payload, timeout):
+    def fake_post_raw(url, headers, payload, timeout):
         captured["url"] = url
         captured["headers"] = headers
         captured["payload"] = payload
-        return {"choices": [{"message": {"content": "nvidia-res"}}]}
+        return _RawHTTPResponse(
+            data={"choices": [{"message": {"content": "nvidia-res"}}]},
+            status_code=200, headers={},
+        )
 
-    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
     backend = NvidiaBackend()
     result = backend.chat("sys", "usr", model="meta/llama-3.3-70b-instruct")
 
@@ -375,13 +394,16 @@ def test_custom_contract(monkeypatch) -> None:
     monkeypatch.setenv("CITEGUARD_LLM_API_KEY", "ollama")
     captured: dict = {}
 
-    def fake_post(url, headers, payload, timeout):
+    def fake_post_raw(url, headers, payload, timeout):
         captured["url"] = url
         captured["headers"] = headers
         captured["payload"] = payload
-        return {"choices": [{"message": {"content": "local-res"}}]}
+        return _RawHTTPResponse(
+            data={"choices": [{"message": {"content": "local-res"}}]},
+            status_code=200, headers={},
+        )
 
-    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
     backend = CustomBackend()
     result = backend.chat("sys", "usr", model="qwen3")
 
@@ -389,3 +411,141 @@ def test_custom_contract(monkeypatch) -> None:
     assert captured["url"] == "http://localhost:11434/v1/chat/completions"
     assert captured["headers"]["Authorization"] == "Bearer ollama"
     assert captured["payload"]["model"] == "qwen3"
+
+
+# ---------------------------------------------------------------------------
+# Structured output in payload
+# ---------------------------------------------------------------------------
+
+
+def test_structured_output_in_openai_payload(monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-key")
+    captured: dict = {}
+
+    def fake_post_raw(url, headers, payload, timeout):
+        captured["payload"] = payload
+        return _RawHTTPResponse(
+            data={
+                "output": [
+                    {"type": "message", "content": [
+                        {"type": "output_text", "text": "[]"},
+                    ]},
+                ],
+            },
+            status_code=200, headers={},
+        )
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
+    schema = {"type": "array", "items": {"type": "object"}}
+    backend = OpenAIBackend()
+    backend.chat("sys", "usr", model="gpt-4o", json_schema=schema)
+
+    assert "text" in captured["payload"]
+    fmt = captured["payload"]["text"]["format"]
+    assert fmt["type"] == "json_schema"
+    assert fmt["schema"] == schema
+
+
+def test_structured_output_not_added_when_unsupported(monkeypatch) -> None:
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_test")
+    captured: dict = {}
+
+    def fake_post_raw(url, headers, payload, timeout):
+        captured["payload"] = payload
+        return _RawHTTPResponse(
+            data={"choices": [{"message": {"content": "ok"}}]},
+            status_code=200, headers={},
+        )
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
+    schema = {"type": "array", "items": {"type": "object"}}
+    backend = GroqBackend()
+    backend.chat("sys", "usr", model="llama-3.3-70b", json_schema=schema)
+
+    assert "response_format" not in captured["payload"]
+
+
+# ---------------------------------------------------------------------------
+# HTTP error propagation
+# ---------------------------------------------------------------------------
+
+
+def test_http_error_propagates_status_code(monkeypatch) -> None:
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_test")
+
+    def fake_post_raw(url, headers, payload, timeout):
+        return _RawHTTPResponse(
+            data=None, status_code=429,
+            headers={"Retry-After": "5"},
+            error="HTTP 429: rate limited",
+        )
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
+    backend = GroqBackend()
+    result = backend.chat("sys", "usr", model="llama-3")
+
+    assert result.text is None
+    assert result.status_code == 429
+    assert result.retry_after == 5.0
+    assert result.error is not None
+
+
+def test_http_auth_error_propagates_status_code(monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+
+    def fake_post_raw(url, headers, payload, timeout):
+        return _RawHTTPResponse(
+            data=None, status_code=401,
+            headers={},
+            error="HTTP 401: invalid key",
+        )
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
+    backend = OpenAIBackend()
+    result = backend.chat("sys", "usr", model="gpt-4o")
+
+    assert result.text is None
+    assert result.status_code == 401
+    assert result.error is not None
+
+
+# ---------------------------------------------------------------------------
+# api_key_override for CustomBackend
+# ---------------------------------------------------------------------------
+
+
+def test_custom_backend_uses_override_key(monkeypatch) -> None:
+    monkeypatch.setenv("CITEGUARD_LLM_BASE_URL", "http://localhost:8080/v1")
+    monkeypatch.setenv("CITEGUARD_LLM_API_KEY", "ollama")
+    captured: dict = {}
+
+    def fake_post_raw(url, headers, payload, timeout):
+        captured["headers"] = headers
+        return _RawHTTPResponse(
+            data={"choices": [{"message": {"content": "hi"}}]},
+            status_code=200, headers={},
+        )
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post_raw", fake_post_raw)
+    backend = CustomBackend()
+    result = backend.chat("sys", "usr", model="test")
+
+    assert result.text == "hi"
+    assert captured["headers"]["Authorization"] == "Bearer ollama"
+
+
+# ---------------------------------------------------------------------------
+# _parse_retry_after helper
+# ---------------------------------------------------------------------------
+
+
+def test_parse_retry_after_valid() -> None:
+    from citeguard.llm_backends import _parse_retry_after
+    assert _parse_retry_after({"Retry-After": "10"}) == 10.0
+    assert _parse_retry_after({"retry-after": "2.5"}) == 2.5
+
+
+def test_parse_retry_after_missing() -> None:
+    from citeguard.llm_backends import _parse_retry_after
+    assert _parse_retry_after({}) is None
+    assert _parse_retry_after({"Retry-After": "invalid"}) is None

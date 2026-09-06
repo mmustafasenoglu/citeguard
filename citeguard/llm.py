@@ -237,10 +237,22 @@ def _call_llm_detailed(
     max_tokens: int = 2048,
     timeout: float = _DEFAULT_TIMEOUT,
     task: str = "general",
+    json_schema: dict[str, object] | None = None,
 ) -> LLMResponse | None:
     """Send a chat request through the router with caching and audit."""
     cache = _get_cache()
+
+    # Resolve task-specific provider + model for cache key
+    task_provider: str | None = None
     resolved_model = model
+    if task and model is None and backend is None:
+        from .config import TaskModelSettings
+
+        task_settings = TaskModelSettings.from_env(task)
+        if task_settings.provider:
+            task_provider = task_settings.provider
+        if task_settings.model:
+            resolved_model = task_settings.model
 
     # Resolve model for cache key (if not provided, use default)
     if resolved_model is None:
@@ -248,12 +260,29 @@ def _call_llm_detailed(
         if temp:
             _, resolved_model = temp
 
-    # Cache lookup
-    provider_name = backend.name if backend else "auto"
+    # Cache lookup — use task_provider if set, else resolved backend name
+    if task_provider:
+        provider_name = task_provider
+    elif backend is not None:
+        provider_name = backend.name
+    else:
+        # Resolve the primary provider name for cache key
+        from .llm_backends import auto_detect_provider
+
+        provider_name = (
+            os.getenv("CITEGUARD_LLM_PROVIDER", "").strip().lower()
+            or auto_detect_provider()
+            or "unknown"
+        )
+
     if resolved_model:
-        cached = cache.get(provider_name, resolved_model, system, user_message)
+        cached = cache.get(
+            provider_name, resolved_model, system, user_message,
+        )
         if cached is not None:
-            log.debug("LLM cache hit for %s/%s", provider_name, resolved_model)
+            log.debug(
+                "LLM cache hit for %s/%s", provider_name, resolved_model,
+            )
             _audit_log.append(LLMAuditEntry(
                 task=task, provider=cached.provider, model=cached.model,
                 latency_ms=0, status_code=200, attempts=0, cached=True,
@@ -265,12 +294,16 @@ def _call_llm_detailed(
     start = time.monotonic()
     resp = router.call(
         system, user_message,
-        model=resolved_model, max_tokens=max_tokens, timeout=timeout,
+        provider=task_provider,
+        model=resolved_model,
+        max_tokens=max_tokens,
+        timeout=timeout,
+        json_schema=json_schema,
     )
     elapsed_ms = (time.monotonic() - start) * 1000
 
     if resp and resp.text:
-        # Store in cache
+        # Store in cache with the actual provider name from response
         cache.put(
             resp.provider, resp.model, system, user_message, resp,
         )

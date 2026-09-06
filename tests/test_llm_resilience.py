@@ -236,7 +236,7 @@ class MockBackend:
 
     def chat(
         self, system, user_message, *, model="mock",
-        max_tokens=2048, timeout=30,
+        max_tokens=2048, timeout=30, json_schema=None,
     ) -> LLMResponse:
         if self._call_count < len(self._responses):
             resp = self._responses[self._call_count]
@@ -354,6 +354,185 @@ def test_router_active_provider(monkeypatch) -> None:
 
     router = LLMRouter()
     assert router.active_provider == "groq"
+
+
+# ---------------------------------------------------------------------------
+# Wiring regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_router_task_specific_provider(monkeypatch) -> None:
+    """Task-specific provider param uses only that provider, not global chain."""
+    resp = LLMResponse(
+        text="ok", provider="groq", model="test",
+        latency_ms=100, status_code=200, attempts=1,
+    )
+    call_log: list[str] = []
+
+    def make_mock(name=None):
+        mock = MockBackend(responses=[resp], name=name or "mock")
+        original_chat = mock.chat
+
+        def tracked_chat(*args, **kwargs):
+            call_log.append(kwargs.get("model", "default"))
+            return original_chat(*args, **kwargs)
+
+        mock.chat = tracked_chat
+        return mock
+
+    monkeypatch.setattr("citeguard.llm_router.resolve_backend", make_mock)
+    monkeypatch.setenv("CITEGUARD_LLM_FALLBACKS", "openrouter")
+    monkeypatch.delenv("CITEGUARD_LLM_MODEL", raising=False)
+
+    router = LLMRouter()
+    result = router.call("sys", "usr", provider="groq")
+    assert result is not None
+    assert result.text == "ok"
+    assert len(call_log) == 1
+
+
+def test_router_fallback_uses_own_default_model(monkeypatch) -> None:
+    """Fallback providers use their own default model, not primary's."""
+    groq_resp = LLMResponse(
+        text=None, provider="groq", model="test",
+        latency_ms=50, status_code=429, attempts=1, error="rate limited",
+    )
+    openrouter_resp = LLMResponse(
+        text="ok", provider="openrouter", model="test",
+        latency_ms=100, status_code=200, attempts=1,
+    )
+    models_seen: list[tuple[str, str]] = []
+
+    def make_mock(name=None):
+        if name == "openrouter":
+            mock = MockBackend(responses=[openrouter_resp], name="openrouter")
+        else:
+            mock = MockBackend(responses=[groq_resp], name="groq")
+        original_chat = mock.chat
+
+        def tracked_chat(*args, **kwargs):
+            models_seen.append((name or "mock", kwargs.get("model", "default")))
+            return original_chat(*args, **kwargs)
+
+        mock.chat = tracked_chat
+        return mock
+
+    monkeypatch.setattr("citeguard.llm_router.resolve_backend", make_mock)
+    monkeypatch.setenv("CITEGUARD_LLM_FALLBACKS", "openrouter")
+    monkeypatch.delenv("CITEGUARD_LLM_MODEL", raising=False)
+
+    router = LLMRouter()
+    result = router.call("sys", "usr")
+    assert result is not None
+    assert result.text == "ok"
+    assert len(models_seen) >= 2
+    assert models_seen[0][0] == "groq"
+    assert models_seen[-1][0] == "openrouter"
+
+
+def test_router_passes_json_schema_to_backend(monkeypatch) -> None:
+    """Router forwards json_schema to backends that support it."""
+    captured: list = []
+
+    class SchemaMockBackend:
+        name = "mock"
+        capabilities = LLMCapabilities(json_schema=True)
+
+        def chat(self, system, user_message, *, model="mock",
+                 max_tokens=2048, timeout=30, json_schema=None):
+            captured.append(json_schema)
+            return LLMResponse(
+                text="ok", provider="mock", model=model,
+                latency_ms=50, status_code=200, attempts=1,
+            )
+
+    monkeypatch.setattr(
+        "citeguard.llm_router.resolve_backend",
+        lambda name=None: SchemaMockBackend(),
+    )
+    monkeypatch.delenv("CITEGUARD_LLM_FALLBACKS", raising=False)
+
+    schema = {"type": "object", "properties": {"verdict": {"type": "string"}}}
+    router = LLMRouter()
+    result = router.call("sys", "usr", json_schema=schema)
+    assert result is not None
+    assert captured[-1] == schema
+
+
+def test_http_error_status_code_reaches_router(monkeypatch) -> None:
+    """Real HTTP status codes (429, 500, 401) reach router retry/circuit logic."""
+    call_count = 0
+
+    class StatusMockBackend:
+        name = "mock"
+        capabilities = LLMCapabilities()
+
+        def chat(self, system, user_message, *, model="mock",
+                 max_tokens=2048, timeout=30, json_schema=None):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return LLMResponse(
+                    text=None, provider="mock", model=model,
+                    latency_ms=50, status_code=429, attempts=1,
+                    error="rate limited", retry_after=0.01,
+                )
+            return LLMResponse(
+                text="ok", provider="mock", model=model,
+                latency_ms=100, status_code=200, attempts=1,
+            )
+
+    monkeypatch.setattr(
+        "citeguard.llm_router.resolve_backend",
+        lambda name=None: StatusMockBackend(),
+    )
+    monkeypatch.delenv("CITEGUARD_LLM_FALLBACKS", raising=False)
+
+    router = LLMRouter()
+    result = router.call("sys", "usr")
+    assert result is not None
+    assert result.text == "ok"
+    assert call_count == 2
+
+
+def test_cache_uses_resolved_provider_name(monkeypatch) -> None:
+    """Cache key uses resolved provider name, not 'auto'."""
+    from citeguard.llm_cache import LLMCache
+
+    class ProviderMockBackend:
+        name = "groq"
+        capabilities = LLMCapabilities()
+
+        def chat(self, system, user_message, *, model="mock",
+                 max_tokens=2048, timeout=30, json_schema=None):
+            return LLMResponse(
+                text="ok", provider="groq", model=model,
+                latency_ms=50, status_code=200, attempts=1,
+            )
+
+    monkeypatch.setattr(
+        "citeguard.llm_router.resolve_backend",
+        lambda name=None: ProviderMockBackend(),
+    )
+    monkeypatch.delenv("CITEGUARD_LLM_FALLBACKS", raising=False)
+
+    import citeguard.llm as llm_mod
+    original_cache = llm_mod._cache
+    original_router = llm_mod._router
+    llm_mod._cache = LLMCache(prompt_version="test")
+    llm_mod._router = None
+    try:
+        # Call through the full _call_llm_detailed path
+        resp = llm_mod._call_llm_detailed("sys", "usr", task="test")
+        assert resp is not None
+        # Cache should store with the real provider name ("groq"), not "auto"
+        hit = llm_mod._cache.get("groq", resp.model, "sys", "usr")
+        assert hit is not None
+        miss = llm_mod._cache.get("auto", resp.model, "sys", "usr")
+        assert miss is None
+    finally:
+        llm_mod._cache = original_cache
+        llm_mod._router = original_router
 
 
 # ---------------------------------------------------------------------------

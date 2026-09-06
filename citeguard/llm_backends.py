@@ -20,6 +20,7 @@ Supported providers:
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import time
@@ -50,6 +51,7 @@ class LLMResponse:
     input_tokens: int | None = None
     output_tokens: int | None = None
     total_tokens: int | None = None
+    retry_after: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,6 +97,7 @@ class LLMBackend(Protocol):
         model: str,
         max_tokens: int = 2048,
         timeout: float = _DEFAULT_TIMEOUT,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse: ...
 
 
@@ -103,22 +106,84 @@ class LLMBackend(Protocol):
 # ---------------------------------------------------------------------------
 
 
-def _http_post(
+@dataclass(slots=True)
+class _RawHTTPResponse:
+    """Raw HTTP response with status code and headers."""
+
+    data: dict[str, Any] | None
+    status_code: int
+    headers: dict[str, str]
+    error: str | None = None
+
+
+def _parse_retry_after(headers: dict[str, str]) -> float | None:
+    """Extract Retry-After header value in seconds."""
+    for key in ("Retry-After", "retry-after"):
+        val = headers.get(key)
+        if val:
+            try:
+                return float(val)
+            except (ValueError, TypeError):
+                pass
+    return None
+
+
+def _http_post_raw(
     url: str,
     headers: dict[str, str],
     payload: dict[str, Any],
     timeout: float,
-) -> dict[str, Any] | None:
-    """POST JSON to *url* and return parsed response, or ``None`` on failure."""
+) -> _RawHTTPResponse:
+    """POST JSON and return structured response with status code + headers."""
     data = json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(
         url, data=data, headers=headers, method="POST",
     )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError):
-        return None
+            body = json.loads(resp.read().decode("utf-8"))
+            resp_headers = dict(resp.headers)
+            return _RawHTTPResponse(
+                data=body,
+                status_code=resp.status,
+                headers=resp_headers,
+            )
+    except urllib.error.HTTPError as exc:
+        resp_headers = dict(exc.headers) if exc.headers else {}
+        error_body = None
+        if exc.readable():
+            with contextlib.suppress(Exception):
+                error_body = exc.read().decode("utf-8", errors="replace")
+        return _RawHTTPResponse(
+            data=None,
+            status_code=exc.code,
+            headers=resp_headers,
+            error=f"HTTP {exc.code}: {error_body or exc.reason}",
+        )
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        return _RawHTTPResponse(
+            data=None, status_code=0, headers={},
+            error=str(exc),
+        )
+    except json.JSONDecodeError as exc:
+        return _RawHTTPResponse(
+            data=None, status_code=200, headers={},
+            error=f"Invalid JSON: {exc}",
+        )
+
+
+def _http_post(
+    url: str,
+    headers: dict[str, str],
+    payload: dict[str, Any],
+    timeout: float,
+) -> dict[str, Any] | None:
+    """POST JSON to *url* and return parsed response, or ``None`` on failure.
+
+    Backward-compatible wrapper — prefer ``_http_post_raw()`` for new code.
+    """
+    result = _http_post_raw(url, headers, payload, timeout)
+    return result.data
 
 
 def _extract_text_from_openai(data: dict[str, Any]) -> str | None:
@@ -181,13 +246,21 @@ def _extract_usage_anthropic(data: dict[str, Any]) -> dict[str, int | None]:
 class OpenAICompatibleBackend:
     """Generic backend for OpenAI Chat Completions-compatible providers."""
 
-    def __init__(self, spec: ProviderSpec) -> None:
+    def __init__(
+        self,
+        spec: ProviderSpec,
+        *,
+        api_key_override: str | None = None,
+    ) -> None:
         self._spec = spec
         self.name = spec.name
         self.capabilities = spec.capabilities
+        self._api_key_override = api_key_override
 
     @property
     def api_key(self) -> str | None:
+        if self._api_key_override is not None:
+            return self._api_key_override
         return os.getenv(self._spec.api_key_env)
 
     def chat(
@@ -198,6 +271,7 @@ class OpenAICompatibleBackend:
         model: str,
         max_tokens: int = 2048,
         timeout: float = _DEFAULT_TIMEOUT,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse:
         start = time.monotonic()
         api_key = self.api_key
@@ -220,29 +294,40 @@ class OpenAICompatibleBackend:
                 {"role": "user", "content": user_message},
             ],
         }
+        if json_schema is not None and self.capabilities.json_schema:
+            payload["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "citeguard_response",
+                    "strict": True,
+                    "schema": json_schema,
+                },
+            }
+
         headers: dict[str, str] = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",
             **self._spec.extra_headers,
         }
 
-        data = _http_post(self._spec.endpoint, headers, payload, timeout)
+        raw = _http_post_raw(self._spec.endpoint, headers, payload, timeout)
         latency = (time.monotonic() - start) * 1000
 
-        if data is None:
+        if raw.data is None:
             return LLMResponse(
                 text=None,
                 provider=self.name,
                 model=model,
                 latency_ms=latency,
-                status_code=0,
+                status_code=raw.status_code,
                 attempts=1,
-                error="Request failed",
+                error=raw.error or "Request failed",
+                retry_after=_parse_retry_after(raw.headers),
             )
 
-        usage = _extract_usage_openai(data)
+        usage = _extract_usage_openai(raw.data)
         return LLMResponse(
-            text=_extract_text_from_openai(data),
+            text=_extract_text_from_openai(raw.data),
             provider=self.name,
             model=model,
             latency_ms=latency,
@@ -260,13 +345,21 @@ class OpenAICompatibleBackend:
 class OpenAIResponsesBackend:
     """Generic backend for OpenAI Responses API providers."""
 
-    def __init__(self, spec: ProviderSpec) -> None:
+    def __init__(
+        self,
+        spec: ProviderSpec,
+        *,
+        api_key_override: str | None = None,
+    ) -> None:
         self._spec = spec
         self.name = spec.name
         self.capabilities = spec.capabilities
+        self._api_key_override = api_key_override
 
     @property
     def api_key(self) -> str | None:
+        if self._api_key_override is not None:
+            return self._api_key_override
         return os.getenv(self._spec.api_key_env)
 
     def chat(
@@ -277,6 +370,7 @@ class OpenAIResponsesBackend:
         model: str,
         max_tokens: int = 2048,
         timeout: float = _DEFAULT_TIMEOUT,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse:
         start = time.monotonic()
         api_key = self.api_key
@@ -299,28 +393,39 @@ class OpenAIResponsesBackend:
             ],
             "max_output_tokens": max_tokens,
         }
+        if json_schema is not None and self.capabilities.json_schema:
+            payload["text"] = {
+                "format": {
+                    "type": "json_schema",
+                    "name": "citeguard_response",
+                    "schema": json_schema,
+                    "strict": True,
+                },
+            }
+
         headers: dict[str, str] = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",
         }
 
-        data = _http_post(self._spec.endpoint, headers, payload, timeout)
+        raw = _http_post_raw(self._spec.endpoint, headers, payload, timeout)
         latency = (time.monotonic() - start) * 1000
 
-        if data is None:
+        if raw.data is None:
             return LLMResponse(
                 text=None,
                 provider=self.name,
                 model=model,
                 latency_ms=latency,
-                status_code=0,
+                status_code=raw.status_code,
                 attempts=1,
-                error="Request failed",
+                error=raw.error or "Request failed",
+                retry_after=_parse_retry_after(raw.headers),
             )
 
-        usage = _extract_usage_openai(data)
+        usage = _extract_usage_openai(raw.data)
         return LLMResponse(
-            text=_extract_text_from_responses(data),
+            text=_extract_text_from_responses(raw.data),
             provider=self.name,
             model=model,
             latency_ms=latency,
@@ -352,6 +457,7 @@ class AnthropicBackend:
         model: str,
         max_tokens: int = 2048,
         timeout: float = _DEFAULT_TIMEOUT,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse:
         start = time.monotonic()
         api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -366,7 +472,7 @@ class AnthropicBackend:
                 error="No API key (ANTHROPIC_API_KEY)",
             )
 
-        payload = {
+        payload: dict[str, Any] = {
             "model": model,
             "max_tokens": max_tokens,
             "system": system,
@@ -378,28 +484,29 @@ class AnthropicBackend:
             "anthropic-version": ANTHROPIC_VERSION,
         }
 
-        data = _http_post(ANTHROPIC_ENDPOINT, headers, payload, timeout)
+        raw = _http_post_raw(ANTHROPIC_ENDPOINT, headers, payload, timeout)
         latency = (time.monotonic() - start) * 1000
 
-        if data is None:
+        if raw.data is None:
             return LLMResponse(
                 text=None,
                 provider="anthropic",
                 model=model,
                 latency_ms=latency,
-                status_code=0,
+                status_code=raw.status_code,
                 attempts=1,
-                error="Request failed",
+                error=raw.error or "Request failed",
+                retry_after=_parse_retry_after(raw.headers),
             )
 
         text = None
-        content = data.get("content")
+        content = raw.data.get("content")
         if isinstance(content, list) and content and isinstance(content[0], dict):
             t = content[0].get("text", "")
             if isinstance(t, str):
                 text = t
 
-        usage = _extract_usage_anthropic(data)
+        usage = _extract_usage_anthropic(raw.data)
         return LLMResponse(
             text=text,
             provider="anthropic",
@@ -469,6 +576,13 @@ XAI_SPEC = ProviderSpec(
     default_model="grok-3",
 )
 
+_CUSTOM_SPEC = ProviderSpec(
+    name="custom",
+    endpoint="",
+    api_key_env="CITEGUARD_LLM_API_KEY",
+    protocol="chat_completions",
+)
+
 
 # ---------------------------------------------------------------------------
 # Named wrapper classes (backward compat)
@@ -510,19 +624,24 @@ class XAIBackend(OpenAIResponsesBackend):
         super().__init__(XAI_SPEC)
 
 
-class CustomBackend:
+class CustomBackend(OpenAICompatibleBackend):
     """OpenAI-compatible Chat Completions for custom endpoints.
 
     Controlled by ``CITEGUARD_LLM_BASE_URL``, ``CITEGUARD_LLM_API_KEY``,
     and ``CITEGUARD_LLM_MODEL``.
     """
 
-    name = "custom"
-    capabilities = LLMCapabilities()
-
     def __init__(self) -> None:
-        self._base_url = os.getenv("CITEGUARD_LLM_BASE_URL", "").rstrip("/")
-        self._api_key = os.getenv("CITEGUARD_LLM_API_KEY", "no-key")
+        base_url = os.getenv("CITEGUARD_LLM_BASE_URL", "").rstrip("/")
+        api_key = os.getenv("CITEGUARD_LLM_API_KEY", "no-key")
+        spec = ProviderSpec(
+            name="custom",
+            endpoint=f"{base_url}/chat/completions" if base_url else "",
+            api_key_env="CITEGUARD_LLM_API_KEY",
+            protocol="chat_completions",
+        )
+        super().__init__(spec, api_key_override=api_key if base_url else None)
+        self._base_url = base_url
 
     def chat(
         self,
@@ -532,6 +651,7 @@ class CustomBackend:
         model: str,
         max_tokens: int = 2048,
         timeout: float = _DEFAULT_TIMEOUT,
+        json_schema: dict[str, Any] | None = None,
     ) -> LLMResponse:
         if not self._base_url:
             return LLMResponse(
@@ -543,30 +663,11 @@ class CustomBackend:
                 attempts=0,
                 error="No CITEGUARD_LLM_BASE_URL configured",
             )
-        endpoint = f"{self._base_url}/chat/completions"
-        spec = ProviderSpec(
-            name="custom",
-            endpoint=endpoint,
-            api_key_env="CITEGUARD_LLM_API_KEY",
-            protocol="chat_completions",
+        return super().chat(
+            system, user_message,
+            model=model, max_tokens=max_tokens, timeout=timeout,
+            json_schema=json_schema,
         )
-        backend = OpenAICompatibleBackend(spec)
-        # Override api_key property directly
-        original = os.environ.get
-
-        def _patched_get(k: str, d: str = "") -> str | None:
-            if k == "CITEGUARD_LLM_API_KEY":
-                return self._api_key
-            return original(k, d)
-
-        os.environ.get = _patched_get
-        try:
-            return backend.chat(
-                system, user_message,
-                model=model, max_tokens=max_tokens, timeout=timeout,
-            )
-        finally:
-            os.environ.get = original
 
 
 # ---------------------------------------------------------------------------
