@@ -202,3 +202,165 @@ def test_extract_text_from_responses_non_message() -> None:
         ]
     }
     assert _extract_text_from_responses(data) is None
+
+
+# ---------------------------------------------------------------------------
+# HTTP contract tests — verify endpoint, headers, and payload shape
+# ---------------------------------------------------------------------------
+
+
+def test_anthropic_contract(monkeypatch) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-key")
+    captured: dict = {}
+
+    def fake_post(url, headers, payload, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["payload"] = payload
+        return {"content": [{"type": "text", "text": "ok"}]}
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    backend = AnthropicBackend()
+    result = backend.chat("sys", "usr", model="claude-3", max_tokens=100)
+
+    assert result == "ok"
+    assert captured["url"] == "https://api.anthropic.com/v1/messages"
+    assert captured["headers"]["x-api-key"] == "sk-ant-test-key"
+    assert captured["headers"]["anthropic-version"] == "2023-06-01"
+    assert captured["payload"]["model"] == "claude-3"
+    assert captured["payload"]["max_tokens"] == 100
+    assert captured["payload"]["system"] == "sys"
+    assert captured["payload"]["messages"] == [{"role": "user", "content": "usr"}]
+
+
+def test_openai_contract(monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-key")
+    captured: dict = {}
+
+    def fake_post(url, headers, payload, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["payload"] = payload
+        return {"output": [{"type": "message", "content": [{"type": "output_text", "text": "hi"}]}]}
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    backend = OpenAIBackend()
+    result = backend.chat("sys", "usr", model="gpt-4o")
+
+    assert result == "hi"
+    assert captured["url"] == "https://api.openai.com/v1/responses"
+    assert captured["headers"]["Authorization"] == "Bearer sk-openai-key"
+    assert captured["payload"]["model"] == "gpt-4o"
+    assert captured["payload"]["input"][0]["role"] == "system"
+    assert captured["payload"]["input"][1]["role"] == "user"
+    assert "max_output_tokens" in captured["payload"]
+
+
+def test_xai_contract(monkeypatch) -> None:
+    monkeypatch.setenv("XAI_API_KEY", "xai-test-key")
+    captured: dict = {}
+
+    def fake_post(url, headers, payload, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["payload"] = payload
+        return {
+            "output": [
+                {"type": "message", "content": [
+                    {"type": "output_text", "text": "grok"},
+                ]},
+            ],
+        }
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    backend = XAIBackend()
+    result = backend.chat("sys", "usr", model="grok-3")
+
+    assert result == "grok"
+    assert captured["url"] == "https://api.x.ai/v1/responses"
+    assert captured["headers"]["Authorization"] == "Bearer xai-test-key"
+    assert captured["payload"]["model"] == "grok-3"
+
+
+def test_groq_contract(monkeypatch) -> None:
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_test_key")
+    captured: dict = {}
+
+    def fake_post(url, headers, payload, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["payload"] = payload
+        return {"choices": [{"message": {"content": "groq-res"}}]}
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    backend = GroqBackend()
+    result = backend.chat("sys", "usr", model="llama-3.3-70b")
+
+    assert result == "groq-res"
+    assert captured["url"] == "https://api.groq.com/openai/v1/chat/completions"
+    assert captured["headers"]["Authorization"] == "Bearer gsk_test_key"
+    assert captured["payload"]["model"] == "llama-3.3-70b"
+    assert captured["payload"]["messages"][0]["role"] == "system"
+    assert captured["payload"]["messages"][1]["role"] == "user"
+
+
+def test_openrouter_contract(monkeypatch) -> None:
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test")
+    captured: dict = {}
+
+    def fake_post(url, headers, payload, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["payload"] = payload
+        return {"choices": [{"message": {"content": "or-res"}}]}
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    backend = OpenRouterBackend()
+    result = backend.chat("sys", "usr", model="anthropic/claude-3")
+
+    assert result == "or-res"
+    assert captured["url"] == "https://openrouter.ai/api/v1/chat/completions"
+    assert captured["headers"]["Authorization"] == "Bearer sk-or-test"
+    assert captured["headers"]["HTTP-Referer"] == "https://github.com/mmustafasenoglu/citeguard"
+    assert captured["headers"]["X-Title"] == "citeguard"
+
+
+def test_nvidia_contract(monkeypatch) -> None:
+    monkeypatch.setenv("NVIDIA_API_KEY", "nvapi-test")
+    captured: dict = {}
+
+    def fake_post(url, headers, payload, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["payload"] = payload
+        return {"choices": [{"message": {"content": "nvidia-res"}}]}
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    backend = NvidiaBackend()
+    result = backend.chat("sys", "usr", model="meta/llama-3.3-70b-instruct")
+
+    assert result == "nvidia-res"
+    assert captured["url"] == "https://integrate.api.nvidia.com/v1/chat/completions"
+    assert captured["headers"]["Authorization"] == "Bearer nvapi-test"
+    assert captured["payload"]["model"] == "meta/llama-3.3-70b-instruct"
+
+
+def test_custom_contract(monkeypatch) -> None:
+    monkeypatch.setenv("CITEGUARD_LLM_BASE_URL", "http://localhost:11434/v1")
+    monkeypatch.setenv("CITEGUARD_LLM_API_KEY", "ollama")
+    captured: dict = {}
+
+    def fake_post(url, headers, payload, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["payload"] = payload
+        return {"choices": [{"message": {"content": "local-res"}}]}
+
+    monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
+    backend = CustomBackend()
+    result = backend.chat("sys", "usr", model="qwen3")
+
+    assert result == "local-res"
+    assert captured["url"] == "http://localhost:11434/v1/chat/completions"
+    assert captured["headers"]["Authorization"] == "Bearer ollama"
+    assert captured["payload"]["model"] == "qwen3"

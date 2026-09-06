@@ -87,7 +87,13 @@ def _resolve(
     *,
     model: str | None = None,
 ) -> tuple[LLMBackend, str] | None:
-    """Resolve (backend, model) or return None when unavailable."""
+    """Resolve (backend, model) or return None when unavailable.
+
+    For custom providers, ``CITEGUARD_LLM_MODEL`` is **required** — there
+    is no safe fallback since we cannot know which model the endpoint
+    serves.  Returns ``None`` when no backend is available or when the
+    custom provider is selected without a model.
+    """
     if backend is None:
         backend = resolve_backend()
     if backend is None:
@@ -95,6 +101,8 @@ def _resolve(
     if model is None:
         model = os.getenv("CITEGUARD_LLM_MODEL", "").strip() or None
     if model is None:
+        if backend.name == "custom":
+            return None
         from .config import _PROVIDER_DEFAULT_MODELS
 
         model = _PROVIDER_DEFAULT_MODELS.get(
@@ -223,7 +231,6 @@ def extract_claims_with_llm(
     if not isinstance(items, list):
         return None
 
-    citation_texts = {c.raw_text for c in paragraph_citations}
     _sentences = re.split(r"(?<=[.!?])\s+", paragraph)
     claims: list[Claim] = []
     for item in items:
@@ -243,7 +250,7 @@ def extract_claims_with_llm(
         search_query = str(item.get("search_query", text))[:200]
 
         has_citation, linked = _map_claim_to_sentence(
-            text, _sentences, paragraph_citations, citation_texts,
+            text, _sentences, paragraph_citations,
         )
 
         claims.append(
@@ -265,7 +272,6 @@ def _map_claim_to_sentence(
     claim_text: str,
     sentences: list[str],
     paragraph_citations: list[ExistingCitation],
-    citation_texts: set[str],
 ) -> tuple[bool, list[ExistingCitation]]:
     """Map an LLM-extracted claim back to the original sentence.
 

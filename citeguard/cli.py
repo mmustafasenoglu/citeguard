@@ -66,10 +66,40 @@ def init_command(force: bool) -> None:
     if path.exists() and not force:
         raise click.ClickException(".env already exists. Use --force to overwrite it.")
     path.write_text(
-        "# Required for claim extraction and claim-source matching\n"
-        "ANTHROPIC_API_KEY=\n\n"
-        "# Optional: increases Semantic Scholar rate limits\n"
-        "SEMANTIC_SCHOLAR_API_KEY=\n",
+        "# LLM provider selection (optional).\n"
+        "# Supported: anthropic, openai, xai, groq, openrouter, nvidia, custom\n"
+        "# When omitted, auto-detected from available API keys.\n"
+        "# CITEGUARD_LLM_PROVIDER=anthropic\n"
+        "\n"
+        "# LLM model override (optional, provider-specific default used when omitted).\n"
+        "# CITEGUARD_LLM_MODEL=claude-sonnet-4-20250514\n"
+        "\n"
+        "# Anthropic (default provider)\n"
+        "# ANTHROPIC_API_KEY=\n"
+        "\n"
+        "# OpenAI (Responses API)\n"
+        "# OPENAI_API_KEY=\n"
+        "\n"
+        "# xAI / Grok (Responses API)\n"
+        "# XAI_API_KEY=\n"
+        "\n"
+        "# Groq (OpenAI-compatible)\n"
+        "# GROQ_API_KEY=\n"
+        "\n"
+        "# OpenRouter (OpenAI-compatible)\n"
+        "# OPENROUTER_API_KEY=\n"
+        "\n"
+        "# NVIDIA NIM (OpenAI-compatible)\n"
+        "# NVIDIA_API_KEY=\n"
+        "\n"
+        "# Custom / local endpoint (Ollama, LM Studio, vLLM, LiteLLM, etc.)\n"
+        "# CITEGUARD_LLM_BASE_URL=http://localhost:11434/v1\n"
+        "# CITEGUARD_LLM_API_KEY=local\n"
+        "# CITEGUARD_LLM_MODEL=qwen3\n"
+        "\n"
+        "# Academic providers\n"
+        "# Optional. citeguard can use Semantic Scholar without a key.\n"
+        "# SEMANTIC_SCHOLAR_API_KEY=\n",
         encoding="utf-8",
     )
     console.print("[green]Created .env[/green]")

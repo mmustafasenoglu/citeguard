@@ -129,7 +129,7 @@ def test_map_claim_to_sentence_finds_citation() -> None:
         "Other unrelated sentence.",
     ]
     has_cit, linked = _map_claim_to_sentence(
-        "Smoking increases cancer risk", sentences, [cit], {"(Smith, 2020)"}
+        "Smoking increases cancer risk", sentences, [cit],
     )
     assert has_cit is True
     assert len(linked) == 1
@@ -147,7 +147,7 @@ def test_map_claim_to_sentence_no_citation_in_best_match() -> None:
         "(Jones, 2021) studied a different topic.",
     ]
     has_cit, linked = _map_claim_to_sentence(
-        "Smoking increases cancer risk", sentences, [cit], {"(Jones, 2021)"}
+        "Smoking increases cancer risk", sentences, [cit],
     )
     assert has_cit is False
     assert len(linked) == 0
@@ -157,7 +157,7 @@ def test_map_claim_to_sentence_low_overlap_returns_false() -> None:
     """Claim with no overlap returns no citation."""
     sentences = ["Completely unrelated text about flowers."]
     has_cit, linked = _map_claim_to_sentence(
-        "Quantum computing breaks encryption", sentences, [], set()
+        "Quantum computing breaks encryption", sentences, [],
     )
     assert has_cit is False
     assert linked == []
@@ -199,7 +199,42 @@ def test_map_claim_to_sentence_paragraph_with_citation(monkeypatch) -> None:
 
 
 def _map_claim_to_sentence(
-    claim_text, sentences, paragraph_citations, citation_texts,
+    claim_text, sentences, paragraph_citations,
 ):
     from citeguard.llm import _map_claim_to_sentence as _map
-    return _map(claim_text, sentences, paragraph_citations, citation_texts)
+    return _map(claim_text, sentences, paragraph_citations)
+
+
+# ---------------------------------------------------------------------------
+# Custom provider model validation
+# ---------------------------------------------------------------------------
+
+
+def test_custom_provider_without_model_returns_none(monkeypatch) -> None:
+    """Custom provider with no CITEGUARD_LLM_MODEL returns None (no silent fallback)."""
+    monkeypatch.setenv("CITEGUARD_LLM_PROVIDER", "custom")
+    monkeypatch.setenv("CITEGUARD_LLM_BASE_URL", "http://localhost:11434/v1")
+    monkeypatch.delenv("CITEGUARD_LLM_MODEL", raising=False)
+    result = extract_claims_with_llm("A study.", 0, [])
+    assert result is None
+
+
+def test_custom_provider_with_model_succeeds(monkeypatch) -> None:
+    """Custom provider with CITEGUARD_LLM_MODEL set works."""
+    monkeypatch.setenv("CITEGUARD_LLM_PROVIDER", "custom")
+    monkeypatch.setenv("CITEGUARD_LLM_BASE_URL", "http://localhost:11434/v1")
+    monkeypatch.setenv("CITEGUARD_LLM_MODEL", "qwen3")
+
+    fake_response = json.dumps([
+        {"text": "A claim.", "search_query": "claim",
+         "claim_type": "general_fact", "severity": "low",
+         "has_existing_citation": False}
+    ])
+
+    def _fake_call(system, user_message, *, model=None, max_tokens=2048, timeout=30):
+        return fake_response
+
+    monkeypatch.setattr("citeguard.llm._call_llm", _fake_call)
+    result = extract_claims_with_llm("A study about something.", 0, [])
+    assert result is not None
+    assert len(result) == 1
