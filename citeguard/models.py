@@ -173,6 +173,77 @@ class BibliographyIssue:
     paragraph_index: int | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class TextSpan:
+    """A paragraph-relative character span.
+
+    Unlike global offsets, these are paragraph-relative so that overlapping
+    spans from different paragraphs do not collide.
+
+    Attributes
+    ----------
+    paragraph_index:
+        Which paragraph (0-based) this span belongs to.
+    start:
+        Inclusive character offset inside that paragraph.
+    end:
+        Exclusive character offset inside that paragraph.
+    """
+
+    paragraph_index: int
+    start: int
+    end: int
+
+    def length(self) -> int:
+        return self.end - self.start
+
+    def includes(self, other: TextSpan) -> bool:
+        return (
+            self.paragraph_index == other.paragraph_index
+            and self.start <= other.start
+            and other.end <= self.end
+        )
+
+
+@dataclass(slots=True)
+class Sentence:
+    """A sentence inside a paragraph, with accurate character offsets.
+
+    Attributes
+    ----------
+    text:
+        Original (non-normalized) sentence text.
+    normalized_text:
+        Lowercased, whitespace-normalized version for retrieval only.
+    paragraph_index:
+        Which paragraph (0-based) this sentence lives in.
+    sentence_index:
+        Which sentence within its paragraph (0-based).
+    start_offset:
+        Inclusive character offset inside the paragraph text.
+    end_offset:
+        Exclusive character offset inside the paragraph text.
+    citations:
+        ExistingCitation objects that fall inside this sentence's
+        character range (filled in by EnrichedDocument builder).
+    is_bibliography:
+        True if this sentence lives inside the bibliography section.
+    """
+
+    text: str
+    normalized_text: str
+    paragraph_index: int
+    sentence_index: int
+    start_offset: int
+    end_offset: int
+    citations: list = field(default_factory=list)
+    is_bibliography: bool = False
+
+    @property
+    def length(self) -> int:
+        return self.end_offset - self.start_offset
+
+
 @dataclass(slots=True)
 class ParsedDocument:
     """Complete parsing result for an input document."""
@@ -182,6 +253,34 @@ class ParsedDocument:
     citations: list[ExistingCitation]
     bibliography_entries: list[BibliographyEntry]
     bibliography_start_index: int | None
+
+
+@dataclass(slots=True)
+class EnrichedDocument:
+    """Enriched document with sentence-level granularity and normalization.
+
+    Extends ``ParsedDocument`` by adding:
+    - Per-sentence ``normalized_text`` for retrieval
+    - Paragraph-relative ``TextSpan`` objects for span coordinates
+    - Bibliography-section flagging per sentence
+    """
+
+    path: str
+    paragraphs: list[Paragraph]
+    sentences: list[Sentence]
+    citations: list[ExistingCitation]
+    bibliography_entries: list[BibliographyEntry]
+    bibliography_start_index: int | None
+
+
+@dataclass(slots=True)
+class Paragraph:
+    """A document paragraph containing sentences."""
+
+    text: str
+    index: int
+    sentences: list[Sentence] = field(default_factory=list)
+    is_bibliography: bool = False
 
 
 @dataclass(slots=True)

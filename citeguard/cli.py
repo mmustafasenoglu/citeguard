@@ -42,6 +42,7 @@ from .report import (
 )
 from .retrieval import RetrievalEngine
 from .scoring import AuditMetrics, compute_audit_metrics, overall_confidence, priority_list
+from .similarity.models import SimilarityEngineResult
 from .verification import verify_bibliography
 
 console = Console()
@@ -626,6 +627,8 @@ def suggest_command(
 @click.option("--verbose", is_flag=True, help="Show detailed progress information.")
 @click.option("--show-evidence", is_flag=True, help="Show evidence passages for matched claims.")
 @click.option("--require-evidence", is_flag=True, help="Only show claims that have evidence.")
+@click.option("--show-similarity", is_flag=True, help="Run similarity engine (CTAC v1).")
+@click.option("--corpus", type=click.Path(exists=True, path_type=Path), help="Similarity corpus.")
 def check_command(
     file: Path,
     max_results: int,
@@ -638,12 +641,25 @@ def check_command(
     verbose: bool,
     show_evidence: bool,
     require_evidence: bool,
+    show_similarity: bool,
+    corpus: Path | None,
 ) -> None:
-    """Run a full citation audit: extract claims, verify references, compute health score."""
+    from .extractor import parse_enriched_document
+    from .similarity.engine import SimilarityEngine
+    from .similarity.models import SimilarityConfig
+
     parsed = parse_document(file)
     _validate_parsed(parsed)
     settings = Settings.from_env()
     cache = FileCache(settings.cache_dir)
+    
+    sim_result = None
+    if show_similarity:
+        console.print("[dim]Running similarity analysis...[/dim]")
+        enriched = parse_enriched_document(file)
+        corpus_fps = _load_similarity_corpus(corpus)
+        sim_engine = SimilarityEngine(config=SimilarityConfig())
+        sim_result = sim_engine.analyze_document(enriched.sentences, corpus_fps)
 
     bib_issues = bibliography_issues(parsed.citations, parsed.bibliography_entries)
 
@@ -783,6 +799,7 @@ def check_command(
         sorted_claims,
         metrics,
         bib_issues,
+        sim_result,
     )
 
     if output_format == "json":
@@ -791,7 +808,7 @@ def check_command(
         raise SystemExit(exit_code)
     if output_format == "md":
         report_text = markdown_check_report(
-            parsed, bib_results, claims, sorted_claims, metrics, bib_issues
+            parsed, bib_results, claims, sorted_claims, metrics, bib_issues, sim_result
         )
         _write_text(report_text, output)
         exit_code = EXIT_FINDINGS if metrics.health_score < 80 else EXIT_SUCCESS
@@ -800,14 +817,14 @@ def check_command(
         json_path, md_path = _both_paths(output, file)
         _write_json(report, json_path)
         report_text = markdown_check_report(
-            parsed, bib_results, claims, sorted_claims, metrics, bib_issues
+            parsed, bib_results, claims, sorted_claims, metrics, bib_issues, sim_result
         )
         _write_text(report_text, md_path)
         exit_code = EXIT_FINDINGS if metrics.health_score < 80 else EXIT_SUCCESS
         raise SystemExit(exit_code)
 
     show_ev = show_evidence or verbose
-    _print_check_terminal(metrics, claims, sorted_claims, bib_issues, verbose, show_ev)
+    _print_check_terminal(metrics, claims, sorted_claims, bib_issues, verbose, show_ev, sim_result)
 
     if provider_failed:
         console.print(
@@ -825,6 +842,7 @@ def _print_check_terminal(
     bib_issues: list,
     verbose: bool,
     show_evidence: bool,
+    sim_result: SimilarityEngineResult | None = None,
 ) -> None:
     if metrics.health_score >= 80:
         health_color = "green"
@@ -857,6 +875,11 @@ def _print_check_terminal(
     table.add_row("Verification ratio", f"{metrics.verification_ratio:.1%}")
     table.add_row("Support ratio", f"{metrics.support_ratio:.1%}")
     table.add_row("Bibliography consistency", f"{metrics.bibliography_consistency:.1%}")
+    
+    if sim_result:
+        table.add_row("Overall similarity", f"{sim_result.overall_similarity_pct:.1f}%")
+        table.add_row("High risk similarity", str(sim_result.high_risk_count))
+        
     console.print(table)
 
     if sorted_claims:
@@ -1017,6 +1040,184 @@ def _extract_claims_hybrid(
     if severity:
         claims = [c for c in claims if c.severity.value == severity]
     return claims
+
+
+def _load_similarity_corpus(corpus_path: Path | None) -> list:
+    """Load and fingerprint a similarity corpus."""
+    if not corpus_path:
+        return []
+        
+    from .corpus import deduplicate_entries, ingest_directory, ingest_file
+    from .similarity.fingerprint import generate_shingles, winnow
+    from .similarity.models import Fingerprint
+    
+    console.print(f"[dim]Loading corpus from {corpus_path}...[/dim]")
+    if corpus_path.is_dir():
+        docs = ingest_directory(corpus_path, recursive=True)
+    else:
+        docs = [ingest_file(corpus_path)]
+        
+    all_entries = []
+    for doc in docs:
+        all_entries.extend(doc.entries)
+        
+    deduped = deduplicate_entries(all_entries)
+    
+    corpus_fps = []
+    for entry in deduped:
+        shingles = generate_shingles(entry.normalized_text)
+        points = winnow(shingles)
+        corpus_fps.append((entry.doc_id, Fingerprint(points=points, doc_id=entry.doc_id)))
+        
+    console.print(f"[dim]Corpus loaded: {len(docs)} docs, {len(deduped)} unique segments[/dim]")
+    return corpus_fps
+
+
+@main.command("similarity")
+@click.argument("file", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option(
+    "--corpus",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=None,
+    help="Path to corpus JSON file for comparison.",
+)
+@click.option(
+    "--threshold",
+    type=click.FloatRange(0.0, 1.0),
+    default=0.7,
+    help="Similarity threshold for match classification.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["terminal", "json", "md", "both"]),
+    default="terminal",
+    show_default=True,
+)
+@click.option("--output", type=click.Path(dir_okay=False, path_type=Path))
+@click.option("--show-sentences", is_flag=True, help="Show sentence-level details.")
+def similarity_command(
+    file: Path,
+    corpus: Path | None,
+    threshold: float,
+    output_format: str,
+    output: Path | None,
+    show_sentences: bool,
+) -> None:
+    """Analyze document similarity against a corpus or built-in index.
+
+    Compares document sentences for exact overlap, lexical similarity,
+    and attribution risk, producing a similarity report.
+    """
+    # Parse the document using the enriched extractor
+    from .extractor import parse_enriched_document
+    from .similarity.engine import SimilarityEngine
+    from .similarity.models import SimilarityConfig
+    
+    # Corpus ingestion
+    corpus_fps = _load_similarity_corpus(corpus)
+
+    enriched = parse_enriched_document(file)
+
+    # Build similarity engine
+    config = SimilarityConfig(exact_threshold=threshold)
+    engine = SimilarityEngine(config=config)
+
+    # Run similarity analysis
+    result = engine.analyze_document(
+        sentences=enriched.sentences,
+        corpus_fps=corpus_fps,
+    )
+
+    # Output results
+    if output_format == "json":
+        from .cli import _write_json
+        _write_json(result, output)
+    elif output_format == "md":
+        from .cli import _write_text
+        report_text = _similarity_to_markdown(result, show_sentences)
+        _write_text(report_text, output)
+    elif output_format == "both":
+        from .cli import _both_paths
+        json_path, md_path = _both_paths(output, file)
+        from .cli import _write_json, _write_text
+        _write_json(result, json_path)
+        report_text = _similarity_to_markdown(result, show_sentences)
+        _write_text(report_text, md_path)
+    else:
+        _print_similarity_terminal(result, show_sentences)
+
+
+def _similarity_to_markdown(result: SimilarityEngineResult, show_sentences: bool) -> str:
+    """Convert similarity result to markdown format."""
+    lines = [
+        "# Citeguard Similarity Report\n",
+        f"- **Overall similarity**: {result.overall_similarity_pct:.1f}%\n",
+        f"- **High risk**: {result.high_risk_count}, **Medium risk**: {result.medium_risk_count}\n",
+        f"- **Matched sentences**: {result.matched_sentences}/{result.total_sentences}\n",
+        f"- **Unique matched chars**: {result.unique_matched_chars}/{result.eligible_chars}\n",
+    ]
+
+    if show_sentences:
+        lines.append("\n## Sentence-level Details\n")
+        for r in result.results:
+            lines.append(f"### Sentence {r.sentence.sentence_index + 1}")
+            lines.append(f"*Original*: {r.sentence.text[:80]}...")
+            lines.append(f"*Normalized*: {r.sentence.normalized_text[:80]}...")
+            if r.best_match:
+                lines.append(f"- **Best match**: {r.best_match.source_text[:60]}...")
+                lines.append(f"  - Exact overlap: {r.best_match.exact_overlap:.2f}")
+                lines.append(f"  - Lexical similarity: {r.best_match.lexical_similarity:.2f}")
+                lines.append(f"  - Combined score: {r.best_match.combined_score:.2f}")
+                lines.append(f"  - Attribution risk: {r.best_match.attribution_risk.value}")
+                lines.append(f"  - Reason: {r.best_match.attribution_reason}")
+            else:
+                lines.append("- No matches found")
+            lines.append("")
+
+    lines.append("## Summary\n")
+    lines.append(f"- Overall similarity: {result.overall_similarity_pct:.1f}%\n")
+    lines.append(f"- High risk matches: {result.high_risk_count}\n")
+    lines.append(f"- Medium risk matches: {result.medium_risk_count}\n")
+    lines.append(f"- Matched sentences: {result.matched_sentences}/{result.total_sentences}\n")
+    matched_chars = result.unique_matched_chars
+    eligible = result.eligible_chars
+    lines.append(f"- Unique matched characters: {matched_chars}/{eligible}\n")
+    return "".join(lines)
+
+
+def _print_similarity_terminal(result: SimilarityEngineResult, show_sentences: bool) -> None:
+    """Print similarity results to terminal."""
+    from rich.console import Console
+    from rich.table import Table
+
+    console = Console()
+
+    table = Table(title="Citeguard Similarity Analysis")
+    table.add_column("Metric", justify="right")
+    table.add_column("Value")
+
+    table.add_row("Overall similarity", f"{result.overall_similarity_pct:.1f}%")
+    table.add_row("High risk matches", str(result.high_risk_count))
+    table.add_row("Medium risk matches", str(result.medium_risk_count))
+    table.add_row("Matched sentences", f"{result.matched_sentences}/{result.total_sentences}")
+    table.add_row("Unique matched chars", f"{result.unique_matched_chars}/{result.eligible_chars}")
+
+    console.print(table)
+
+    if show_sentences:
+        console.print("\n## Sentence-level Details")
+        for r in result.results:
+            console.print(f"\n**Sentence {r.sentence.sentence_index + 1}**")
+            console.print(f"*: {r.sentence.text[:60]}...*")
+            if r.best_match:
+                console.print(f"- Best match: {r.best_match.source_text[:50]}...")
+                exact = r.best_match.exact_overlap
+                lex = r.best_match.lexical_similarity
+                console.print(f"  Exact: {exact:.2f}, Lexical: {lex:.2f}")
+                console.print(f"  Risk: {r.best_match.attribution_risk.value}")
+            else:
+                console.print("- No matches")
 
 
 if __name__ == "__main__":

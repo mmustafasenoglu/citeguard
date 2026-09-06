@@ -15,7 +15,7 @@ from .models import (
 )
 from .scoring import AuditMetrics
 
-SCHEMA_VERSION = "1"
+SCHEMA_VERSION = "2"
 
 
 def inspection_report(parsed: ParsedDocument) -> dict[str, Any]:
@@ -101,8 +101,9 @@ def check_report(
     verification_for_claims: list[VerificationResult],
     metrics: AuditMetrics,
     bib_issues: list[Any],
+    sim_result: Any | None = None,
 ) -> dict[str, Any]:
-    return {
+    report = {
         "schema_version": SCHEMA_VERSION,
         "document": parsed.path,
         "privacy": (
@@ -143,6 +144,17 @@ def check_report(
             _verification_result_item(r) for r in verification_for_claims[:20]
         ],
     }
+    
+    if sim_result:
+        report["similarity"] = {
+            "overall_pct": sim_result.overall_similarity_pct,
+            "high_risk": sim_result.high_risk_count,
+            "medium_risk": sim_result.medium_risk_count,
+            "matched_sentences": sim_result.matched_sentences,
+            "total_sentences": sim_result.total_sentences,
+        }
+        
+    return report
 
 
 def suggest_report(
@@ -294,6 +306,7 @@ def markdown_check_report(
     verification_for_claims: list[VerificationResult],
     metrics: AuditMetrics,
     bib_issues: list[Any],
+    sim_result: Any | None = None,
 ) -> str:
     lines: list[str] = []
     _md = lines.append
@@ -307,6 +320,14 @@ def markdown_check_report(
     _md("")
     _md("> The Citation Health Score is a review-prioritization heuristic. It does **not**")
     _md("> measure scientific or academic correctness.\n")
+    
+    if sim_result:
+        _md("## Similarity Analysis (CTAC v1)\n")
+        _md(f"- **Overall similarity**: {sim_result.overall_similarity_pct:.1f}%")
+        _md(f"- **High risk matches**: {sim_result.high_risk_count}")
+        _md(f"- **Medium risk matches**: {sim_result.medium_risk_count}")
+        matched = f"{sim_result.matched_sentences}/{sim_result.total_sentences}"
+        _md(f"- **Matched sentences**: {matched}\n")
 
     _md("## Summary\n")
     _md(f"- Total claims detected: **{metrics.total_claims}**")

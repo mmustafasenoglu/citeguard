@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from docx import Document
 from docx.document import Document as DocxDocument
@@ -12,8 +13,12 @@ from docx.oxml.ns import qn
 from docx.table import Table, _Cell
 from docx.text.paragraph import Paragraph
 
-from .models import ExistingCitation, ParsedDocument
+from .models import ExistingCitation, ParsedDocument, Sentence
 from .retrieval import normalize_doi
+from .sentence_splitter import split_sentences
+
+if TYPE_CHECKING:
+    from .models import EnrichedDocument
 
 DATE_TEXT_PATTERN = r"(?:\d{4}[a-zA-Z]?|(?i:t\.?\s*y\.?|n\.?\s*d\.?))"
 AUTHOR_WORD_PATTERN = r"[A-ZÇĞİÖŞÜ][A-Za-zÀ-ÖØ-öø-ÿÇĞİÖŞÜçğıöşü'’.-]*"
@@ -188,6 +193,55 @@ def _looks_like_author(value: str) -> bool:
 
 def _is_no_date(value: str) -> bool:
     return not value.strip()[0].isdigit()
+
+
+def parse_enriched_document(path: str | Path) -> EnrichedDocument:
+    from .bibliography import parse_bibliography
+    from .models import EnrichedDocument as _EnrichedDocument
+
+    paragraphs = read_paragraphs(path)
+    bibliography_start, entries = parse_bibliography(paragraphs)
+    content_paragraphs = (
+        paragraphs[:bibliography_start] if bibliography_start is not None else paragraphs
+    )
+    citations = extract_citations(content_paragraphs)
+
+    # Build enriched structure with sentences
+    all_sentences: list[Sentence] = []
+    all_paragraphs: list = []
+    bib_start_idx = bibliography_start
+
+    for pidx, para_text in enumerate(paragraphs):
+        is_bib = bib_start_idx is not None and pidx >= bib_start_idx
+        sentences = split_sentences(
+            para_text,
+            paragraph_index=pidx,
+            is_bibliography=is_bib,
+        )
+        for _sidx, sent in enumerate(sentences):
+            # Link citations that fall within this sentence's offset range
+            sent_citations = [
+                c for c in citations
+                if c.paragraph_index == pidx
+                and sent.start_offset <= c.char_offset < sent.end_offset
+            ]
+            sent.citations = sent_citations
+            all_sentences.append(sent)
+        all_paragraphs.append(type("Paragraph", (), {
+            "text": para_text,
+            "index": pidx,
+            "sentences": sentences,
+            "is_bibliography": is_bib,
+        })())
+
+    return _EnrichedDocument(
+        path=str(Path(path)),
+        paragraphs=all_paragraphs,
+        sentences=all_sentences,
+        citations=citations,
+        bibliography_entries=entries,
+        bibliography_start_index=bib_start_idx,
+    )
 
 
 def parse_document(path: str | Path) -> ParsedDocument:
