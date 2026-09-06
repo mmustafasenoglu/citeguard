@@ -75,6 +75,9 @@ class SimilarityMatch:
     combined_score: float
 
     source_url: str | None = None
+    source_authors: list[str] = field(default_factory=list)
+    source_year: int | None = None
+    source_doi: str | None = None
     matched_source_spans: list[TextSpan] = field(default_factory=list)
     matched_document_spans: list[TextSpan] = field(default_factory=list)
     match_type: MatchType = MatchType.UNMATCHED

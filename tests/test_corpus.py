@@ -123,7 +123,7 @@ class TestLicenses:
             (LicenseType.CC_BY_NC, True),
             (LicenseType.CC0, True),
             (LicenseType.PUBLIC_DOMAIN, True),
-            (LicenseType.OPEN_ACCESS, True),
+            (LicenseType.OPEN_ACCESS, False),
             (LicenseType.CC_BY_ND, False),
             (LicenseType.CC_BY_NC_ND, False),
             (LicenseType.PROPRIETARY, False),

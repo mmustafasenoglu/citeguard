@@ -14,8 +14,73 @@ from .models import (
     VerificationResult,
 )
 from .scoring import AuditMetrics
+from .similarity.models import SimilarityEngineResult
 
 SCHEMA_VERSION = "2"
+
+
+def similarity_report(result: SimilarityEngineResult) -> dict[str, Any]:
+    """Serialize similarity engine results into JSON-safe dictionaries."""
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "summary": {
+            "overall_similarity_pct": result.overall_similarity_pct,
+            "high_risk_count": result.high_risk_count,
+            "medium_risk_count": result.medium_risk_count,
+            "total_sentences": result.total_sentences,
+            "matched_sentences": result.matched_sentences,
+            "unique_matched_chars": result.unique_matched_chars,
+            "eligible_chars": result.eligible_chars,
+        },
+        "results": [
+            {
+                "sentence": {
+                    "text": item.sentence.text,
+                    "normalized_text": item.sentence.normalized_text,
+                    "paragraph_index": item.sentence.paragraph_index,
+                    "sentence_index": item.sentence.sentence_index,
+                    "start_offset": item.sentence.start_offset,
+                    "end_offset": item.sentence.end_offset,
+                    "is_bibliography": item.sentence.is_bibliography,
+                },
+                "attribution_risk": item.attribution_risk.value,
+                "attribution_reason": item.attribution_reason,
+                "matches": [
+                    {
+                        "source_text": match.source_text,
+                        "source_title": match.source_title,
+                        "source_id": match.source_id,
+                        "source_url": match.source_url,
+                        "source_authors": match.source_authors,
+                        "source_year": match.source_year,
+                        "source_doi": match.source_doi,
+                        "exact_overlap": match.exact_overlap,
+                        "lexical_similarity": match.lexical_similarity,
+                        "combined_score": match.combined_score,
+                        "match_type": match.match_type.value,
+                        "matched_document_spans": [
+                            {
+                                "paragraph_index": span.paragraph_index,
+                                "start": span.start,
+                                "end": span.end,
+                            }
+                            for span in match.matched_document_spans
+                        ],
+                        "matched_source_spans": [
+                            {
+                                "entry_index": span.paragraph_index,
+                                "start": span.start,
+                                "end": span.end,
+                            }
+                            for span in match.matched_source_spans
+                        ],
+                    }
+                    for match in item.matches
+                ],
+            }
+            for item in result.results
+        ],
+    }
 
 
 def inspection_report(parsed: ParsedDocument) -> dict[str, Any]:

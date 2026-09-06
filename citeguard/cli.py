@@ -37,6 +37,7 @@ from .report import (
     markdown_check_report,
     markdown_suggest_report,
     markdown_verification_report,
+    similarity_report,
     suggest_report,
     verification_report,
 )
@@ -629,7 +630,7 @@ def suggest_command(
 @click.option("--require-evidence", is_flag=True, help="Only show claims that have evidence.")
 @click.option("--show-similarity", is_flag=True, help="Run similarity engine (CTAC v1).")
 @click.option("--corpus", type=click.Path(exists=True, path_type=Path), help="Similarity corpus.")
-@click.option("--corpus-license", default=None, help="Corpus license (CC0, CC-BY). Default: CC0.")
+@click.option("--corpus-license", default=None, help="Explicit corpus license (CC0, CC-BY).")
 def check_command(
     file: Path,
     max_results: int,
@@ -661,7 +662,11 @@ def check_command(
         enriched = parse_enriched_document(file)
         corpus_entries = _load_similarity_corpus(corpus, corpus_license)
         sim_engine = SimilarityEngine(config=SimilarityConfig())
-        sim_result = sim_engine.analyze_document(enriched.sentences, corpus_entries)
+        sim_result = sim_engine.analyze_document(
+            enriched.sentences,
+            corpus_entries,
+            bibliography_entries=enriched.bibliography_entries,
+        )
 
     bib_issues = bibliography_issues(parsed.citations, parsed.bibliography_entries)
 
@@ -1046,23 +1051,21 @@ def _extract_claims_hybrid(
 
 def _load_similarity_corpus(
     corpus_path: Path | None, license_str: str | None = None
-) -> list[tuple[str, str, Fingerprint]]:
+) -> list[tuple[str, str, Fingerprint, object | None, int]]:
     """Load and fingerprint a similarity corpus.
 
-    Returns list of (doc_id, normalized_text, Fingerprint) tuples.
+    Returns list of (doc_id, normalized_text, Fingerprint, metadata, entry_index) tuples.
     """
     if not corpus_path:
         return []
         
+    import sys
+
     from .corpus import deduplicate_entries, ingest_directory, ingest_file
     from .similarity.fingerprint import generate_shingles, winnow
     from .similarity.models import Fingerprint
     
-    # Default to CC0 if no license specified
-    if license_str is None:
-        license_str = "CC0"
-        
-    console.print(f"[dim]Loading corpus from {corpus_path}...[/dim]")
+    print(f"Loading corpus from {corpus_path}...", file=sys.stderr)
     if corpus_path.is_dir():
         docs = ingest_directory(corpus_path, recursive=True, license_str=license_str)
     else:
@@ -1079,9 +1082,11 @@ def _load_similarity_corpus(
         shingles = generate_shingles(entry.normalized_text)
         points = winnow(shingles)
         fp = Fingerprint(points=points, doc_id=entry.doc_id)
-        corpus_entries.append((entry.doc_id, entry.normalized_text, fp))
+        corpus_entries.append(
+            (entry.doc_id, entry.normalized_text, fp, entry.metadata, entry.entry_index)
+        )
         
-    console.print(f"[dim]Corpus loaded: {len(docs)} docs, {len(deduped)} unique segments[/dim]")
+    print(f"Corpus loaded: {len(docs)} docs, {len(deduped)} unique segments", file=sys.stderr)
     return corpus_entries
 
 
@@ -1096,7 +1101,7 @@ def _load_similarity_corpus(
 @click.option(
     "--corpus-license",
     default=None,
-    help="License string for corpus (e.g., CC0, CC-BY). Defaults to CC0.",
+    help="Explicit corpus license (e.g., CC0, CC-BY).",
 )
 @click.option(
     "--threshold",
@@ -1145,12 +1150,13 @@ def similarity_command(
     result = engine.analyze_document(
         sentences=enriched.sentences,
         corpus_entries=corpus_entries,
+        bibliography_entries=enriched.bibliography_entries,
     )
 
     # Output results
     if output_format == "json":
         from .cli import _write_json
-        _write_json(result, output)
+        _write_json(similarity_report(result), output)
     elif output_format == "md":
         from .cli import _write_text
         report_text = _similarity_to_markdown(result, show_sentences)
@@ -1159,7 +1165,7 @@ def similarity_command(
         from .cli import _both_paths
         json_path, md_path = _both_paths(output, file)
         from .cli import _write_json, _write_text
-        _write_json(result, json_path)
+        _write_json(similarity_report(result), json_path)
         report_text = _similarity_to_markdown(result, show_sentences)
         _write_text(report_text, md_path)
     else:
@@ -1187,8 +1193,8 @@ def _similarity_to_markdown(result: SimilarityEngineResult, show_sentences: bool
                 lines.append(f"  - Exact overlap: {r.best_match.exact_overlap:.2f}")
                 lines.append(f"  - Lexical similarity: {r.best_match.lexical_similarity:.2f}")
                 lines.append(f"  - Combined score: {r.best_match.combined_score:.2f}")
-                lines.append(f"  - Attribution risk: {r.best_match.attribution_risk.value}")
-                lines.append(f"  - Reason: {r.best_match.attribution_reason}")
+                lines.append(f"  - Attribution risk: {r.attribution_risk.value}")
+                lines.append(f"  - Reason: {r.attribution_reason}")
             else:
                 lines.append("- No matches found")
             lines.append("")
@@ -1233,7 +1239,7 @@ def _print_similarity_terminal(result: SimilarityEngineResult, show_sentences: b
                 exact = r.best_match.exact_overlap
                 lex = r.best_match.lexical_similarity
                 console.print(f"  Exact: {exact:.2f}, Lexical: {lex:.2f}")
-                console.print(f"  Risk: {r.best_match.attribution_risk.value}")
+                console.print(f"  Risk: {r.attribution_risk.value}")
             else:
                 console.print("- No matches")
 

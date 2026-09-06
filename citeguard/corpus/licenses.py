@@ -33,7 +33,6 @@ _OPEN_LICENSES: frozenset[LicenseType] = frozenset({
     LicenseType.CC_BY_NC_SA,
     LicenseType.CC0,
     LicenseType.PUBLIC_DOMAIN,
-    LicenseType.OPEN_ACCESS,
 })
 
 # ND licenses allow sharing but not derivatives — conservative exclusion.
@@ -98,6 +97,7 @@ def get_permissions(license_type: LicenseType) -> dict[str, bool]:
     allowed_for_similarity = is_open_license(license_type) and license_type not in (
         LicenseType.PROPRIETARY,
         LicenseType.UNKNOWN,
+        LicenseType.OPEN_ACCESS,
     )
     return {
         "similarity_index_allowed": allowed_for_similarity,
@@ -112,6 +112,5 @@ def get_permissions(license_type: LicenseType) -> dict[str, bool]:
             LicenseType.CC_BY_ND,
             LicenseType.CC0,
             LicenseType.PUBLIC_DOMAIN,
-            LicenseType.OPEN_ACCESS,
         ),
     }

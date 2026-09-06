@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 from citeguard.models import TextSpan
 from citeguard.similarity.fingerprint import (
     exact_overlap,
-    find_matching_segments,
+    find_matching_segments_pair,
     generate_shingles,
     winnow,
 )
@@ -36,11 +36,14 @@ from citeguard.similarity.models import (
 )
 
 if TYPE_CHECKING:
+    from citeguard.corpus.models import CorpusMetadata
     from citeguard.models import (
         BibliographyEntry,
         ExistingCitation,
         Sentence,
     )
+
+CorpusEntryTuple = tuple[str, str, Fingerprint, "CorpusMetadata | None", int]
 
 # ---------------------------------------------------------------------------
 # Helper: merge overlapping/adjacent spans (paragraph-relative)
@@ -74,6 +77,66 @@ def _merge_spans(spans: list[TextSpan]) -> list[TextSpan]:
         else:
             merged.append(current)
     return merged
+
+
+def _tokenize_author(value: str | None) -> set[str]:
+    """Extract coarse author tokens for metadata matching."""
+    if not value:
+        return set()
+    cleaned = value.lower().replace("&", " ").replace(",", " ")
+    return {token for token in cleaned.split() if len(token) > 2 and token != "et"}
+
+
+def _bibliography_match_for_citation(
+    citation: ExistingCitation, bibliography_entries: list[BibliographyEntry]
+) -> BibliographyEntry | None:
+    """Return the bibliography entry linked to a citation, if obvious."""
+    for entry in bibliography_entries:
+        if citation.doi and entry.doi and citation.doi.lower() == entry.doi.lower():
+            return entry
+        if citation.numbered_ref is not None and citation.numbered_ref == entry.numbered_ref:
+            return entry
+        citation_tokens = _tokenize_author(citation.authors)
+        entry_tokens = _tokenize_author(entry.authors)
+        if citation.year and entry.year == citation.year and citation_tokens & entry_tokens:
+            return entry
+    return None
+
+
+def _citation_matches_source_metadata(
+    citation: ExistingCitation,
+    *,
+    source_authors: list[str],
+    source_year: int | None,
+    source_doi: str,
+    bibliography_entries: list[BibliographyEntry],
+) -> bool:
+    """Match citation metadata against corpus source metadata."""
+    if citation.doi and source_doi and citation.doi.lower() == source_doi:
+        return True
+
+    candidate_authors = citation.authors
+    candidate_year = citation.year
+    bib_entry = _bibliography_match_for_citation(citation, bibliography_entries)
+    if bib_entry is not None:
+        if bib_entry.doi and source_doi and bib_entry.doi.lower() == source_doi:
+            return True
+        candidate_authors = bib_entry.authors or candidate_authors
+        candidate_year = bib_entry.year or candidate_year
+
+    if source_year is not None and candidate_year != source_year:
+        return False
+
+    citation_tokens = _tokenize_author(candidate_authors)
+    source_tokens: set[str] = set()
+    for author in source_authors:
+        source_tokens.update(_tokenize_author(author))
+    return bool(citation_tokens and source_tokens and citation_tokens & source_tokens)
+
+
+def _has_quotation_markers(text: str) -> bool:
+    """Return True when the sentence contains quotation punctuation."""
+    return any(marker in text for marker in ('"', "“", "”", "«", "»"))
 
 
 # ---------------------------------------------------------------------------
@@ -117,7 +180,7 @@ class SimilarityEngine:
     def compare_sentence_to_corpus(
         self,
         sentence: Sentence,
-        corpus_entries: list[tuple[str, str, Fingerprint]],  # (doc_id, text, Fingerprint)
+        corpus_entries: list[CorpusEntryTuple],
         tfidf_info: tuple | None = None,
     ) -> list[SimilarityMatch]:
         """Return similarity matches for one sentence against a corpus.
@@ -127,7 +190,7 @@ class SimilarityEngine:
         sentence:
             The sentence to match.
         corpus_entries:
-            List of (doc_id, normalized_text, Fingerprint) tuples from the corpus.
+            List of (doc_id, normalized_text, Fingerprint, metadata, entry_index) tuples.
         tfidf_info:
             Optional (vectorizer, matrix) from corpus documents.
 
@@ -139,21 +202,21 @@ class SimilarityEngine:
 
         # 1) Exact/fingerprint overlap
         sentence_fp = self.build_fingerprint(sentence.normalized_text)
+        tfidf_scores: dict[int, float] = {}
+        if tfidf_info is not None:
+            vectorizer, matrix = tfidf_info
+            tfidf_scores = dict(
+                compute_cosine_similarity(sentence.normalized_text, vectorizer, matrix)
+            )
 
-        for doc_id, doc_text, doc_fp in corpus_entries:
+        for entry_index, (doc_id, doc_text, doc_fp, metadata, source_entry_index) in enumerate(
+            corpus_entries
+        ):
             eo = exact_overlap(sentence_fp, doc_fp)
 
             # 2) Lexical similarity
-            ls = 0.0
             if tfidf_info is not None:
-                vectorizer, matrix = tfidf_info
-                # Use TF-IDF cosine similarity
-                scores = compute_cosine_similarity(sentence.normalized_text, vectorizer, matrix)
-                # Find the score for this document
-                for idx, score in scores:
-                    if idx < len(corpus_entries) and corpus_entries[idx][0] == doc_id:
-                        ls = score
-                        break
+                ls = tfidf_scores.get(entry_index, 0.0)
             else:
                 # Fallback to char n-gram Jaccard
                 ls = char_ngram_jaccard(sentence.normalized_text, doc_text)
@@ -174,21 +237,40 @@ class SimilarityEngine:
             )
 
             # 5) Find matching spans using fingerprint
-            matched_doc_spans = find_matching_segments(
+            segments = find_matching_segments_pair(
                 sentence_fp, doc_fp, k=self.config.shingle_size
             )
-            # For source spans, we'd need the original corpus document's fingerprint
-            # For now, use the same spans as approximation
-            matched_src_spans = matched_doc_spans
+            matched_doc_spans = [
+                TextSpan(
+                    paragraph_index=sentence.paragraph_index,
+                    start=sentence.start_offset + start,
+                    end=sentence.start_offset + end,
+                )
+                for start, end in segments.document_spans
+            ]
+            matched_src_spans = [
+                TextSpan(paragraph_index=source_entry_index, start=start, end=end)
+                for start, end in segments.source_spans
+            ]
+
+            authors = metadata.authors if metadata is not None else []
+            year = metadata.year if metadata is not None else None
+            doi = metadata.doi if metadata is not None else None
+            title = metadata.title if metadata is not None else doc_id
+            url = metadata.url if metadata is not None else None
 
             # 6) Build match
             match = SimilarityMatch(
                 source_text=doc_text[:200],  # Truncate for storage
-                source_title=doc_id,
+                source_title=title,
                 source_id=doc_id,
                 exact_overlap=eo,
                 lexical_similarity=ls,
                 combined_score=combined,
+                source_url=url,
+                source_authors=authors,
+                source_year=year,
+                source_doi=doi,
                 match_type=mt,
                 matched_document_spans=matched_doc_spans,
                 matched_source_spans=matched_src_spans,
@@ -209,51 +291,39 @@ class SimilarityEngine:
         match: SimilarityMatch,
         sentence_citations: list[ExistingCitation],
         bibliography_entries: list[BibliographyEntry],
+        sentence_text: str = "",
     ) -> tuple[RiskLevel, str]:
         """Determine attribution risk for a match given the sentence's citations.
 
-        Risk logic (from v0.3 design):
-        - No match → NONE (should not happen if match list non-empty)
-        - Match exists:
-          - No citation in sentence → HIGH (claim unsupported)
-          - Citation present:
-            - Citation matches detected source → LOW
-            - Citation does NOT match detected source → HIGH (wrong source)
-            - Quotation markers present → MEDIUM
-        - Severity adjustment:
-          - exact >= 0.95 → +1 (boost confidence)
-          - exact < 0.70 → -1 (penalize)
+        Risk logic:
+        - high overlap + no citation → HIGH
+        - high overlap + wrong citation → HIGH
+        - high overlap + matching citation + no quotation → MEDIUM
+        - high overlap + matching citation + quotation markers → LOW
         """
         if not match:
             return RiskLevel.NONE, "no match found"
 
-        detected_source = match.source_text or match.source_id or ""
+        source_authors = [author.lower() for author in match.source_authors]
+        source_year = match.source_year
+        source_doi = (match.source_doi or "").lower()
 
         # Check if sentence has citations
         if not sentence_citations:
-            # Upgrade based on exact overlap
             if match.exact_overlap >= 0.95:
-                return RiskLevel.LOW, "high exact overlap, no citation"
-            if match.exact_overlap < 0.70:
-                return RiskLevel.HIGH, "low exact overlap, no citation"
-            return RiskLevel.MEDIUM, "no citation, moderate overlap"
+                return RiskLevel.HIGH, "high exact overlap without citation"
+            return RiskLevel.MEDIUM, "similar text without citation"
 
         # Sentence has citations — check each
         citation_issues: list[str] = []
 
         for cit in sentence_citations:
-            # Check if citation author/year matches detected source
-            # Use author and year for matching
-            cit_identifier = ""
-            if cit.authors:
-                cit_identifier += cit.authors.lower()
-            if cit.year:
-                cit_identifier += f" {cit.year}"
-            
-            citation_matches_source = (
-                detected_source
-                and cit_identifier
-                and cit_identifier in detected_source.lower()
+            citation_matches_source = _citation_matches_source_metadata(
+                cit,
+                source_authors=source_authors,
+                source_year=source_year,
+                source_doi=source_doi,
+                bibliography_entries=bibliography_entries,
             )
 
             if not citation_matches_source:
@@ -264,27 +334,14 @@ class SimilarityEngine:
 
         # Decision
         if citation_issues:
-            base_risk = RiskLevel.HIGH
-            reason = "; ".join(citation_issues)
-        else:
-            # All citations match — downgrade based on exact strength
-            if match.exact_overlap >= 0.95:
-                return RiskLevel.LOW, "citations match detected source"
-            if match.exact_overlap < 0.70:
-                return RiskLevel.MEDIUM, "citations match but low exact overlap"
-            return RiskLevel.LOW, "citations match detected source"
-
-        # Severity adjustment based on exact overlap
+            return RiskLevel.HIGH, "; ".join(citation_issues)
         if match.exact_overlap >= 0.95:
-            if base_risk == RiskLevel.HIGH:
-                base_risk = RiskLevel.MEDIUM
-        elif match.exact_overlap < 0.70:
-            if base_risk == RiskLevel.LOW:
-                base_risk = RiskLevel.MEDIUM
-            elif base_risk == RiskLevel.MEDIUM:
-                base_risk = RiskLevel.HIGH
-
-        return base_risk, reason
+            if _has_quotation_markers(sentence_text):
+                return RiskLevel.LOW, "quoted high overlap with matching citation"
+            return RiskLevel.MEDIUM, "high exact overlap with matching citation"
+        if match.exact_overlap < 0.70:
+            return RiskLevel.MEDIUM, "citations match but low exact overlap"
+        return RiskLevel.LOW, "citations match detected source"
 
     # ------------------------------------------------------------------
     # Overall similarity aggregation
@@ -326,8 +383,8 @@ class SimilarityEngine:
                     all_spans.append(
                         TextSpan(
                             paragraph_index=result.sentence.paragraph_index,
-                            start=span[0],
-                            end=span[1],
+                            start=span.start,
+                            end=span.end,
                         )
                     )
 
@@ -342,7 +399,8 @@ class SimilarityEngine:
     def analyze_document(
         self,
         sentences: list[Sentence],
-        corpus_entries: list[tuple[str, str, Fingerprint]],  # (doc_id, text, Fingerprint)
+        corpus_entries: list[CorpusEntryTuple],
+        bibliography_entries: list[BibliographyEntry] | None = None,
     ) -> SimilarityEngineResult:
         """Run full similarity analysis over a document's sentences.
 
@@ -351,12 +409,15 @@ class SimilarityEngine:
         sentences:
             Document sentences (EnrichedDocument output).
         corpus_entries:
-            Corpus entries as (doc_id, normalized_text, Fingerprint) tuples.
+            Corpus entries as (doc_id, text, Fingerprint, metadata, entry_index).
+        bibliography_entries:
+            Bibliography entries used for citation-to-source matching.
 
         Returns
         -------
         SimilarityEngineResult
         """
+        bibliography_entries = bibliography_entries or []
         # Build TF-IDF index from corpus if we have entries
         tfidf_info = None
         if corpus_entries:
@@ -379,7 +440,8 @@ class SimilarityEngine:
                 risk, reason = self.compute_attribution_risk(
                     best,
                     sent.citations,
-                    getattr(sent, "bibliography_entries", []),
+                    bibliography_entries,
+                    sentence_text=sent.text,
                 )
             else:
                 best = None
@@ -416,8 +478,8 @@ class SimilarityEngine:
                     all_spans.append(
                         TextSpan(
                             paragraph_index=r.sentence.paragraph_index,
-                            start=sp[0],
-                            end=sp[1],
+                            start=sp.start,
+                            end=sp.end,
                         )
                     )
         if all_spans:

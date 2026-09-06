@@ -26,8 +26,9 @@ class CorpusMetadata:
     license: str | None = None
     language: CorpusLanguage = CorpusLanguage.TURKISH
     url: str | None = None
-    
-    # Permissions based on license
+    license_url: str | None = None
+    retrieved_at: str | None = None
+
     training_use_allowed: bool = False
     similarity_index_allowed: bool = False
     commercial_use_allowed: bool = False
@@ -45,6 +46,7 @@ class CorpusEntry:
     normalized_text: str
     doc_id: str
     entry_index: int
+    metadata: CorpusMetadata | None = None
     char_offset: int = 0
     char_end: int = 0
     fingerprint_hash: int | None = None

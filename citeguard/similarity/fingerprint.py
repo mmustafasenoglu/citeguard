@@ -7,8 +7,17 @@ winnowing. All functions are pure and dependency-free (no numpy/scipy).
 from __future__ import annotations
 
 import hashlib
+from dataclasses import dataclass
 
 from citeguard.similarity.models import Fingerprint, FingerprintPoint, Shingle
+
+
+@dataclass(frozen=True, slots=True)
+class MatchingSegments:
+    """Matching spans in both compared fingerprint coordinate spaces."""
+
+    document_spans: list[tuple[int, int]]
+    source_spans: list[tuple[int, int]]
 
 # ---------------------------------------------------------------------------
 # Stable 64-bit hash
@@ -202,45 +211,46 @@ def find_matching_segments(
         (start, end) character spans (in the *first* document's coordinate
         system) that match between the two fingerprints.
     """
+    return find_matching_segments_pair(fp1, fp2, k=k).document_spans
+
+
+def find_matching_segments_pair(
+    fp1: Fingerprint,
+    fp2: Fingerprint,
+    *,
+    k: int = 5,
+) -> MatchingSegments:
+    """Return matching spans in both fingerprint coordinate systems."""
     if not fp1.points or not fp2.points:
-        return []
+        return MatchingSegments(document_spans=[], source_spans=[])
 
     # Map hash -> list of positions for each fingerprint
-    pos1: dict[int, list[int]] = {}
+    pos1: dict[int, list[FingerprintPoint]] = {}
     for p in fp1.points:
-        pos1.setdefault(p.hash, []).append(p.position)
+        pos1.setdefault(p.hash, []).append(p)
 
-    pos2: dict[int, list[int]] = {}
+    pos2: dict[int, list[FingerprintPoint]] = {}
     for p in fp2.points:
-        pos2.setdefault(p.hash, []).append(p.position)
+        pos2.setdefault(p.hash, []).append(p)
 
     # Find hashes present in both fingerprints
     common_hashes = set(pos1.keys()) & set(pos2.keys())
     if not common_hashes:
-        return []
+        return MatchingSegments(document_spans=[], source_spans=[])
 
     # Collect matching spans as (start, end) in fp1's coordinate system
     # We use the start position from fp1 and extend to the end of the
     # corresponding fp1 point.
     raw_spans: list[tuple[int, int]] = []
+    raw_source_spans: list[tuple[int, int]] = []
     for h in common_hashes:
-        for p1_pos in pos1[h]:
-            # Find matching fp2 point with same position (or closest)
-            matching_fp2_positions = pos2[h]
-            # Use the first matching position as anchor
-            matching_fp2_positions[0]
-            # Find the fp1 point at this position
-            matching_p1 = None
-            for p in fp1.points:
-                if p.hash == h and p.position == p1_pos:
-                    matching_p1 = p
-                    break
-            if matching_p1 is None:
-                continue
-            raw_spans.append((matching_p1.start, matching_p1.end))
+        for p1 in pos1[h]:
+            raw_spans.append((p1.start, p1.end))
+        for p2 in pos2[h]:
+            raw_source_spans.append((p2.start, p2.end))
 
     if not raw_spans:
-        return []
+        return MatchingSegments(document_spans=[], source_spans=[])
 
     # Merge adjacent/overlapping spans
     raw_spans.sort()
@@ -257,4 +267,26 @@ def find_matching_segments(
             else:
                 merged.append(span)
 
+    return MatchingSegments(
+        document_spans=merged,
+        source_spans=_merge_tuple_spans(raw_source_spans),
+    )
+
+
+def _merge_tuple_spans(spans: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """Merge adjacent/overlapping tuple spans."""
+    if not spans:
+        return []
+    spans.sort()
+    merged: list[tuple[int, int]] = []
+    for span in spans:
+        if not merged:
+            merged.append(span)
+            continue
+        last_start, last_end = merged[-1]
+        cur_start, cur_end = span
+        if cur_start <= last_end:
+            merged[-1] = (last_start, max(last_end, cur_end))
+        else:
+            merged.append(span)
     return merged

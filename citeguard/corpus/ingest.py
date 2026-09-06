@@ -125,6 +125,7 @@ def ingest_file(
                     normalized_text=normalized,
                     doc_id=actual_id,
                     entry_index=global_idx,
+                    metadata=metadata,
                     char_offset=char_cursor + sent.start_offset,
                     char_end=char_cursor + sent.end_offset,
                 )
