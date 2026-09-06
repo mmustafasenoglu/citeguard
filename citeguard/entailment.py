@@ -69,7 +69,8 @@ def contradiction_risk(
 
     Flags negation patterns in the evidence text relative to the claim.
     This is a heuristic; it does NOT conclude that the evidence
-    contradicts the claim, only that contradiction risk exists.
+    contradicts the claim.  It only raises the *risk* of contradiction.
+    Final supported/contradicted decisions require LLM-backed entailment.
     """
     has_negation = bool(_NEGATION_SIGNALS.search(evidence_text))
 
@@ -87,9 +88,12 @@ def contradiction_risk(
 
     if has_negation and overlap > 0.3:
         return EntailmentResult(
-            verdict=Verdict.CONTRADICTED,
-            confidence=min(round(40 + overlap * 40), 85),
-            reasoning="Negation signals detected in topically relevant evidence.",
+            verdict=Verdict.INSUFFICIENT_INFORMATION,
+            confidence=min(round(50 + overlap * 35), 85),
+            reasoning=(
+                "Negation signals detected in topically relevant evidence; "
+                "contradiction risk is elevated but requires LLM verification."
+            ),
         )
 
     if has_negation:

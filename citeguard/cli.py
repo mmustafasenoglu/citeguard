@@ -487,6 +487,12 @@ def check_command(
                     confidence = overall_confidence(
                         metadata_score, support_score, has_entailment=has_entailment
                     )
+                    ent_score = evidence[0].entailment_score if evidence else None
+                    ent_verdict = (
+                        evidence[0].verdict
+                        if evidence and ent_score is not None
+                        else None
+                    )
                     match_result = MatchResult(
                         candidate=candidate,
                         source_exists=True,
@@ -496,6 +502,8 @@ def check_command(
                         verdict=verdict,
                         reasoning=reasoning,
                         evidence=evidence,
+                        entailment_score=ent_score,
+                        entailment_verdict=ent_verdict,
                     )
                     all_matches.append(match_result)
                     if best_match is None or confidence > best_match.overall_confidence:

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from typing import Any
@@ -183,6 +184,7 @@ def extract_claims_with_llm(
         return None
 
     citation_texts = {c.raw_text for c in paragraph_citations}
+    _sentences = re.split(r"(?<=[.!?])\s+", paragraph)
     claims: list[Claim] = []
     for item in items:
         if not isinstance(item, dict):
@@ -199,8 +201,11 @@ def extract_claims_with_llm(
         except ValueError:
             severity = Severity.LOW
         search_query = str(item.get("search_query", text))[:200]
-        has_citation = any(ct in text for ct in citation_texts)
-        linked = [c for c in paragraph_citations if c.raw_text in text]
+
+        has_citation, linked = _map_claim_to_sentence(
+            text, _sentences, paragraph_citations, citation_texts,
+        )
+
         claims.append(
             Claim(
                 text=text[:200],
@@ -214,6 +219,43 @@ def extract_claims_with_llm(
             )
         )
     return claims
+
+
+def _map_claim_to_sentence(
+    claim_text: str,
+    sentences: list[str],
+    paragraph_citations: list[ExistingCitation],
+    citation_texts: set[str],
+) -> tuple[bool, list[ExistingCitation]]:
+    """Map an LLM-extracted claim back to the original sentence.
+
+    The LLM often strips citation markers from claim text.  To determine
+    whether the claim originally had a citation, we find the sentence with
+    the highest token overlap to the claim and check whether that sentence
+    contains a citation.
+    """
+    claim_tokens = set(re.findall(r"[a-z0-9]+", claim_text.lower()))
+    if not claim_tokens:
+        return False, []
+
+    best_overlap = 0.0
+    best_sentence = ""
+    for sentence in sentences:
+        sent_tokens = set(re.findall(r"[a-z0-9]+", sentence.lower()))
+        if not sent_tokens:
+            continue
+        overlap = len(claim_tokens & sent_tokens) / len(claim_tokens)
+        if overlap > best_overlap:
+            best_overlap = overlap
+            best_sentence = sentence
+
+    if best_overlap < 0.3 or not best_sentence:
+        return False, []
+
+    linked = [
+        c for c in paragraph_citations if c.raw_text in best_sentence
+    ]
+    return bool(linked), linked
 
 
 def match_source_with_llm(
