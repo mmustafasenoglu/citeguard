@@ -77,7 +77,9 @@ citeguard/
 │   ├── linking.py
 │   ├── retrieval.py
 │   ├── matcher.py
-│   ├── verify.py
+│   ├── evidence.py
+│   ├── entailment.py
+│   ├── verification.py
 │   ├── scoring.py
 │   ├── cache.py
 │   ├── report.py
@@ -184,10 +186,25 @@ Fields:
 - `source_exists: bool`
 - `metadata_match_score: int`
 - `claim_support_score: int`
+- `evidence_list: list[Evidence]`
 - deterministic `overall_confidence: int`
 - verdict
 - concise reasoning
 - warnings
+
+### Evidence
+
+Fields:
+
+- `text: str` — extracted sentence from source abstract
+- `relevance_score: int` — 0–100 lexical relevance score
+- `evidence_type: EvidenceType` — sentence type classification
+
+### EvidenceType
+
+- `supporting` — evidence that supports the claim
+- `contradicting` — evidence that contradicts the claim
+- `contextual` — relevant but not directly supporting or contradicting
 
 ### VerificationResult
 
@@ -328,6 +345,19 @@ reads and writes.
 
 ## 14. Matching and scoring
 
+### Three-stage matching pipeline
+
+The matcher implements a three-stage pipeline: metadata match → evidence → entailment → aggregate.
+
+1. **Metadata match**: deterministic scoring of title, author, year, DOI overlap between claim candidate and source metadata.
+2. **Evidence extraction**: extract candidate sentences from source abstracts and rank by lexical relevance to the claim.
+3. **Entailment evaluation**: classify each evidence passage as supporting, contradicting, or contextual using lexical negation signals and optional LLM classifier.
+4. **Aggregate**: combine metadata, evidence relevance, and entailment verdicts into a final `overall_confidence` score.
+
+The offline lexical matcher can produce `partially_supported` at most. `supported` and `contradicted` verdicts require entailment evaluation.
+
+### Metadata verification scoring
+
 The deterministic metadata verifier scores bibliography entries against provider candidates before
 semantic claim matching. Without a DOI, the available title, first-author, and year fields receive
 weights of 40%, 35%, and 25%. When both records provide a DOI, DOI receives 60%, title 20%, author
@@ -345,12 +375,22 @@ The model produces:
 
 - metadata match score: 0–100
 - claim support score: 0–100
+- evidence list (ranked passages)
 - verdict
 - concise reasoning
 
-`overall_confidence` is computed by application code:
+`overall_confidence` is computed by application code. When entailment evidence is available,
+confidence weights evidence relevance and entailment verdicts alongside metadata:
 
 ```python
+# With entailment evidence available
+overall_confidence = round(
+    metadata_match_score * 0.20
+    + evidence_relevance * 0.30
+    + entailment_score * 0.50
+)
+
+# Without entailment (offline baseline)
 overall_confidence = round(
     metadata_match_score * 0.35
     + claim_support_score * 0.65
@@ -367,9 +407,10 @@ Base score:
 
 ```python
 health = (
-    citation_coverage * 100 * 0.30
-    + verification_ratio * 100 * 0.30
-    + support_ratio * 100 * 0.25
+    citation_coverage * 100 * 0.25
+    + verification_ratio * 100 * 0.25
+    + support_ratio * 100 * 0.20
+    + evidence_coverage * 100 * 0.15
     + bibliography_consistency * 100 * 0.15
 )
 ```
@@ -418,6 +459,8 @@ Target options:
 --max-claims INT
 --no-cache
 --verbose
+--show-evidence
+--require-evidence
 ```
 
 During development, `citeguard inspect FILE` is allowed as an offline parser diagnostic command.
@@ -475,12 +518,16 @@ Offline unit tests:
 - cache
 - scoring
 - normalization/deduplication
+- evidence extraction and ranking
+- entailment evaluation (lexical negation signals)
+- evidence-aware matcher pipeline
 
 Mocked network tests:
 
 - providers
 - retrieval fallback
 - verification
+- full check/suggest pipeline with evidence integration
 
 LLM calls must be mocked in the default test suite. Test runs must not spend API credits or depend on network availability.
 
@@ -514,12 +561,17 @@ Users must be told which text may leave the local machine. API keys must never b
 ## 24. v0.2 roadmap
 
 - Numbered citation-to-bibliography resolution.
-- Evidence quote extraction from legally accessible full text.
+- Evidence quote extraction from source abstracts (shipped).
+- Entailment evaluation with lexical negation signals and LLM classifier (shipped).
+- Three-stage evidence-aware matching pipeline (shipped).
+- `--show-evidence` / `--require-evidence` CLI options (shipped).
+- Evidence-aware scoring with `evidence_coverage` metric (shipped).
 - Retraction metadata.
 - OpenAlex and PubMed / Europe PMC providers.
 - Domain-aware provider routing.
 - Source recency warnings.
 - Primary-source preference.
+- Full-text evidence verification.
 - Zotero/BibTeX/LaTeX integrations.
 - CI / pre-commit integration.
 - Multi-LLM provider support.

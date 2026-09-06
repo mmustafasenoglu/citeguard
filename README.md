@@ -26,6 +26,10 @@
 - Per-provider rate limiting to avoid API throttling
 - Rich progress spinners during long-running searches
 - Full offline baseline — no API keys required for default operation
+- **Evidence extraction** — sentence-level evidence passages from source abstracts, ranked by relevance
+- **Entailment evaluation** — lexical contradiction signals and LLM-backed support classification
+- **Evidence-aware scoring** — three-stage pipeline: metadata match → evidence → entailment → aggregate
+- **CLI evidence controls** — `--show-evidence` to display evidence passages, `--require-evidence` to filter
 
 ## Installation
 
@@ -74,6 +78,12 @@ citeguard check examples/example-paper.md --format both --output report
 # Verbose mode with progress spinners
 citeguard check examples/example-paper.md --verbose
 
+# Show evidence passages for matched claims
+citeguard check examples/example-paper.md --show-evidence
+
+# Filter to only claims with evidence
+citeguard check examples/example-paper.md --require-evidence
+
 # Filter by severity
 citeguard check examples/example-paper.md --severity high
 
@@ -120,6 +130,8 @@ When the API key is absent, citeguard falls back to the deterministic offline ba
 | `--severity high\|medium\|low` | Filter claims by severity |
 | `--no-cache` | Skip provider response cache |
 | `--verbose` | Show progress information with spinners |
+| `--show-evidence` | Display evidence passages for matched claims |
+| `--require-evidence` | Only show claims with evidence in priority review |
 
 ## Example: check output
 
@@ -166,8 +178,9 @@ citeguard treats these as separate questions:
 
 1. **Source resolution** — can the referenced work be found?
 2. **Metadata match** — do author, year, DOI, title, and other metadata align?
-3. **Claim support** — does the source appear to support the claim?
-4. **Overall confidence** — a deterministic score derived from the previous signals.
+3. **Evidence extraction** — can relevant passages be found in source abstracts?
+4. **Entailment** — do the evidence passages support, contradict, or leave the claim unsupported?
+5. **Overall confidence** — a deterministic score derived from the previous signals.
 
 A citation can therefore be successfully resolved while receiving a `contradicted` or `unrelated` verdict.
 
@@ -198,12 +211,14 @@ citeguard has no telemetry or usage analytics.
 
 See [SPEC.md](SPEC.md) for the full technical specification.
 
-**v0.2 planned features:**
-- Numbered citation-to-bibliography resolution
-- Full-text evidence extraction where legally available
-- OpenAlex / PubMed provider support and retraction metadata
-- LaTeX, Zotero, and BibTeX integrations
-- Pre-commit / CI integrations
+**v0.2 in progress:**
+- Evidence extraction from source abstracts (shipped)
+- Entailment evaluation with lexical + LLM classifier (shipped)
+- Three-stage evidence-aware matching pipeline (shipped)
+- `--show-evidence` / `--require-evidence` CLI options (shipped)
+- OpenAlex / PubMed provider support
+- Retraction metadata
+- Full-text evidence verification
 
 ## Contributing
 

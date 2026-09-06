@@ -2,6 +2,37 @@
 
 All notable changes to citeguard will be documented here.
 
+## [0.2.0] - 2026-09-06
+
+### Added
+
+- `Evidence` data model and `EvidenceType` enum for evidence passage representation.
+- Abstract-level evidence extraction with sentence splitting, lexical ranking, and top-N selection.
+- Entailment evaluation: offline negation-signal classifier and optional LLM-backed entailment.
+- Three-stage matcher pipeline: metadata match → evidence → entailment → aggregate confidence.
+- Offline lexical matcher no longer returns `SUPPORTED` verdict; only produces `partially_supported`
+  at most. `SUPPORTED` and `CONTRADICTED` require entailment evaluation.
+- Evidence-aware scoring: `evidence_coverage` metric, updated health score weights, priority
+  scoring considers evidence relevance.
+- Evidence rendering in terminal, Markdown, and JSON reports.
+- CLI options: `--show-evidence` (display evidence passages in terminal) and `--require-evidence`
+  (filter to only claims with evidence in priority review).
+- `match_claim_to_source` now returns a 5-tuple: `(metadata_score, support_score, verdict,
+  reasoning, evidence_list)`.
+- `overall_confidence` accepts optional `has_entailment` keyword arg for weighted aggregation.
+- `compute_health_score` requires `evidence_coverage` parameter.
+- `AuditMetrics` dataclass includes `evidence_coverage` field.
+- Multi-paragraph citation linking: `claims.py` now accepts `paragraph_index` parameter.
+- Parser authoritative for citation presence: `llm.py` ignores LLM `has_existing_citation` hints.
+- Integration tests for evidence pipeline and `--require-evidence` filter.
+
+### Changed
+
+- Health score formula weights: citation_coverage 25%, verification_ratio 25%, support_ratio 20%,
+  evidence_coverage 15%, bibliography_consistency 15% (previously 30/30/25/0/15).
+- `overall_confidence` formula with entailment: metadata 20%, evidence_relevance 30%, entailment 50%
+  (replaces previous 35/65 split when entailment is available).
+
 ## [0.1.0] - 2026-09-05
 
 ### Added
