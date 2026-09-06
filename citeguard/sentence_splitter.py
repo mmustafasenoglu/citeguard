@@ -8,7 +8,8 @@ Does NOT use heavy NLP models or external dependencies.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+
+from citeguard.models import Sentence, TextSpan
 
 # ---------------------------------------------------------------------------
 # Protected abbreviations and patterns that must NOT trigger sentence split
@@ -51,99 +52,6 @@ _SENTENCE_END_RE = re.compile(
 )
 
 
-# ---------------------------------------------------------------------------
-# TextSpan — paragraph-aware character span
-# ---------------------------------------------------------------------------
-
-@dataclass(frozen=True, slots=True)
-class TextSpan:
-    """A span of text within a specific paragraph.
-
-    Unlike global offsets, these are paragraph-relative so that overlapping
-    spans from different paragraphs do not collide.
-
-    Attributes
-    ----------
-    paragraph_index:
-        Which paragraph (0-based) this span belongs to.
-    start:
-        Inclusive character offset inside that paragraph.
-    end:
-        Exclusive character offset inside that paragraph.
-    """
-
-    paragraph_index: int
-    start: int
-    end: int
-
-    def length(self) -> int:
-        return self.end - self.start
-
-    def includes(self, other: TextSpan) -> bool:
-        """Return True if this span fully contains *other*."""
-        return (
-            self.paragraph_index == other.paragraph_index
-            and self.start <= other.start
-            and other.end <= self.end
-        )
-
-    def __gt__(self, other: TextSpan) -> bool:
-        if self.paragraph_index != other.paragraph_index:
-            return self.paragraph_index > other.paragraph_index
-        return self.start > other.start
-
-    def __lt__(self, other: TextSpan) -> bool:
-        if self.paragraph_index != other.paragraph_index:
-            return self.paragraph_index < other.paragraph_index
-        return self.start < other.start
-
-
-# ---------------------------------------------------------------------------
-# Sentence model — paragraph-granular
-# ---------------------------------------------------------------------------
-
-@dataclass(slots=True)
-class Sentence:
-    """A sentence inside a paragraph, with accurate character offsets.
-
-    Attributes
-    ----------
-    text:
-        Original (non-normalized) sentence text.
-    normalized_text:
-        Lowercased, whitespace-normalized version for retrieval only.
-    paragraph_index:
-        Which paragraph (0-based) this sentence lives in.
-    sentence_index:
-        Which sentence within its paragraph (0-based).
-    start_offset:
-        Inclusive character offset inside the paragraph text.
-    end_offset:
-        Exclusive character offset inside the paragraph text.
-    citations:
-        ExistingCitation objects that fall inside this sentence's
-        character range (filled in by EnrichedDocument builder).
-    is_bibliography:
-        True if this sentence lives inside the bibliography section.
-    """
-
-    text: str
-    normalized_text: str
-    paragraph_index: int
-    sentence_index: int
-    start_offset: int
-    end_offset: int
-    citations: list = field(default_factory=list)
-    is_bibliography: bool = False
-
-    @property
-    def length(self) -> int:
-        return self.end_offset - self.start_offset
-
-
-# ---------------------------------------------------------------------------
-# Abbreviation / protected-pattern check
-# ---------------------------------------------------------------------------
 
 def _is_protected_period(text: str, period_idx: int) -> bool:
     """Return True if the period at *period_idx* is *not* a sentence boundary.
@@ -216,7 +124,7 @@ def split_sentences(
         m = _SENTENCE_END_RE.search(working, pos)
         if m is None:
             # No more boundaries — the remaining text is the final sentence.
-            remainder = working[pos:].strip()
+            remainder = working[sent_start:].strip()
             if remainder:
                 sentences.append(
                     Sentence(

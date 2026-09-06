@@ -42,7 +42,7 @@ from .report import (
 )
 from .retrieval import RetrievalEngine
 from .scoring import AuditMetrics, compute_audit_metrics, overall_confidence, priority_list
-from .similarity.models import SimilarityEngineResult
+from .similarity.models import Fingerprint, SimilarityEngineResult
 from .verification import verify_bibliography
 
 console = Console()
@@ -629,6 +629,7 @@ def suggest_command(
 @click.option("--require-evidence", is_flag=True, help="Only show claims that have evidence.")
 @click.option("--show-similarity", is_flag=True, help="Run similarity engine (CTAC v1).")
 @click.option("--corpus", type=click.Path(exists=True, path_type=Path), help="Similarity corpus.")
+@click.option("--corpus-license", default=None, help="Corpus license (CC0, CC-BY). Default: CC0.")
 def check_command(
     file: Path,
     max_results: int,
@@ -643,6 +644,7 @@ def check_command(
     require_evidence: bool,
     show_similarity: bool,
     corpus: Path | None,
+    corpus_license: str | None,
 ) -> None:
     from .extractor import parse_enriched_document
     from .similarity.engine import SimilarityEngine
@@ -657,9 +659,9 @@ def check_command(
     if show_similarity:
         console.print("[dim]Running similarity analysis...[/dim]")
         enriched = parse_enriched_document(file)
-        corpus_fps = _load_similarity_corpus(corpus)
+        corpus_entries = _load_similarity_corpus(corpus, corpus_license)
         sim_engine = SimilarityEngine(config=SimilarityConfig())
-        sim_result = sim_engine.analyze_document(enriched.sentences, corpus_fps)
+        sim_result = sim_engine.analyze_document(enriched.sentences, corpus_entries)
 
     bib_issues = bibliography_issues(parsed.citations, parsed.bibliography_entries)
 
@@ -1042,8 +1044,13 @@ def _extract_claims_hybrid(
     return claims
 
 
-def _load_similarity_corpus(corpus_path: Path | None) -> list:
-    """Load and fingerprint a similarity corpus."""
+def _load_similarity_corpus(
+    corpus_path: Path | None, license_str: str | None = None
+) -> list[tuple[str, str, Fingerprint]]:
+    """Load and fingerprint a similarity corpus.
+
+    Returns list of (doc_id, normalized_text, Fingerprint) tuples.
+    """
     if not corpus_path:
         return []
         
@@ -1051,11 +1058,15 @@ def _load_similarity_corpus(corpus_path: Path | None) -> list:
     from .similarity.fingerprint import generate_shingles, winnow
     from .similarity.models import Fingerprint
     
+    # Default to CC0 if no license specified
+    if license_str is None:
+        license_str = "CC0"
+        
     console.print(f"[dim]Loading corpus from {corpus_path}...[/dim]")
     if corpus_path.is_dir():
-        docs = ingest_directory(corpus_path, recursive=True)
+        docs = ingest_directory(corpus_path, recursive=True, license_str=license_str)
     else:
-        docs = [ingest_file(corpus_path)]
+        docs = [ingest_file(corpus_path, license_str=license_str)]
         
     all_entries = []
     for doc in docs:
@@ -1063,23 +1074,29 @@ def _load_similarity_corpus(corpus_path: Path | None) -> list:
         
     deduped = deduplicate_entries(all_entries)
     
-    corpus_fps = []
+    corpus_entries = []
     for entry in deduped:
         shingles = generate_shingles(entry.normalized_text)
         points = winnow(shingles)
-        corpus_fps.append((entry.doc_id, Fingerprint(points=points, doc_id=entry.doc_id)))
+        fp = Fingerprint(points=points, doc_id=entry.doc_id)
+        corpus_entries.append((entry.doc_id, entry.normalized_text, fp))
         
     console.print(f"[dim]Corpus loaded: {len(docs)} docs, {len(deduped)} unique segments[/dim]")
-    return corpus_fps
+    return corpus_entries
 
 
 @main.command("similarity")
 @click.argument("file", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option(
     "--corpus",
-    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    type=click.Path(exists=True, path_type=Path),
     default=None,
-    help="Path to corpus JSON file for comparison.",
+    help="Path to corpus file or directory for comparison.",
+)
+@click.option(
+    "--corpus-license",
+    default=None,
+    help="License string for corpus (e.g., CC0, CC-BY). Defaults to CC0.",
 )
 @click.option(
     "--threshold",
@@ -1099,6 +1116,7 @@ def _load_similarity_corpus(corpus_path: Path | None) -> list:
 def similarity_command(
     file: Path,
     corpus: Path | None,
+    corpus_license: str | None,
     threshold: float,
     output_format: str,
     output: Path | None,
@@ -1115,7 +1133,7 @@ def similarity_command(
     from .similarity.models import SimilarityConfig
     
     # Corpus ingestion
-    corpus_fps = _load_similarity_corpus(corpus)
+    corpus_entries = _load_similarity_corpus(corpus, corpus_license)
 
     enriched = parse_enriched_document(file)
 
@@ -1126,7 +1144,7 @@ def similarity_command(
     # Run similarity analysis
     result = engine.analyze_document(
         sentences=enriched.sentences,
-        corpus_fps=corpus_fps,
+        corpus_entries=corpus_entries,
     )
 
     # Output results

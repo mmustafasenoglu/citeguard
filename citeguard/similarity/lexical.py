@@ -128,12 +128,21 @@ def char_ngram_jaccard(text1: str, text2: str, n: int = 3) -> float:
     if not text1 or not text2:
         return 0.0
 
-    # Normalize both texts the same way used in retrieval
-    n1 = set(normalize_turkish(text1))
-    n2 = set(normalize_turkish(text2))
+    # Normalize both texts
+    t1 = normalize_turkish(text1)
+    t2 = normalize_turkish(text2)
 
-    if not n1 or not n2:
-        return 0.0
+    if len(t1) < n or len(t2) < n:
+        # Fallback to word Jaccard if too short
+        w1 = set(t1.split())
+        w2 = set(t2.split())
+        if not w1 or not w2:
+            return 0.0
+        return len(w1 & w2) / len(w1 | w2)
+
+    # Generate char n-grams
+    n1 = {t1[i : i + n] for i in range(len(t1) - n + 1)}
+    n2 = {t2[i : i + n] for i in range(len(t2) - n + 1)}
 
     intersection = len(n1 & n2)
     union = len(n1 | n2)

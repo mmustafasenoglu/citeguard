@@ -204,6 +204,16 @@ class TextSpan:
             and other.end <= self.end
         )
 
+    def __gt__(self, other: TextSpan) -> bool:
+        if self.paragraph_index != other.paragraph_index:
+            return self.paragraph_index > other.paragraph_index
+        return self.start > other.start
+
+    def __lt__(self, other: TextSpan) -> bool:
+        if self.paragraph_index != other.paragraph_index:
+            return self.paragraph_index < other.paragraph_index
+        return self.start < other.start
+
 
 @dataclass(slots=True)
 class Sentence:

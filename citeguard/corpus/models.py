@@ -26,6 +26,11 @@ class CorpusMetadata:
     license: str | None = None
     language: CorpusLanguage = CorpusLanguage.TURKISH
     url: str | None = None
+    
+    # Permissions based on license
+    training_use_allowed: bool = False
+    similarity_index_allowed: bool = False
+    commercial_use_allowed: bool = False
 
 
 @dataclass(slots=True)

@@ -13,14 +13,21 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from citeguard.models import TextSpan
-from citeguard.similarity.fingerprint import exact_overlap, generate_shingles, winnow
+from citeguard.similarity.fingerprint import (
+    exact_overlap,
+    find_matching_segments,
+    generate_shingles,
+    winnow,
+)
 from citeguard.similarity.lexical import (
     build_tfidf_index,
     char_ngram_jaccard,
     classify_match_type,
+    compute_cosine_similarity,
 )
 from citeguard.similarity.models import (
     Fingerprint,
+    MatchType,
     RiskLevel,
     SimilarityConfig,
     SimilarityEngineResult,
@@ -110,7 +117,7 @@ class SimilarityEngine:
     def compare_sentence_to_corpus(
         self,
         sentence: Sentence,
-        corpus_fingerprints: list[tuple[str, Fingerprint]],
+        corpus_entries: list[tuple[str, str, Fingerprint]],  # (doc_id, text, Fingerprint)
         tfidf_info: tuple | None = None,
     ) -> list[SimilarityMatch]:
         """Return similarity matches for one sentence against a corpus.
@@ -119,8 +126,8 @@ class SimilarityEngine:
         ----------
         sentence:
             The sentence to match.
-        corpus_fingerprints:
-            List of (doc_id, Fingerprint) tuples from the corpus.
+        corpus_entries:
+            List of (doc_id, normalized_text, Fingerprint) tuples from the corpus.
         tfidf_info:
             Optional (vectorizer, matrix) from corpus documents.
 
@@ -133,21 +140,23 @@ class SimilarityEngine:
         # 1) Exact/fingerprint overlap
         sentence_fp = self.build_fingerprint(sentence.normalized_text)
 
-        for doc_id, doc_fp in corpus_fingerprints:
+        for doc_id, doc_text, doc_fp in corpus_entries:
             eo = exact_overlap(sentence_fp, doc_fp)
 
-            # 2) Lexical (TF-IDF) similarity if we have matrix
+            # 2) Lexical similarity
             ls = 0.0
             if tfidf_info is not None:
                 vectorizer, matrix = tfidf_info
-                # Simple: compare sentence against each doc in matrix
-                # This is a per-document query; in production would use
-                # the vectorizer's transform more efficiently.
-                # For now, fall back to char-n-gram Jaccard as proxy.
-                ls = char_ngram_jaccard(
-                    sentence.normalized_text,
-                    doc_id,  # doc_id is actually text; should fix
-                )
+                # Use TF-IDF cosine similarity
+                scores = compute_cosine_similarity(sentence.normalized_text, vectorizer, matrix)
+                # Find the score for this document
+                for idx, score in scores:
+                    if idx < len(corpus_entries) and corpus_entries[idx][0] == doc_id:
+                        ls = score
+                        break
+            else:
+                # Fallback to char n-gram Jaccard
+                ls = char_ngram_jaccard(sentence.normalized_text, doc_text)
 
             # 3) Classify match type
             mt = classify_match_type(
@@ -164,19 +173,30 @@ class SimilarityEngine:
                 + self.config.combined_weight_lexical * ls
             )
 
-            # 5) Build match
+            # 5) Find matching spans using fingerprint
+            matched_doc_spans = find_matching_segments(
+                sentence_fp, doc_fp, k=self.config.shingle_size
+            )
+            # For source spans, we'd need the original corpus document's fingerprint
+            # For now, use the same spans as approximation
+            matched_src_spans = matched_doc_spans
+
+            # 6) Build match
             match = SimilarityMatch(
-                source_text=doc_id,
-                source_title="",  # would be populated from corpus metadata
+                source_text=doc_text[:200],  # Truncate for storage
+                source_title=doc_id,
                 source_id=doc_id,
                 exact_overlap=eo,
                 lexical_similarity=ls,
                 combined_score=combined,
                 match_type=mt,
+                matched_document_spans=matched_doc_spans,
+                matched_source_spans=matched_src_spans,
             )
             matches.append(match)
 
-        # Sort by combined score descending
+        # Filter out UNMATCHED and sort by combined score descending
+        matches = [m for m in matches if m.match_type != MatchType.UNMATCHED]
         matches.sort(key=lambda m: -m.combined_score)
         return matches
 
@@ -204,11 +224,10 @@ class SimilarityEngine:
           - exact >= 0.95 → +1 (boost confidence)
           - exact < 0.70 → -1 (penalize)
         """
-        if not match.matches:
+        if not match:
             return RiskLevel.NONE, "no match found"
 
-        best = match.matches[0]
-        detected_source = best.source_text
+        detected_source = match.source_text or match.source_id or ""
 
         # Check if sentence has citations
         if not sentence_citations:
@@ -221,56 +240,51 @@ class SimilarityEngine:
 
         # Sentence has citations — check each
         citation_issues: list[str] = []
-        has_quotation = False
 
         for cit in sentence_citations:
-            # Check if citation source matches best detected source
-            # This is a simplified check; real implementation would compare
-            # citation metadata (author, year, etc.) against match source
+            # Check if citation author/year matches detected source
+            # Use author and year for matching
+            cit_identifier = ""
+            if cit.authors:
+                cit_identifier += cit.authors.lower()
+            if cit.year:
+                cit_identifier += f" {cit.year}"
+            
             citation_matches_source = (
                 detected_source
-                and detected_source.lower() in cit.source.lower()
+                and cit_identifier
+                and cit_identifier in detected_source.lower()
             )
 
             if not citation_matches_source:
                 citation_issues.append(
-                    f"citation from {cit.author} ({cit.year}) "
+                    f"citation from {cit.authors or 'unknown'} ({cit.year or 'n.d.'}) "
                     f"does not match detected source"
                 )
 
-            # Check for quotation markers in original text
-            if cit.is_quotation:
-                has_quotation = True
-
         # Decision
-        if citation_issues and has_quotation:
-            base_risk = RiskLevel.MEDIUM
-            reason = (
-                f"quotation markers present; {'; '.join(citation_issues)}"
-            )
-        elif citation_issues:
+        if citation_issues:
             base_risk = RiskLevel.HIGH
             reason = "; ".join(citation_issues)
         else:
-            # All citations match — downgngrade based on exact strength
+            # All citations match — downgrade based on exact strength
             if match.exact_overlap >= 0.95:
                 return RiskLevel.LOW, "citations match detected source"
             if match.exact_overlap < 0.70:
-                return RiskLevel.HIGH, "citations present but weak exact overlap"
-            return RiskLevel.MEDIUM, "citations match source, moderate overlap"
+                return RiskLevel.MEDIUM, "citations match but low exact overlap"
+            return RiskLevel.LOW, "citations match detected source"
 
-        # Apply severity adjustment
-        risk = base_risk
-        reason = f"{reason}; exact={match.exact_overlap:.2f}"
+        # Severity adjustment based on exact overlap
         if match.exact_overlap >= 0.95:
-            risk = RiskLevel(risk.value.rstrip("0123456789") or "low")
-            # Simple promotion
-            if risk == RiskLevel.MEDIUM:
-                risk = RiskLevel.LOW
-        elif match.exact_overlap < 0.70 and risk != RiskLevel.HIGH:
-            risk = RiskLevel.HIGH
+            if base_risk == RiskLevel.HIGH:
+                base_risk = RiskLevel.MEDIUM
+        elif match.exact_overlap < 0.70:
+            if base_risk == RiskLevel.LOW:
+                base_risk = RiskLevel.MEDIUM
+            elif base_risk == RiskLevel.MEDIUM:
+                base_risk = RiskLevel.HIGH
 
-        return risk, reason
+        return base_risk, reason
 
     # ------------------------------------------------------------------
     # Overall similarity aggregation
@@ -312,8 +326,8 @@ class SimilarityEngine:
                     all_spans.append(
                         TextSpan(
                             paragraph_index=result.sentence.paragraph_index,
-                            start=span.start,
-                            end=span.end,
+                            start=span[0],
+                            end=span[1],
                         )
                     )
 
@@ -321,19 +335,14 @@ class SimilarityEngine:
         # (current implementation uses all matches)
 
         merged = _merge_spans(all_spans)
-        unique_matched = sum(span.length for span in merged)
+        unique_matched = sum(span.length() for span in merged)
 
         return (unique_matched / eligible_chars) * 100.0
-
-    # ------------------------------------------------------------------
-    # Full-document analysis
-    # ------------------------------------------------------------------
 
     def analyze_document(
         self,
         sentences: list[Sentence],
-        corpus_fps: list[tuple[str, Fingerprint]],
-        tfidf_info: tuple | None = None,
+        corpus_entries: list[tuple[str, str, Fingerprint]],  # (doc_id, text, Fingerprint)
     ) -> SimilarityEngineResult:
         """Run full similarity analysis over a document's sentences.
 
@@ -341,15 +350,19 @@ class SimilarityEngine:
         ----------
         sentences:
             Document sentences (EnrichedDocument output).
-        corpus_fps:
-            Corpus fingerprints (doc_id, Fingerprint).
-        tfidf_info:
-            Optional TF-IDF index for lexical comparisons.
+        corpus_entries:
+            Corpus entries as (doc_id, normalized_text, Fingerprint) tuples.
 
         Returns
         -------
         SimilarityEngineResult
         """
+        # Build TF-IDF index from corpus if we have entries
+        tfidf_info = None
+        if corpus_entries:
+            corpus_texts = [entry[1] for entry in corpus_entries]
+            tfidf_info = build_tfidf_index(corpus_texts)
+
         results: list[SimilarityResult] = []
         high_risk = 0
         medium_risk = 0
@@ -357,7 +370,7 @@ class SimilarityEngine:
         for sent in sentences:
             # Skip bibliography sentences for overall % but still analyze
             sent_matches = self.compare_sentence_to_corpus(
-                sent, corpus_fps, tfidf_info
+                sent, corpus_entries, tfidf_info
             )
 
             # Compute attribution risk for the best match
@@ -393,10 +406,9 @@ class SimilarityEngine:
         total = len(sentences)
         matched = sum(1 for r in results if r.matches)
 
-        # Count unique matched chars
+        # Count unique matched chars (from document spans)
         eligible = sum(s.length for s in sentences if not s.is_bibliography)
         unique_matched = 0
-        # Recompute from results spans
         all_spans: list[TextSpan] = []
         for r in results:
             for m in r.matches:
@@ -404,13 +416,13 @@ class SimilarityEngine:
                     all_spans.append(
                         TextSpan(
                             paragraph_index=r.sentence.paragraph_index,
-                            start=sp.start,
-                            end=sp.end,
+                            start=sp[0],
+                            end=sp[1],
                         )
                     )
         if all_spans:
             merged = _merge_spans(all_spans)
-            unique_matched = sum(s.length for s in merged)
+            unique_matched = sum(s.length() for s in merged)
 
         return SimilarityEngineResult(
             results=results,

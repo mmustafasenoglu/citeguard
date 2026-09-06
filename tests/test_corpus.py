@@ -280,7 +280,7 @@ class TestIngest:
             "Deneysel veriler hipotezi desteklemektedir.",
             encoding="utf-8",
         )
-        doc = ingest_file(f)
+        doc = ingest_file(f, license_str="CC0")
         assert doc.doc_id == "test"
         assert len(doc.entries) > 0
         assert all(e.normalized_text for e in doc.entries)
@@ -293,7 +293,7 @@ class TestIngest:
             "Sonuçlar istatistiksel olarak anlamlıdır.\n",
             encoding="utf-8",
         )
-        doc = ingest_file(f)
+        doc = ingest_file(f, license_str="CC0")
         assert doc.doc_id == "paper"
         assert len(doc.entries) >= 1
 
@@ -303,7 +303,7 @@ class TestIngest:
             "Bu bir test cümlesidir ve yeterince uzundur.",
             encoding="utf-8",
         )
-        doc = ingest_file(f, doc_id="custom-id")
+        doc = ingest_file(f, doc_id="custom-id", license_str="CC0")
         assert doc.doc_id == "custom-id"
 
     def test_ingest_unsupported_extension(self, tmp_path):
@@ -324,6 +324,7 @@ class TestIngest:
         )
         doc = ingest_file(f, license_str="CC-BY")
         assert doc.metadata.license == "CC-BY"
+        assert doc.metadata.similarity_index_allowed is True
 
     def test_ingest_directory(self, tmp_path):
         (tmp_path / "a.txt").write_text(
@@ -335,7 +336,7 @@ class TestIngest:
             encoding="utf-8",
         )
         (tmp_path / "c.pdf").write_text("ignored")
-        docs = ingest_directory(tmp_path)
+        docs = ingest_directory(tmp_path, license_str="CC0")
         assert len(docs) == 2
 
     def test_ingest_directory_recursive(self, tmp_path):
@@ -349,7 +350,7 @@ class TestIngest:
             "Alt dizindeki uzun bir akademik cümle yer almaktadır.",
             encoding="utf-8",
         )
-        docs = ingest_directory(tmp_path, recursive=True)
+        docs = ingest_directory(tmp_path, recursive=True, license_str="CC0")
         assert len(docs) == 2
 
     def test_ingest_directory_not_a_dir(self, tmp_path):

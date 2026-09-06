@@ -58,13 +58,15 @@ def generate_shingles(text: str, k: int = 5) -> list[Shingle]:
     """
     if k <= 0 or not text:
         return []
+        
+    if len(text) < k:
+        return [Shingle(hash=stable_hash(text), start=0, end=len(text), position=0)]
 
     shingles: list[Shingle] = []
-    text_bytes = text.encode("utf-8")
-
-    for i in range(len(text_bytes) - k + 1):
-        chunk = text_bytes[i : i + k]
-        h = stable_hash(chunk.decode("utf-8", errors="ignore"))
+    
+    for i in range(len(text) - k + 1):
+        chunk = text[i : i + k]
+        h = stable_hash(chunk)
         shingles.append(
             Shingle(hash=h, start=i, end=i + k, position=i)
         )
@@ -79,9 +81,9 @@ def generate_shingles(text: str, k: int = 5) -> list[Shingle]:
 def winnow(shingles: list[Shingle], window: int = 4) -> list[FingerprintPoint]:
     """Select one fingerprint point per window using minimum-hash.
 
+    Implements true sliding-window winnowing (Schleimer et al.).
     For every consecutive group of *window* shingles, the shingle with the
-    smallest hash value becomes a fingerprint point. This compresses the
-    signature while preserving roughly even coverage across the text.
+    smallest hash value is selected. Tie-breaking favors the right-most match.
 
     Parameters
     ----------
@@ -96,28 +98,50 @@ def winnow(shingles: list[Shingle], window: int = 4) -> list[FingerprintPoint]:
     """
     if not shingles:
         return []
+        
+    if len(shingles) <= window:
+        # Shorter than window, pick absolute minimum
+        min_shingle = min(shingles, key=lambda s: s.hash)
+        return [FingerprintPoint(
+            hash=min_shingle.hash, position=min_shingle.position,
+            start=min_shingle.start, end=min_shingle.end
+        )]
 
     points: list[FingerprintPoint] = []
-    num_shingles = len(shingles)
-
-    # Slide window; last window may be smaller
-    start = 0
-    while start < num_shingles:
-        end = min(start + window, num_shingles)
-        window_shingles = shingles[start:end]
-
-        # Find shingle with minimum hash
-        min_shingle = min(window_shingles, key=lambda s: s.hash)
-
-        points.append(
-            FingerprintPoint(
-                hash=min_shingle.hash,
-                position=min_shingle.position,
-                start=min_shingle.start,
-                end=min_shingle.end,
-            )
-        )
-        start += window
+    
+    # Initialize first window
+    min_idx = 0
+    for i in range(1, window):
+        if shingles[i].hash <= shingles[min_idx].hash:
+            min_idx = i
+            
+    points.append(FingerprintPoint(
+        hash=shingles[min_idx].hash, position=shingles[min_idx].position,
+        start=shingles[min_idx].start, end=shingles[min_idx].end
+    ))
+    
+    # Slide window
+    for i in range(1, len(shingles) - window + 1):
+        new_shingle_idx = i + window - 1
+        
+        # If previous minimum fell out of the window, scan the whole window
+        if min_idx < i:
+            min_idx = i
+            for j in range(i + 1, i + window):
+                if shingles[j].hash <= shingles[min_idx].hash:
+                    min_idx = j
+            points.append(FingerprintPoint(
+                hash=shingles[min_idx].hash, position=shingles[min_idx].position,
+                start=shingles[min_idx].start, end=shingles[min_idx].end
+            ))
+        else:
+            # Previous minimum is still in window. Compare only the new shingle
+            if shingles[new_shingle_idx].hash <= shingles[min_idx].hash:
+                min_idx = new_shingle_idx
+                points.append(FingerprintPoint(
+                    hash=shingles[min_idx].hash, position=shingles[min_idx].position,
+                    start=shingles[min_idx].start, end=shingles[min_idx].end
+                ))
 
     return points
 

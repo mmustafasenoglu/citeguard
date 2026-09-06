@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from citeguard.corpus.licenses import classify_license
+from citeguard.corpus.licenses import classify_license, get_permissions
 from citeguard.corpus.models import (
     CorpusDocument,
     CorpusEntry,
@@ -85,10 +85,27 @@ def ingest_file(
     if metadata is None:
         license_type = classify_license(license_str)
         language = _detect_language(raw_text)
+        perms = get_permissions(license_type)
         metadata = CorpusMetadata(
             title=filepath.stem.replace("-", " ").replace("_", " ").title(),
             license=license_type.value,
             language=language,
+            training_use_allowed=perms["training_use_allowed"],
+            similarity_index_allowed=perms["similarity_index_allowed"],
+            commercial_use_allowed=perms["commercial_use_allowed"],
+        )
+        
+    if metadata and not metadata.similarity_index_allowed:
+        # If explicitly not allowed for similarity index, log a warning and return empty entries
+        logger.warning(
+            "Document '%s' license (%s) restricts similarity indexing. Skipping.", 
+            actual_id, metadata.license
+        )
+        return CorpusDocument(
+            doc_id=actual_id,
+            metadata=metadata,
+            entries=[],
+            raw_text=raw_text,
         )
 
     # Split into sentences and normalize

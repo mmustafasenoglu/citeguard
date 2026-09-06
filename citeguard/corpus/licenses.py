@@ -91,3 +91,27 @@ def is_open_license(license_type: LicenseType) -> bool:
 def is_restricted_license(license_type: LicenseType) -> bool:
     """Return ``True`` if the license forbids corpus inclusion."""
     return license_type in _RESTRICTED_LICENSES
+
+
+def get_permissions(license_type: LicenseType) -> dict[str, bool]:
+    """Return permission flags for a given license type."""
+    allowed_for_similarity = is_open_license(license_type) and license_type not in (
+        LicenseType.PROPRIETARY,
+        LicenseType.UNKNOWN,
+    )
+    return {
+        "similarity_index_allowed": allowed_for_similarity,
+        "training_use_allowed": license_type in (
+            LicenseType.CC_BY,
+            LicenseType.CC0,
+            LicenseType.PUBLIC_DOMAIN,
+        ),
+        "commercial_use_allowed": license_type in (
+            LicenseType.CC_BY,
+            LicenseType.CC_BY_SA,
+            LicenseType.CC_BY_ND,
+            LicenseType.CC0,
+            LicenseType.PUBLIC_DOMAIN,
+            LicenseType.OPEN_ACCESS,
+        ),
+    }
