@@ -281,6 +281,8 @@ Each non-bibliography paragraph is processed independently. The structured model
 
 The model must focus on externally verifiable statements such as statistics, research findings, direct quotations, historical facts, causal claims, and concrete comparative claims.
 
+LLM-extracted claims are mapped back to the original paragraph via token overlap to detect citations that the LLM may have stripped from the claim text.  The sentence with the highest overlap is checked for citation markers; if found, the claim is tagged as already cited.
+
 A single malformed model response must not abort the document run. The paragraph is skipped with a warning.
 
 ## 11. Providers
@@ -354,7 +356,7 @@ The matcher implements a three-stage pipeline: metadata match → evidence → e
 3. **Entailment evaluation**: classify each evidence passage as supporting, contradicting, or contextual using lexical negation signals and optional LLM classifier.
 4. **Aggregate**: combine metadata, evidence relevance, and entailment verdicts into a final `overall_confidence` score.
 
-The offline lexical matcher can produce `partially_supported` at most. `supported` and `contradicted` verdicts require entailment evaluation.
+The offline lexical matcher can produce `partially_supported` at most. `supported` and `contradicted` verdicts require entailment evaluation.  The offline negation detector flags contradiction *risk* with elevated confidence but returns `insufficient_information`; only the LLM-backed entailment classifier can produce a final `contradicted` verdict.
 
 ### Metadata verification scoring
 
@@ -379,21 +381,23 @@ The model produces:
 - verdict
 - concise reasoning
 
-`overall_confidence` is computed by application code. When entailment evidence is available,
-confidence weights evidence relevance and entailment verdicts alongside metadata:
+`overall_confidence` is computed by application code. ``support_score`` is a
+standalone signal (evidence + entailment, no metadata).  Metadata is combined
+exactly once:
 
 ```python
-# With entailment evidence available
+# With entailment available
+# support_score = evidence_relevance * 0.25 + entailment_score * 0.75
 overall_confidence = round(
     metadata_match_score * 0.20
-    + evidence_relevance * 0.30
-    + entailment_score * 0.50
+    + support_score * 0.80
 )
 
 # Without entailment (offline baseline)
+# support_score = evidence_relevance (standalone)
 overall_confidence = round(
-    metadata_match_score * 0.35
-    + claim_support_score * 0.65
+    metadata_match_score * 0.40
+    + support_score * 0.60
 )
 ```
 
@@ -410,8 +414,8 @@ health = (
     citation_coverage * 100 * 0.25
     + verification_ratio * 100 * 0.25
     + support_ratio * 100 * 0.20
-    + evidence_coverage * 100 * 0.15
-    + bibliography_consistency * 100 * 0.15
+    + evidence_coverage * 100 * 0.20
+    + bibliography_consistency * 100 * 0.10
 )
 ```
 

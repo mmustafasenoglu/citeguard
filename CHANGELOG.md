@@ -22,16 +22,29 @@ All notable changes to citeguard will be documented here.
 - `overall_confidence` accepts optional `has_entailment` keyword arg for weighted aggregation.
 - `compute_health_score` requires `evidence_coverage` parameter.
 - `AuditMetrics` dataclass includes `evidence_coverage` field.
+- `MatchResult` dataclass includes `entailment_score` and `entailment_verdict` fields.
 - Multi-paragraph citation linking: `claims.py` now accepts `paragraph_index` parameter.
 - Parser authoritative for citation presence: `llm.py` ignores LLM `has_existing_citation` hints.
-- Integration tests for evidence pipeline and `--require-evidence` filter.
+- LLM claim extraction maps claims back to original sentences via token overlap for citation
+  detection, fixing false negatives when LLM strips citation markers from claim text.
+- Integration tests for evidence pipeline, `--require-evidence` filter, and sentence-mapping
+  citation detection.
 
 ### Changed
 
+- Removed legacy `_try_llm_match()` bypass from matcher; LLM is now only invoked inside
+  `_evaluate_evidence()` via `evaluate_evidence_with_llm()`, ensuring the full evidence→entailment
+  pipeline always runs.
+- `support_score` is now a standalone signal (evidence + entailment only, no metadata).
+  `overall_confidence` combines metadata and support exactly once.
 - Health score formula weights: citation_coverage 25%, verification_ratio 25%, support_ratio 20%,
-  evidence_coverage 15%, bibliography_consistency 15% (previously 30/30/25/0/15).
-- `overall_confidence` formula with entailment: metadata 20%, evidence_relevance 30%, entailment 50%
-  (replaces previous 35/65 split when entailment is available).
+  evidence_coverage 20%, bibliography_consistency 10% (previously 30/30/25/0/15).
+- `overall_confidence` formula with entailment: metadata 20% + support 80%; without entailment:
+  metadata 40% + support 60%.  No double-counting of metadata.
+- Offline contradiction detector no longer returns `CONTRADICTED` verdict.  Negation signals
+  with high topical overlap produce elevated-confidence `INSUFFICIENT_INFORMATION` instead.
+  Final `CONTRADICTED` verdict requires LLM-backed entailment.
+- Version bumped to 0.2.0 across `pyproject.toml`, `__init__.py`, and `CHANGELOG.md`.
 
 ## [0.1.0] - 2026-09-05
 
