@@ -21,7 +21,8 @@
 - Compute a deterministic Citation Health Score
 - Produce terminal, Markdown, and JSON reports (`--format both` for JSON + Markdown)
 - Link claims to their citing references with sentence-position confidence scores
-- Optional LLM integration via Anthropic API for enhanced claim extraction and source matching
+- Optional LLM integration for enhanced claim extraction and source matching
+- **Multi-provider LLM support** — Anthropic, OpenAI, xAI/Grok, Groq, OpenRouter, NVIDIA NIM, and custom OpenAI-compatible endpoints
 - Parallel provider queries for faster multi-provider searches
 - Per-provider rate limiting to avoid API throttling
 - Rich progress spinners during long-running searches
@@ -93,20 +94,47 @@ citeguard check examples/example-paper.md --max-claims 5
 
 ### LLM-enhanced mode (optional)
 
-Set `ANTHROPIC_API_KEY` in your `.env` to enable LLM-backed claim extraction and source matching:
+citeguard supports multiple LLM providers. Set one API key to enable LLM-backed claim extraction and entailment:
 
 ```bash
 # Create .env template
 citeguard init
 
-# Edit .env and add your Anthropic API key
-# ANTHROPIC_API_KEY=sk-ant-...
+# Pick your provider — just set one API key:
 
-# Now check uses LLM for better claim detection
-citeguard check examples/example-paper.md --verbose
+# Anthropic (default)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# OpenAI
+OPENAI_API_KEY=sk-...
+
+# xAI / Grok
+XAI_API_KEY=xai-...
+
+# Groq
+GROQ_API_KEY=gsk_...
+
+# OpenRouter
+OPENROUTER_API_KEY=sk-or-...
+
+# NVIDIA NIM
+NVIDIA_API_KEY=nvapi-...
+
+# Or use a local/custom endpoint (Ollama, LM Studio, vLLM, etc.)
+CITEGUARD_LLM_PROVIDER=custom
+CITEGUARD_LLM_BASE_URL=http://localhost:11434/v1
+CITEGUARD_LLM_API_KEY=local
+CITEGUARD_LLM_MODEL=qwen3
 ```
 
-When the API key is absent, citeguard falls back to the deterministic offline baseline automatically.
+Provider is auto-detected from available API keys, or set explicitly:
+
+```bash
+CITEGUARD_LLM_PROVIDER=groq
+CITEGUARD_LLM_MODEL=openai/gpt-oss-20b
+```
+
+When no API key is available, citeguard falls back to the deterministic offline baseline automatically.
 
 ## Commands
 
@@ -190,9 +218,10 @@ citeguard is a local CLI. The analysis pipeline sends limited content to configu
 
 - **Academic providers** (Semantic Scholar, Crossref, arXiv): generated search queries derived
   from claims and bibliography metadata. The full document is not sent.
-- **LLM provider** (Anthropic, optional): paragraphs are sent for claim extraction; claims plus
-  source titles, authors, years, and abstracts are sent for source matching. The full document,
-  bibliography, and API key are not included in prompts.
+- **LLM provider** (when configured): paragraphs are sent for claim extraction; claims plus
+  source titles, authors, years, and abstracts are sent for entailment classification. Supported
+  providers: Anthropic, OpenAI, xAI/Grok, Groq, OpenRouter, NVIDIA NIM, and custom endpoints.
+  The full document, bibliography, and API key are not included in prompts.
 - **API keys** are never written to reports, logs, screenshots, or cache files.
 
 citeguard has no telemetry or usage analytics.

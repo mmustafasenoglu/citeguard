@@ -107,7 +107,7 @@ def check_report(
         "document": parsed.path,
         "privacy": (
             "Academic providers may receive generated claim search queries and bibliography "
-            "metadata. When Anthropic integration is configured, paragraphs and claim-source "
+            "metadata. When an LLM provider is configured, paragraphs and claim-source "
             "metadata may also be sent. Verification does not establish claim support."
         ),
         "summary": {
@@ -154,7 +154,7 @@ def suggest_report(
         "schema_version": SCHEMA_VERSION,
         "document": parsed.path,
         "privacy": (
-            "Academic providers receive claim search queries. When Anthropic integration is "
+            "Academic providers receive claim search queries. When an LLM provider is "
             "configured, paragraphs and claim-source metadata may also be sent."
         ),
         "summary": {

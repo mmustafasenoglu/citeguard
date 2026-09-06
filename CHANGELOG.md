@@ -6,6 +6,18 @@ All notable changes to citeguard will be documented here.
 
 ### Added
 
+- Multi-provider LLM support: Anthropic, OpenAI, xAI/Grok, Groq, OpenRouter, NVIDIA NIM,
+  and custom OpenAI-compatible endpoints (Ollama, LM Studio, vLLM, LiteLLM).
+- ``LLMBackend`` protocol and provider registry in ``llm_backends.py``.
+- Auto-detection of LLM provider from available API keys.
+- ``CITEGUARD_LLM_PROVIDER``, ``CITEGUARD_LLM_MODEL``, ``CITEGUARD_LLM_BASE_URL``,
+  ``CITEGUARD_LLM_API_KEY`` environment variables for provider configuration.
+- OpenAI and xAI use Responses API (``/v1/responses``); Groq, OpenRouter, NVIDIA use
+  OpenAI-compatible Chat Completions endpoints.
+- ``LLMProviderSettings`` dataclass in ``config.py`` with per-provider default models.
+- ``resolve_backend()`` factory for provider instantiation.
+- 20 new backend tests covering auto-detection, resolution, text extraction, and missing-key
+  graceful fallback for every provider.
 - `Evidence` data model and `EvidenceType` enum for evidence passage representation.
 - Abstract-level evidence extraction with sentence splitting, lexical ranking, and top-N selection.
 - Entailment evaluation: offline negation-signal classifier and optional LLM-backed entailment.
@@ -45,6 +57,8 @@ All notable changes to citeguard will be documented here.
   with high topical overlap produce elevated-confidence `INSUFFICIENT_INFORMATION` instead.
   Final `CONTRADICTED` verdict requires LLM-backed entailment.
 - Version bumped to 0.2.0 across `pyproject.toml`, `__init__.py`, and `CHANGELOG.md`.
+- ``entailment.py`` now imports ``_call_llm`` instead of ``_call_anthropic``, routing all
+  LLM calls through the multi-provider backend abstraction.
 
 ## [0.1.0] - 2026-09-05
 

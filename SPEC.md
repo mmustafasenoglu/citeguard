@@ -532,6 +532,7 @@ Mocked network tests:
 - retrieval fallback
 - verification
 - full check/suggest pipeline with evidence integration
+- LLM backend auto-detection, resolution, and text extraction for all providers
 
 LLM calls must be mocked in the default test suite. Test runs must not spend API credits or depend on network availability.
 
@@ -554,6 +555,8 @@ v0.1 has no telemetry.
 
 Users must be told which text may leave the local machine. API keys must never be embedded in reports or cached request headers.
 
+When an LLM provider is configured, paragraph text may be sent to the configured provider (Anthropic, OpenAI, xAI, Groq, OpenRouter, NVIDIA, or a custom endpoint) for claim extraction and entailment classification. The full document and bibliography are not included in prompts.
+
 ## 23. Open-source project policy
 
 - License: MIT for v0.1.
@@ -570,6 +573,10 @@ Users must be told which text may leave the local machine. API keys must never b
 - Three-stage evidence-aware matching pipeline (shipped).
 - `--show-evidence` / `--require-evidence` CLI options (shipped).
 - Evidence-aware scoring with `evidence_coverage` metric (shipped).
+- Multi-provider LLM support: Anthropic, OpenAI, xAI/Grok, Groq, OpenRouter, NVIDIA NIM, and custom OpenAI-compatible endpoints (shipped).
+- Auto-detection of LLM provider from available API keys (shipped).
+- Offline contradiction safety: offline mode no longer returns `CONTRADICTED` (shipped).
+- LLM claim-to-sentence mapping for citation detection (shipped).
 - Retraction metadata.
 - OpenAlex and PubMed / Europe PMC providers.
 - Domain-aware provider routing.

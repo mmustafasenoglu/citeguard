@@ -13,7 +13,7 @@
 citeguard is an alpha Python CLI for auditing citations in academic documents. It parses
 Markdown, plain-text, and DOCX files; detects citations; extracts citation-worthy claims; parses
 bibliographies; retrieves academic metadata; computes deterministic matching and risk signals; and
-optionally uses an LLM (Anthropic) for enhanced claim extraction and source matching.
+optionally uses a configured LLM provider (Anthropic, OpenAI, xAI, Groq, OpenRouter, NVIDIA, or custom) for enhanced claim extraction and entailment classification.
 
 The tool assists human review. Never describe a resolved source as proof that a claim is true, and
 never treat `unresolved` as meaning `fake`.
@@ -35,8 +35,9 @@ never treat `unresolved` as meaning `fake`.
 - `citeguard/providers/base.py`: HTTP retry with exponential backoff, shared fetch helpers.
 - `citeguard/cache.py`: versioned local JSON response cache.
 - `citeguard/scoring.py`: deterministic audit metrics, health score, and priority scoring.
-- `citeguard/llm.py`: optional Anthropic Messages API integration (claim extraction, source matching).
-- `citeguard/config.py`: global defaults and environment-backed settings.
+- `citeguard/llm.py`: multi-provider LLM integration (claim extraction, entailment, source matching).
+- `citeguard/llm_backends.py`: LLMBackend protocol and provider implementations (Anthropic, OpenAI, xAI, Groq, OpenRouter, NVIDIA, custom).
+- `citeguard/config.py`: global defaults, environment-backed settings, and LLMProviderSettings.
 - `citeguard/report.py`: terminal, Markdown, and JSON report formatters.
 - `tests/`: offline pytest suite.
 - `examples/`: non-sensitive example documents and committed output files.
