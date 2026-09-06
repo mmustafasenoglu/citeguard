@@ -40,12 +40,19 @@ def overall_confidence(
     *,
     has_entailment: bool = False,
 ) -> int:
+    """Combine metadata and support into a single confidence score.
+
+    ``claim_support_score`` is a standalone signal that does NOT include
+    metadata (it is evidence + entailment only).  Metadata is added here
+    exactly once.
+
+    With entailment:   metadata 20% + support 80%
+    Without entailment: metadata 40% + support 60%
+    """
     _validate_score(metadata_match_score)
     _validate_score(claim_support_score)
     if has_entailment:
-        # metadata * 0.20 + evidence * 0.25 + entailment * 0.55
-        # claim_support_score already includes the weighted combination
-        return claim_support_score
+        return round(metadata_match_score * 0.20 + claim_support_score * 0.80)
     return round(metadata_match_score * 0.40 + claim_support_score * 0.60)
 
 
@@ -59,7 +66,7 @@ def priority_score(result: VerificationResult) -> float:
 def _has_entailment(result: VerificationResult) -> bool:
     if result.matched is None:
         return False
-    return any(ev.entailment_score is not None for ev in result.matched.evidence)
+    return result.matched.entailment_score is not None
 
 
 def compute_health_score(

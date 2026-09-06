@@ -5,9 +5,10 @@ entailment evaluation into distinct stages:
 
     metadata_score  →  evidence retrieval  →  entailment  →  aggregate
 
-The public API ``match_claim_to_source`` preserves the existing
-``(metadata_score, support_score, verdict, reasoning)`` return tuple
-so callers do not need to change.
+LLM calls happen only inside ``_evaluate_evidence`` via the entailment
+classifier.  The legacy ``match_source_with_llm`` endpoint is no longer
+called from the matcher; it is retained in ``llm.py`` for backward
+compatibility but should not be used in the main pipeline.
 """
 
 from __future__ import annotations
@@ -27,11 +28,11 @@ def match_claim_to_source(
     """Full evidence-aware matching pipeline.
 
     Returns ``(metadata_score, support_score, verdict, reasoning, evidence)``.
-    """
-    llm_result = _try_llm_match(claim, candidate)
-    if llm_result is not None:
-        return llm_result
 
+    ``support_score`` is a standalone signal (evidence + entailment) that
+    does NOT include metadata.  ``overall_confidence`` in ``scoring.py``
+    combines ``metadata_score`` and ``support_score`` exactly once.
+    """
     metadata_score = _metadata_similarity(claim, candidate)
 
     from .evidence import extract_evidence
@@ -40,43 +41,29 @@ def match_claim_to_source(
 
     entailment = _evaluate_evidence(claim, candidate, evidence_list)
 
+    _propagate_entailment(evidence_list, entailment)
+
     verdict, reasoning = _aggregate_verdict(metadata_score, evidence_list, entailment)
-    support_score = _compute_support(metadata_score, evidence_list, entailment)
+    support_score = _compute_support(evidence_list, entailment)
 
     return metadata_score, support_score, verdict, reasoning, evidence_list
 
 
-def _try_llm_match(
-    claim: Claim, candidate: SourceCandidate
-) -> tuple[int, int, Verdict, str, list[Evidence]] | None:
-    """Attempt LLM-based matching; returns None when unavailable or on failure."""
-    from .llm import match_source_with_llm
+def _propagate_entailment(
+    evidence_list: list[Evidence],
+    entailment: EntailmentResult | None,
+) -> None:
+    """Write entailment scores onto individual evidence objects.
 
-    authors_str = ", ".join(candidate.authors[:5])
-    if len(candidate.authors) > 5:
-        authors_str += " et al."
-    result = match_source_with_llm(
-        claim,
-        source_title=candidate.title,
-        source_authors=authors_str,
-        source_year=candidate.year,
-        source_abstract=candidate.abstract,
-    )
-    if not result or not isinstance(result, dict):
-        return None
-
-    metadata_score = _clamp_score(result.get("metadata_match_score", 0))
-    support_score = _clamp_score(result.get("claim_support_score", 0))
-    verdict = _parse_verdict(result.get("verdict", "insufficient_information"))
-    reasoning = str(result.get("reasoning", ""))[:200]
-
-    from .evidence import extract_evidence
-
-    evidence_list = extract_evidence(claim, candidate)
-
-    if not reasoning:
-        reasoning = _build_reasoning(verdict, support_score, metadata_score)
-    return metadata_score, support_score, verdict, reasoning, evidence_list
+    This allows downstream code (CLI, reports, scoring) to detect whether
+    entailment was actually evaluated by checking
+    ``any(e.entailment_score is not None for e in evidence)``.
+    """
+    if entailment is None:
+        return
+    for ev in evidence_list:
+        ev.entailment_score = entailment.confidence
+        ev.verdict = entailment.verdict
 
 
 def _evaluate_evidence(
@@ -131,11 +118,14 @@ def _aggregate_verdict(
 
 
 def _compute_support(
-    metadata_score: int,
     evidence_list: list[Evidence],
     entailment: EntailmentResult | None,
 ) -> int:
-    """Compute a support score from available signals."""
+    """Compute a standalone support score from evidence + entailment.
+
+    This score does NOT include metadata; the caller (``overall_confidence``
+    in ``scoring.py``) combines metadata and support exactly once.
+    """
     evidence_score = evidence_list[0].lexical_score if evidence_list else 0
     entailment_score = entailment.confidence if entailment else 0
     has_entailment = (
@@ -144,10 +134,19 @@ def _compute_support(
     )
 
     if has_entailment:
-        return round(
-            metadata_score * 0.20 + evidence_score * 0.25 + entailment_score * 0.55
-        )
-    return round(metadata_score * 0.40 + evidence_score * 0.60)
+        return round(evidence_score * 0.25 + entailment_score * 0.75)
+    return evidence_score
+
+
+def _metadata_similarity(claim: Claim, candidate: SourceCandidate) -> int:
+    query_tokens = set(_TOKEN_RE.findall(claim.search_query.lower()))
+    title_tokens = set(_TOKEN_RE.findall(candidate.title.lower()))
+    if not query_tokens or not title_tokens:
+        return 0
+    overlap = len(query_tokens & title_tokens)
+    coverage = overlap / max(len(query_tokens), 1)
+    title_coverage = overlap / max(len(title_tokens), 1)
+    return round((coverage * 0.6 + title_coverage * 0.4) * 100)
 
 
 def _clamp_score(value: object) -> int:
@@ -162,36 +161,3 @@ def _parse_verdict(value: object) -> Verdict:
         return Verdict(str(value))
     except ValueError:
         return Verdict.INSUFFICIENT_INFORMATION
-
-
-def _metadata_similarity(claim: Claim, candidate: SourceCandidate) -> int:
-    query_tokens = set(_TOKEN_RE.findall(claim.search_query.lower()))
-    title_tokens = set(_TOKEN_RE.findall(candidate.title.lower()))
-    if not query_tokens or not title_tokens:
-        return 0
-    overlap = len(query_tokens & title_tokens)
-    coverage = overlap / max(len(query_tokens), 1)
-    title_coverage = overlap / max(len(title_tokens), 1)
-    return round((coverage * 0.6 + title_coverage * 0.4) * 100)
-
-
-def _build_reasoning(verdict: Verdict, support_score: int, metadata_score: int) -> str:
-    if verdict == Verdict.SUPPORTED:
-        return (
-            f"Source title and abstract share significant overlap with the claim "
-            f"(support score: {support_score})."
-        )
-    if verdict == Verdict.PARTIALLY_SUPPORTED:
-        return (
-            f"Source has moderate topical overlap with the claim "
-            f"(support score: {support_score})."
-        )
-    if verdict == Verdict.UNRELATED:
-        return (
-            f"Source metadata matches but content does not overlap with the claim "
-            f"(support score: {support_score})."
-        )
-    return (
-        f"Insufficient overlap between source content and claim to determine support "
-        f"(support score: {support_score}, metadata score: {metadata_score})."
-    )

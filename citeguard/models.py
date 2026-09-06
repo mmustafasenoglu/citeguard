@@ -135,6 +135,8 @@ class MatchResult:
     reasoning: str
     warnings: list[str] = field(default_factory=list)
     evidence: list[Evidence] = field(default_factory=list)
+    entailment_score: int | None = None
+    entailment_verdict: Verdict | None = None
 
 
 @dataclass(slots=True)
