@@ -7,6 +7,7 @@ return None to allow deterministic fallback.
 import json
 
 from citeguard.llm import (
+    _map_claim_to_sentence,
     _parse_json_response,
     extract_claims_with_llm,
     match_source_with_llm,
@@ -106,3 +107,85 @@ def test_llm_citation_override(monkeypatch) -> None:
     assert result is not None
     assert len(result) == 1
     assert result[0].has_existing_citation is False
+
+
+def test_map_claim_to_sentence_finds_citation() -> None:
+    """Claim maps back to a sentence with a citation via token overlap."""
+    cit = ExistingCitation(
+        raw_text="(Smith, 2020)", authors="Smith", year=2020,
+        doi=None, numbered_ref=None, paragraph_index=0, char_offset=50,
+    )
+    sentences = [
+        "Smoking increases cancer risk (Smith, 2020).",
+        "Other unrelated sentence.",
+    ]
+    has_cit, linked = _map_claim_to_sentence(
+        "Smoking increases cancer risk", sentences, [cit], {"(Smith, 2020)"}
+    )
+    assert has_cit is True
+    assert len(linked) == 1
+    assert linked[0].raw_text == "(Smith, 2020)"
+
+
+def test_map_claim_to_sentence_no_citation_in_best_match() -> None:
+    """Claim maps to a sentence without a citation."""
+    cit = ExistingCitation(
+        raw_text="(Jones, 2021)", authors="Jones", year=2021,
+        doi=None, numbered_ref=None, paragraph_index=0, char_offset=80,
+    )
+    sentences = [
+        "Smoking increases cancer risk.",
+        "(Jones, 2021) studied a different topic.",
+    ]
+    has_cit, linked = _map_claim_to_sentence(
+        "Smoking increases cancer risk", sentences, [cit], {"(Jones, 2021)"}
+    )
+    assert has_cit is False
+    assert len(linked) == 0
+
+
+def test_map_claim_to_sentence_low_overlap_returns_false() -> None:
+    """Claim with no overlap returns no citation."""
+    sentences = ["Completely unrelated text about flowers."]
+    has_cit, linked = _map_claim_to_sentence(
+        "Quantum computing breaks encryption", sentences, [], set()
+    )
+    assert has_cit is False
+    assert linked == []
+
+
+def test_map_claim_to_sentence_paragraph_with_citation(monkeypatch) -> None:
+    """Full integration: LLM extracts claim without citation, but sentence has one."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+
+    fake_response = json.dumps([
+        {
+            "text": "Smoking increases cancer risk.",
+            "search_query": "smoking cancer risk",
+            "claim_type": "causal",
+            "severity": "high",
+            "has_existing_citation": False,
+        }
+    ])
+
+    def _fake_call(
+        api_key, system, user_message, *, model="m", max_tokens=2048, timeout=30
+    ):
+        return fake_response
+
+    monkeypatch.setattr("citeguard.llm._call_anthropic", _fake_call)
+
+    cit = ExistingCitation(
+        raw_text="(Smith, 2020)", authors="Smith", year=2020,
+        doi=None, numbered_ref=None, paragraph_index=0, char_offset=50,
+    )
+    result = extract_claims_with_llm(
+        "Smoking increases cancer risk (Smith, 2020).",
+        0,
+        [cit],
+    )
+    assert result is not None
+    assert len(result) == 1
+    assert result[0].has_existing_citation is True
+    assert result[0].linked_citation is not None
+    assert result[0].linked_citation.raw_text == "(Smith, 2020)"

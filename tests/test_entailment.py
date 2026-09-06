@@ -60,8 +60,11 @@ def test_supported_no_negation_high_overlap() -> None:
 def test_contradicted_with_negation() -> None:
     claim = _make_claim("Vitamin D reduces cancer risk.")
     result = contradiction_risk(claim, "Vitamin D did not reduce cancer risk.")
-    assert result.verdict == Verdict.CONTRADICTED
+    # Offline mode: negation + high overlap → INSUFFICIENT_INFORMATION
+    # (contradiction risk elevated, but final CONTRADICTED requires LLM)
+    assert result.verdict == Verdict.INSUFFICIENT_INFORMATION
     assert result.confidence > 30
+    assert "contradiction" in result.reasoning.lower() or "negation" in result.reasoning.lower()
 
 
 def test_insufficient_low_overlap() -> None:

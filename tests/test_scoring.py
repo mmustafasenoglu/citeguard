@@ -7,9 +7,10 @@ def test_overall_confidence_is_deterministic() -> None:
     # Without entailment: metadata * 0.40 + support * 0.60
     assert overall_confidence(100, 20) == 52
     assert overall_confidence(80, 80) == 80
-    # With entailment: support_score is already the combined score
-    assert overall_confidence(100, 20, has_entailment=True) == 20
+    # With entailment: metadata * 0.20 + support * 0.80
+    assert overall_confidence(100, 20, has_entailment=True) == 36
     assert overall_confidence(80, 80, has_entailment=True) == 80
+    assert overall_confidence(0, 75, has_entailment=True) == 60
 
 
 def test_health_score_is_bounded() -> None:
