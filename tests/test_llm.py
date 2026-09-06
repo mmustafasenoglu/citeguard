@@ -7,7 +7,6 @@ return None to allow deterministic fallback.
 import json
 
 from citeguard.llm import (
-    _map_claim_to_sentence,
     _parse_json_response,
     extract_claims_with_llm,
     match_source_with_llm,
@@ -17,6 +16,12 @@ from citeguard.models import ClaimType, ExistingCitation, Severity
 
 def test_extract_claims_returns_none_without_api_key(monkeypatch) -> None:
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("XAI_API_KEY", raising=False)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    monkeypatch.delenv("CITEGUARD_LLM_PROVIDER", raising=False)
     citations = [
         ExistingCitation(
             raw_text="(Smith, 2020)", authors="Smith", year=2020,
@@ -31,6 +36,12 @@ def test_extract_claims_returns_none_without_api_key(monkeypatch) -> None:
 
 def test_match_source_returns_none_without_api_key(monkeypatch) -> None:
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("XAI_API_KEY", raising=False)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    monkeypatch.delenv("CITEGUARD_LLM_PROVIDER", raising=False)
     from citeguard.models import Claim
     claim = Claim(
         text="Test claim", search_query="test",
@@ -79,7 +90,7 @@ def test_parse_json_response_object() -> None:
 
 
 def test_llm_citation_override(monkeypatch) -> None:
-    """LLM claims has_existing_citation=True but parser finds none."""
+    """LLM claims has_existing_citation=True but parser finds none via sentence mapping."""
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
 
     fake_response = json.dumps([
@@ -92,12 +103,10 @@ def test_llm_citation_override(monkeypatch) -> None:
         }
     ])
 
-    def _fake_call(
-        api_key, system, user_message, *, model="m", max_tokens=2048, timeout=30
-    ):
+    def _fake_call(system, user_message, *, model=None, max_tokens=2048, timeout=30):
         return fake_response
 
-    monkeypatch.setattr("citeguard.llm._call_anthropic", _fake_call)
+    monkeypatch.setattr("citeguard.llm._call_llm", _fake_call)
 
     result = extract_claims_with_llm(
         "Smoking increases cancer risk.",
@@ -168,12 +177,10 @@ def test_map_claim_to_sentence_paragraph_with_citation(monkeypatch) -> None:
         }
     ])
 
-    def _fake_call(
-        api_key, system, user_message, *, model="m", max_tokens=2048, timeout=30
-    ):
+    def _fake_call(system, user_message, *, model=None, max_tokens=2048, timeout=30):
         return fake_response
 
-    monkeypatch.setattr("citeguard.llm._call_anthropic", _fake_call)
+    monkeypatch.setattr("citeguard.llm._call_llm", _fake_call)
 
     cit = ExistingCitation(
         raw_text="(Smith, 2020)", authors="Smith", year=2020,
@@ -189,3 +196,10 @@ def test_map_claim_to_sentence_paragraph_with_citation(monkeypatch) -> None:
     assert result[0].has_existing_citation is True
     assert result[0].linked_citation is not None
     assert result[0].linked_citation.raw_text == "(Smith, 2020)"
+
+
+def _map_claim_to_sentence(
+    claim_text, sentences, paragraph_citations, citation_texts,
+):
+    from citeguard.llm import _map_claim_to_sentence as _map
+    return _map(claim_text, sentences, paragraph_citations, citation_texts)

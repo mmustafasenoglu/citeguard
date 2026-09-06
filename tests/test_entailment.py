@@ -93,6 +93,12 @@ def test_confidence_bounded() -> None:
 
 def test_llm_returns_none_without_api_key(monkeypatch) -> None:
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("XAI_API_KEY", raising=False)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    monkeypatch.delenv("CITEGUARD_LLM_PROVIDER", raising=False)
     claim = _make_claim("Test.")
     evidence = [_make_evidence("Evidence text.")]
     candidate = _make_candidate()
@@ -117,11 +123,11 @@ def test_llm_parse_verdict(monkeypatch) -> None:
         "reasoning": "The evidence partially supports the claim.",
     })
 
-    def _fake_call(api_key, system, user_message, *, model="m", max_tokens=2048, timeout=30):
+    def _fake_call(system, user_message, *, model=None, max_tokens=2048, timeout=30):
         return fake_response
 
     import citeguard.entailment as ent_mod
-    monkeypatch.setattr(ent_mod, "_call_anthropic", _fake_call)
+    monkeypatch.setattr(ent_mod, "_call_llm", _fake_call)
 
     claim = _make_claim("Smoking causes cancer.")
     evidence = [_make_evidence("Smoking was associated with cancer.")]
@@ -141,11 +147,11 @@ def test_llm_parse_invalid_verdict(monkeypatch) -> None:
         "reasoning": "",
     })
 
-    def _fake_call(api_key, system, user_message, *, model="m", max_tokens=2048, timeout=30):
+    def _fake_call(system, user_message, *, model=None, max_tokens=2048, timeout=30):
         return fake_response
 
     import citeguard.entailment as ent_mod
-    monkeypatch.setattr(ent_mod, "_call_anthropic", _fake_call)
+    monkeypatch.setattr(ent_mod, "_call_llm", _fake_call)
 
     claim = _make_claim("Test.")
     evidence = [_make_evidence("Evidence.")]
