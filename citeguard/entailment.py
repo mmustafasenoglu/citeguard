@@ -148,7 +148,7 @@ def evaluate_evidence_with_llm(
     )
     raw = _call_llm(
         _ENTAILMENT_SYSTEM_PROMPT, prompt,
-        model=model, timeout=timeout,
+        model=model, timeout=timeout, task="entailment",
     )
     if not raw:
         return None

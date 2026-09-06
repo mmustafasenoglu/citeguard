@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import click
@@ -15,7 +16,7 @@ from . import __version__
 from .bibliography import bibliography_issues, citation_matches_entry
 from .cache import FileCache
 from .claims import extract_claims
-from .config import DEFAULT_MAX_RESULTS, DEFAULT_THRESHOLD, Settings
+from .config import _PROVIDER_DEFAULT_MODELS, DEFAULT_MAX_RESULTS, DEFAULT_THRESHOLD, Settings
 from .extractor import parse_document
 from .llm import extract_claims_with_llm
 from .matcher import match_claim_to_source
@@ -103,6 +104,197 @@ def init_command(force: bool) -> None:
         encoding="utf-8",
     )
     console.print("[green]Created .env[/green]")
+
+
+def _default_model_for(provider: str) -> str:
+    return _PROVIDER_DEFAULT_MODELS.get(provider, "default")
+
+
+# ---------------------------------------------------------------------------
+# LLM diagnostics subgroup
+# ---------------------------------------------------------------------------
+
+
+@main.group("llm")
+def llm_group() -> None:
+    """LLM provider diagnostics and configuration."""
+
+
+@llm_group.command("doctor")
+def llm_doctor_command() -> None:
+    """Test connectivity to all configured LLM providers."""
+    from .config import _resolve_api_key
+    from .llm_backends import (
+        LLMResponse,
+        auto_detect_provider,
+        resolve_backend,
+    )
+
+    providers = [
+        "anthropic", "openai", "xai", "groq", "openrouter", "nvidia",
+    ]
+    custom_url = os.getenv("CITEGUARD_LLM_BASE_URL", "").strip()
+
+    table = Table(title="LLM Provider Diagnostics")
+    table.add_column("Provider")
+    table.add_column("Status")
+    table.add_column("Latency", justify="right")
+    table.add_column("Detail")
+
+    active = auto_detect_provider() or os.getenv(
+        "CITEGUARD_LLM_PROVIDER", ""
+    ).strip().lower()
+
+    for name in providers:
+        key = _resolve_api_key(name)
+        if not key:
+            table.add_row(name, "[red]no key[/red]", "-", "")
+            continue
+
+        backend = resolve_backend(name)
+        if backend is None:
+            table.add_row(name, "[yellow]unavailable[/yellow]", "-", "")
+            continue
+
+        resp: LLMResponse = backend.chat(
+            "Reply with exactly: ok",
+            "Say ok",
+            model=_default_model_for(name),
+            max_tokens=8,
+            timeout=10,
+        )
+        latency = f"{resp.latency_ms:.0f} ms"
+
+        if resp.text:
+            table.add_row(
+                name,
+                "[green]ok[/green]",
+                latency,
+                resp.model,
+            )
+        elif resp.error and "401" in str(resp.status_code):
+            table.add_row(
+                name,
+                "[red]auth error[/red]",
+                latency,
+                "Invalid API key",
+            )
+        elif resp.error and "429" in str(resp.status_code):
+            table.add_row(
+                name,
+                "[yellow]rate limited[/yellow]",
+                latency,
+                "Try again later",
+            )
+        else:
+            table.add_row(
+                name,
+                "[red]error[/red]",
+                latency,
+                (resp.error or "unknown")[:50],
+            )
+
+    if custom_url:
+        backend = resolve_backend("custom")
+        if backend:
+            resp = backend.chat(
+                "Reply with exactly: ok",
+                "Say ok",
+                model=os.getenv("CITEGUARD_LLM_MODEL", "default"),
+                max_tokens=8,
+                timeout=10,
+            )
+            latency = f"{resp.latency_ms:.0f} ms"
+            if resp.text:
+                table.add_row(
+                    "custom",
+                    "[green]ok[/green]",
+                    latency,
+                    custom_url,
+                )
+            else:
+                table.add_row(
+                    "custom",
+                    "[red]error[/red]",
+                    latency,
+                    (resp.error or custom_url)[:50],
+                )
+        else:
+            table.add_row(
+                "custom",
+                "[yellow]no base url[/yellow]",
+                "-",
+                custom_url,
+            )
+
+    console.print(table)
+
+    if active:
+        console.print(f"\n[bold]Active provider:[/bold] {active}")
+    fallbacks = os.getenv("CITEGUARD_LLM_FALLBACKS", "").strip()
+    if fallbacks:
+        console.print(f"[bold]Fallbacks:[/bold] {fallbacks}")
+    else:
+        console.print("[dim]No fallbacks configured.[/dim]")
+    console.print(
+        "\n[dim]Only connection status is tested. "
+        "No document content is sent.[/dim]"
+    )
+
+
+@llm_group.command("list")
+def llm_list_command() -> None:
+    """Show current LLM configuration (no secrets)."""
+    from .config import LLMProviderSettings, TaskModelSettings, _resolve_api_key
+
+    settings = LLMProviderSettings.from_env()
+
+    table = Table(title="LLM Configuration")
+    table.add_column("Setting")
+    table.add_column("Value")
+
+    table.add_row("Provider", settings.provider)
+    table.add_row("Model", settings.model)
+
+    key = _resolve_api_key(settings.provider)
+    if key:
+        masked = key[:4] + "..." + key[-4:] if len(key) > 8 else "***"
+        table.add_row("API Key", f"[green]{masked}[/green]")
+    else:
+        table.add_row("API Key", "[red]not set[/red]")
+
+    timeout = os.getenv("CITEGUARD_LLM_TIMEOUT", "30")
+    table.add_row("Timeout", f"{timeout}s")
+
+    fallbacks = os.getenv("CITEGUARD_LLM_FALLBACKS", "")
+    table.add_row("Fallbacks", fallbacks or "(none)")
+
+    if settings.base_url:
+        table.add_row("Base URL", settings.base_url)
+
+    console.print(table)
+
+    # Task-specific models
+    claim = TaskModelSettings.from_env("claim")
+    entailment = TaskModelSettings.from_env("entailment")
+
+    if claim.provider or claim.model:
+        task_table = Table(title="Task-Specific Models")
+        task_table.add_column("Task")
+        task_table.add_column("Provider")
+        task_table.add_column("Model")
+        task_table.add_row(
+            "Claim extraction",
+            claim.provider or "(global)",
+            claim.model or "(global)",
+        )
+        task_table.add_row(
+            "Entailment",
+            entailment.provider or "(global)",
+            entailment.model or "(global)",
+        )
+        console.print(task_table)
+
 
 
 @main.command("inspect")

@@ -123,7 +123,10 @@ def test_llm_parse_verdict(monkeypatch) -> None:
         "reasoning": "The evidence partially supports the claim.",
     })
 
-    def _fake_call(system, user_message, *, model=None, max_tokens=2048, timeout=30):
+    def _fake_call(
+        system, user_message, *, model=None,
+        max_tokens=2048, timeout=30, task="general",
+    ):
         return fake_response
 
     import citeguard.entailment as ent_mod
@@ -147,7 +150,10 @@ def test_llm_parse_invalid_verdict(monkeypatch) -> None:
         "reasoning": "",
     })
 
-    def _fake_call(system, user_message, *, model=None, max_tokens=2048, timeout=30):
+    def _fake_call(
+        system, user_message, *, model=None,
+        max_tokens=2048, timeout=30, task="general",
+    ):
         return fake_response
 
     import citeguard.entailment as ent_mod

@@ -1,24 +1,30 @@
 """Optional LLM-backed claim extraction and source matching.
 
 This module wraps multiple LLM providers behind a unified ``LLMBackend``
-protocol.  When no API key is configured, all functions return ``None`` so
-callers can fall back to the deterministic baseline.
+protocol with resilient routing, retry, and failover.  When no API key is
+configured, all functions return ``None`` so callers can fall back to the
+deterministic baseline.
 
 Supported providers: Anthropic, OpenAI, xAI/Grok, Groq, OpenRouter,
-NVIDIA NIM, and any OpenAI-compatible custom endpoint (Ollama, LM Studio,
-vLLM, LiteLLM).  Provider selection is driven by ``CITEGUARD_LLM_PROVIDER``
-or auto-detected from available API keys.
+NVIDIA NIM, and any OpenAI-compatible custom endpoint.
 """
 
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
+import time
+from dataclasses import dataclass
 from typing import Any
 
-from .llm_backends import LLMBackend, resolve_backend
+from .llm_backends import LLMBackend, LLMResponse, resolve_backend
+from .llm_cache import LLMCache
+from .llm_router import LLMRouter
 from .models import Claim, ClaimType, ExistingCitation, Severity
+
+log = logging.getLogger(__name__)
 
 _DEFAULT_TIMEOUT = 30
 
@@ -78,6 +84,64 @@ Return ONLY the JSON object, nothing else.
 
 
 # ---------------------------------------------------------------------------
+# Audit trail
+# ---------------------------------------------------------------------------
+
+
+@dataclass(slots=True)
+class LLMAuditEntry:
+    """Audit record for a single LLM call."""
+
+    task: str
+    provider: str
+    model: str
+    latency_ms: float
+    status_code: int
+    attempts: int
+    cached: bool = False
+    error: str | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+
+
+# Module-level audit log (process lifetime only)
+_audit_log: list[LLMAuditEntry] = []
+
+
+def get_audit_log() -> list[LLMAuditEntry]:
+    """Return the audit log for the current process."""
+    return list(_audit_log)
+
+
+def clear_audit_log() -> None:
+    _audit_log.clear()
+
+
+# ---------------------------------------------------------------------------
+# Module-level singletons (lazy init)
+# ---------------------------------------------------------------------------
+
+_router: LLMRouter | None = None
+_cache: LLMCache | None = None
+
+
+def _get_router() -> LLMRouter:
+    global _router
+    if _router is None:
+        _router = LLMRouter()
+    return _router
+
+
+def _get_cache() -> LLMCache:
+    global _cache
+    if _cache is None:
+        from .config import LLM_CACHE_PROMPT_VERSION
+
+        _cache = LLMCache(prompt_version=LLM_CACHE_PROMPT_VERSION)
+    return _cache
+
+
+# ---------------------------------------------------------------------------
 # Backend resolution helpers
 # ---------------------------------------------------------------------------
 
@@ -86,14 +150,32 @@ def _resolve(
     backend: LLMBackend | None = None,
     *,
     model: str | None = None,
+    task: str | None = None,
 ) -> tuple[LLMBackend, str] | None:
     """Resolve (backend, model) or return None when unavailable.
 
-    For custom providers, ``CITEGUARD_LLM_MODEL`` is **required** — there
-    is no safe fallback since we cannot know which model the endpoint
-    serves.  Returns ``None`` when no backend is available or when the
-    custom provider is selected without a model.
+    Resolution order:
+    1. Explicit *backend* and *model* arguments.
+    2. Task-specific env vars (``CITEGUARD_CLAIM_PROVIDER/MODEL`` or
+       ``CITEGUARD_ENTAILMENT_PROVIDER/MODEL``).
+    3. Global ``CITEGUARD_LLM_PROVIDER`` / ``CITEGUARD_LLM_MODEL``.
+    4. Auto-detect from API keys.
+
+    For custom providers, ``CITEGUARD_LLM_MODEL`` is **required**.
     """
+    if backend is not None and model is not None:
+        return backend, model
+
+    # Task-specific overrides
+    if task and backend is None and model is None:
+        from .config import TaskModelSettings
+
+        task_settings = TaskModelSettings.from_env(task)
+        if task_settings.provider:
+            backend = resolve_backend(task_settings.provider)
+        if task_settings.model:
+            model = task_settings.model
+
     if backend is None:
         backend = resolve_backend()
     if backend is None:
@@ -122,7 +204,6 @@ def _api_key() -> str | None:
     if resolved is None:
         return None
     backend, _ = resolved
-    # Extract the key from the environment for the active provider
     from .config import _resolve_api_key
 
     return _resolve_api_key(backend.name)
@@ -136,16 +217,92 @@ def _call_llm(
     model: str | None = None,
     max_tokens: int = 2048,
     timeout: float = _DEFAULT_TIMEOUT,
+    task: str = "general",
 ) -> str | None:
-    """Send a chat request through the resolved backend."""
-    resolved = _resolve(backend, model=model)
-    if resolved is None:
-        return None
-    active, active_model = resolved
-    return active.chat(
+    """Send a chat request through the router; returns text or None."""
+    resp = _call_llm_detailed(
         system, user_message,
-        model=active_model, max_tokens=max_tokens, timeout=timeout,
+        backend=backend, model=model,
+        max_tokens=max_tokens, timeout=timeout, task=task,
     )
+    return resp.text if resp else None
+
+
+def _call_llm_detailed(
+    system: str,
+    user_message: str,
+    *,
+    backend: LLMBackend | None = None,
+    model: str | None = None,
+    max_tokens: int = 2048,
+    timeout: float = _DEFAULT_TIMEOUT,
+    task: str = "general",
+) -> LLMResponse | None:
+    """Send a chat request through the router with caching and audit."""
+    cache = _get_cache()
+    resolved_model = model
+
+    # Resolve model for cache key (if not provided, use default)
+    if resolved_model is None:
+        temp = _resolve(backend, model=model, task=task)
+        if temp:
+            _, resolved_model = temp
+
+    # Cache lookup
+    provider_name = backend.name if backend else "auto"
+    if resolved_model:
+        cached = cache.get(provider_name, resolved_model, system, user_message)
+        if cached is not None:
+            log.debug("LLM cache hit for %s/%s", provider_name, resolved_model)
+            _audit_log.append(LLMAuditEntry(
+                task=task, provider=cached.provider, model=cached.model,
+                latency_ms=0, status_code=200, attempts=0, cached=True,
+            ))
+            return cached
+
+    # Route through the router for resilience
+    router = _get_router()
+    start = time.monotonic()
+    resp = router.call(
+        system, user_message,
+        model=resolved_model, max_tokens=max_tokens, timeout=timeout,
+    )
+    elapsed_ms = (time.monotonic() - start) * 1000
+
+    if resp and resp.text:
+        # Store in cache
+        cache.put(
+            resp.provider, resp.model, system, user_message, resp,
+        )
+    elif resp is None:
+        # All providers exhausted — create a synthetic error response
+        resp = LLMResponse(
+            text=None, provider="none", model=resolved_model or "unknown",
+            latency_ms=elapsed_ms, status_code=0, attempts=0,
+            error="All providers exhausted",
+        )
+
+    # Audit
+    _audit_log.append(LLMAuditEntry(
+        task=task,
+        provider=resp.provider,
+        model=resp.model,
+        latency_ms=resp.latency_ms,
+        status_code=resp.status_code,
+        attempts=resp.attempts,
+        error=resp.error,
+        input_tokens=resp.input_tokens,
+        output_tokens=resp.output_tokens,
+    ))
+
+    log.debug(
+        "LLM %s: %s/%s %.0fms status=%d attempts=%d%s",
+        task, resp.provider, resp.model, resp.latency_ms,
+        resp.status_code, resp.attempts,
+        f" error={resp.error}" if resp.error else "",
+    )
+
+    return resp
 
 
 def _call_anthropic(
@@ -161,10 +318,11 @@ def _call_anthropic(
     from .llm_backends import AnthropicBackend
 
     backend = AnthropicBackend()
-    return backend.chat(
+    resp = backend.chat(
         system, user_message,
         model=model, max_tokens=max_tokens, timeout=timeout,
     )
+    return resp.text
 
 
 def _parse_json_response(text: str) -> Any:
@@ -195,6 +353,50 @@ def _parse_json_response(text: str) -> Any:
 
 
 # ---------------------------------------------------------------------------
+# Structured output helpers
+# ---------------------------------------------------------------------------
+
+CLAIMS_JSON_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "text": {"type": "string"},
+            "search_query": {"type": "string"},
+            "claim_type": {
+                "type": "string",
+                "enum": CLAIM_TYPES,
+            },
+            "severity": {
+                "type": "string",
+                "enum": SEVERITIES,
+            },
+            "has_existing_citation": {"type": "boolean"},
+        },
+        "required": ["text", "search_query", "claim_type", "severity"],
+    },
+}
+
+ENTAILMENT_JSON_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "verdict": {
+            "type": "string",
+            "enum": [
+                "supported",
+                "partially_supported",
+                "contradicted",
+                "insufficient_information",
+            ],
+        },
+        "confidence": {"type": "integer"},
+        "reasoning": {"type": "string"},
+    },
+    "required": ["verdict", "confidence", "reasoning"],
+}
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
@@ -212,7 +414,7 @@ def extract_claims_with_llm(
     Returns ``None`` when no API key is configured or the call fails,
     allowing fallback to the deterministic extractor.
     """
-    resolved = _resolve(model=model)
+    resolved = _resolve(model=model, task="claim")
     if resolved is None:
         return None
 
@@ -222,7 +424,8 @@ def extract_claims_with_llm(
         severities=", ".join(SEVERITIES),
     )
     raw = _call_llm(
-        _SYSTEM_PROMPT, prompt, model=model, timeout=timeout,
+        _SYSTEM_PROMPT, prompt,
+        model=model, timeout=timeout, task="claim",
     )
     if not raw:
         return None
@@ -240,7 +443,9 @@ def extract_claims_with_llm(
         if not text:
             continue
         try:
-            claim_type = ClaimType(str(item.get("claim_type", "general_fact")))
+            claim_type = ClaimType(
+                str(item.get("claim_type", "general_fact")),
+            )
         except ValueError:
             claim_type = ClaimType.GENERAL_FACT
         try:
@@ -318,7 +523,7 @@ def match_source_with_llm(
 
     Returns ``None`` when no API key is configured or the call fails.
     """
-    resolved = _resolve(model=model)
+    resolved = _resolve(model=model, task="entailment")
     if resolved is None:
         return None
 
@@ -331,7 +536,8 @@ def match_source_with_llm(
         source_abstract=source_abstract or "not available",
     )
     raw = _call_llm(
-        _SYSTEM_PROMPT, prompt, model=model, timeout=timeout,
+        _SYSTEM_PROMPT, prompt,
+        model=model, timeout=timeout, task="entailment",
     )
     if not raw:
         return None

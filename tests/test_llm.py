@@ -103,7 +103,10 @@ def test_llm_citation_override(monkeypatch) -> None:
         }
     ])
 
-    def _fake_call(system, user_message, *, model=None, max_tokens=2048, timeout=30):
+    def _fake_call(
+        system, user_message, *, model=None,
+        max_tokens=2048, timeout=30, task="general",
+    ):
         return fake_response
 
     monkeypatch.setattr("citeguard.llm._call_llm", _fake_call)
@@ -177,7 +180,10 @@ def test_map_claim_to_sentence_paragraph_with_citation(monkeypatch) -> None:
         }
     ])
 
-    def _fake_call(system, user_message, *, model=None, max_tokens=2048, timeout=30):
+    def _fake_call(
+        system, user_message, *, model=None,
+        max_tokens=2048, timeout=30, task="general",
+    ):
         return fake_response
 
     monkeypatch.setattr("citeguard.llm._call_llm", _fake_call)
@@ -231,7 +237,10 @@ def test_custom_provider_with_model_succeeds(monkeypatch) -> None:
          "has_existing_citation": False}
     ])
 
-    def _fake_call(system, user_message, *, model=None, max_tokens=2048, timeout=30):
+    def _fake_call(
+        system, user_message, *, model=None,
+        max_tokens=2048, timeout=30, task="general",
+    ):
         return fake_response
 
     monkeypatch.setattr("citeguard.llm._call_llm", _fake_call)

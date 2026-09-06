@@ -10,6 +10,7 @@ CACHE_SCHEMA_VERSION = "2"
 CLAIM_PROMPT_VERSION = "1"
 MATCHER_PROMPT_VERSION = "1"
 LINKER_PROMPT_VERSION = "1"
+LLM_CACHE_PROMPT_VERSION = "1"
 
 DEFAULT_THRESHOLD = 60
 STRONG_MATCH_THRESHOLD = 80
@@ -24,6 +25,17 @@ _PROVIDER_DEFAULT_MODELS: dict[str, str] = {
     "groq": "llama-3.3-70b-versatile",
     "openrouter": "anthropic/claude-sonnet-4-20250514",
     "nvidia": "meta/llama-3.3-70b-instruct",
+}
+
+# Provider-specific keys mapping
+_PROVIDER_KEY_ENV: dict[str, str] = {
+    "anthropic": "ANTHROPIC_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "xai": "XAI_API_KEY",
+    "groq": "GROQ_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+    "nvidia": "NVIDIA_API_KEY",
+    "custom": "CITEGUARD_LLM_API_KEY",
 }
 
 
@@ -50,7 +62,9 @@ class LLMProviderSettings:
         """
         from .llm_backends import auto_detect_provider
 
-        provider = os.getenv("CITEGUARD_LLM_PROVIDER", "").strip().lower() or None
+        provider = (
+            os.getenv("CITEGUARD_LLM_PROVIDER", "").strip().lower() or None
+        )
         if provider is None:
             provider = auto_detect_provider()
 
@@ -64,7 +78,9 @@ class LLMProviderSettings:
             )
 
         api_key = _resolve_api_key(provider)
-        base_url = os.getenv("CITEGUARD_LLM_BASE_URL", "").strip() or None
+        base_url = (
+            os.getenv("CITEGUARD_LLM_BASE_URL", "").strip() or None
+        )
 
         return cls(
             provider=provider,
@@ -91,6 +107,27 @@ def _resolve_api_key(provider: str) -> str | None:
     if provider == "custom":
         return os.getenv("CITEGUARD_LLM_API_KEY", "no-key")
     return None
+
+
+@dataclass(frozen=True, slots=True)
+class TaskModelSettings:
+    """Task-specific LLM model configuration."""
+
+    provider: str | None = None
+    model: str | None = None
+
+    @classmethod
+    def from_env(cls, task: str) -> TaskModelSettings:
+        """Load task-specific settings.
+
+        Supported tasks: ``claim``, ``entailment``.
+        """
+        prefix = f"CITEGUARD_{task.upper()}"
+        provider = (
+            os.getenv(f"{prefix}_PROVIDER", "").strip().lower() or None
+        )
+        model = os.getenv(f"{prefix}_MODEL", "").strip() or None
+        return cls(provider=provider, model=model)
 
 
 @dataclass(frozen=True, slots=True)
@@ -126,6 +163,7 @@ class Settings:
         if not self.anthropic_api_key:
             raise RuntimeError(
                 "ANTHROPIC_API_KEY is required for claim extraction, matching, "
-                "and web-search fallback. Run `citeguard init` or set the environment variable."
+                "and web-search fallback. "
+                "Run `citeguard init` or set the environment variable."
             )
         return self.anthropic_api_key

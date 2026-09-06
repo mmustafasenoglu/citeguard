@@ -50,6 +50,9 @@ packages = ["citeguard", "citeguard.providers"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = [
+    "live_llm: marks tests that call real LLM providers (deselect with '-m not live_llm')",
+]
 
 [tool.ruff]
 target-version = "py310"

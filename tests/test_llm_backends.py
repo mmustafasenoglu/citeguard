@@ -113,6 +113,15 @@ def test_provider_names() -> None:
     assert CustomBackend().name == "custom"
 
 
+def test_provider_capabilities() -> None:
+    assert AnthropicBackend().capabilities.structured_output is True
+    assert OpenAIBackend().capabilities.json_schema is True
+    assert OpenAIBackend().capabilities.seed is True
+    assert GroqBackend().capabilities.structured_output is True
+    assert OpenRouterBackend().capabilities.structured_output is False
+    assert NvidiaBackend().capabilities.structured_output is False
+
+
 # ---------------------------------------------------------------------------
 # Text extraction helpers
 # ---------------------------------------------------------------------------
@@ -152,7 +161,7 @@ def test_extract_text_from_responses_empty() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Backend chat with missing keys returns None
+# Backend chat with missing keys returns LLMResponse with error
 # ---------------------------------------------------------------------------
 
 
@@ -167,18 +176,21 @@ def test_extract_text_from_responses_empty() -> None:
         (NvidiaBackend, "NVIDIA_API_KEY"),
     ],
 )
-def test_backend_returns_none_without_key(backend_cls, var, monkeypatch) -> None:
+def test_backend_returns_error_without_key(backend_cls, var, monkeypatch) -> None:
     monkeypatch.delenv(var, raising=False)
     backend = backend_cls()
     result = backend.chat("system", "user", model="test-model")
-    assert result is None
+    assert result.text is None
+    assert result.error is not None
+    assert result.status_code == 0
 
 
-def test_custom_backend_returns_none_without_url(monkeypatch) -> None:
+def test_custom_backend_returns_error_without_url(monkeypatch) -> None:
     monkeypatch.delenv("CITEGUARD_LLM_BASE_URL", raising=False)
     backend = CustomBackend()
     result = backend.chat("system", "user", model="test-model")
-    assert result is None
+    assert result.text is None
+    assert result.error is not None
 
 
 # ---------------------------------------------------------------------------
@@ -223,7 +235,9 @@ def test_anthropic_contract(monkeypatch) -> None:
     backend = AnthropicBackend()
     result = backend.chat("sys", "usr", model="claude-3", max_tokens=100)
 
-    assert result == "ok"
+    assert result.text == "ok"
+    assert result.provider == "anthropic"
+    assert result.status_code == 200
     assert captured["url"] == "https://api.anthropic.com/v1/messages"
     assert captured["headers"]["x-api-key"] == "sk-ant-test-key"
     assert captured["headers"]["anthropic-version"] == "2023-06-01"
@@ -241,13 +255,20 @@ def test_openai_contract(monkeypatch) -> None:
         captured["url"] = url
         captured["headers"] = headers
         captured["payload"] = payload
-        return {"output": [{"type": "message", "content": [{"type": "output_text", "text": "hi"}]}]}
+        return {
+            "output": [
+                {"type": "message", "content": [
+                    {"type": "output_text", "text": "hi"},
+                ]},
+            ],
+        }
 
     monkeypatch.setattr("citeguard.llm_backends._http_post", fake_post)
     backend = OpenAIBackend()
     result = backend.chat("sys", "usr", model="gpt-4o")
 
-    assert result == "hi"
+    assert result.text == "hi"
+    assert result.provider == "openai"
     assert captured["url"] == "https://api.openai.com/v1/responses"
     assert captured["headers"]["Authorization"] == "Bearer sk-openai-key"
     assert captured["payload"]["model"] == "gpt-4o"
@@ -276,7 +297,7 @@ def test_xai_contract(monkeypatch) -> None:
     backend = XAIBackend()
     result = backend.chat("sys", "usr", model="grok-3")
 
-    assert result == "grok"
+    assert result.text == "grok"
     assert captured["url"] == "https://api.x.ai/v1/responses"
     assert captured["headers"]["Authorization"] == "Bearer xai-test-key"
     assert captured["payload"]["model"] == "grok-3"
@@ -296,7 +317,7 @@ def test_groq_contract(monkeypatch) -> None:
     backend = GroqBackend()
     result = backend.chat("sys", "usr", model="llama-3.3-70b")
 
-    assert result == "groq-res"
+    assert result.text == "groq-res"
     assert captured["url"] == "https://api.groq.com/openai/v1/chat/completions"
     assert captured["headers"]["Authorization"] == "Bearer gsk_test_key"
     assert captured["payload"]["model"] == "llama-3.3-70b"
@@ -318,10 +339,12 @@ def test_openrouter_contract(monkeypatch) -> None:
     backend = OpenRouterBackend()
     result = backend.chat("sys", "usr", model="anthropic/claude-3")
 
-    assert result == "or-res"
+    assert result.text == "or-res"
     assert captured["url"] == "https://openrouter.ai/api/v1/chat/completions"
     assert captured["headers"]["Authorization"] == "Bearer sk-or-test"
-    assert captured["headers"]["HTTP-Referer"] == "https://github.com/mmustafasenoglu/citeguard"
+    assert captured["headers"]["HTTP-Referer"] == (
+        "https://github.com/mmustafasenoglu/citeguard"
+    )
     assert captured["headers"]["X-Title"] == "citeguard"
 
 
@@ -339,8 +362,10 @@ def test_nvidia_contract(monkeypatch) -> None:
     backend = NvidiaBackend()
     result = backend.chat("sys", "usr", model="meta/llama-3.3-70b-instruct")
 
-    assert result == "nvidia-res"
-    assert captured["url"] == "https://integrate.api.nvidia.com/v1/chat/completions"
+    assert result.text == "nvidia-res"
+    assert captured["url"] == (
+        "https://integrate.api.nvidia.com/v1/chat/completions"
+    )
     assert captured["headers"]["Authorization"] == "Bearer nvapi-test"
     assert captured["payload"]["model"] == "meta/llama-3.3-70b-instruct"
 
@@ -360,7 +385,7 @@ def test_custom_contract(monkeypatch) -> None:
     backend = CustomBackend()
     result = backend.chat("sys", "usr", model="qwen3")
 
-    assert result == "local-res"
+    assert result.text == "local-res"
     assert captured["url"] == "http://localhost:11434/v1/chat/completions"
     assert captured["headers"]["Authorization"] == "Bearer ollama"
     assert captured["payload"]["model"] == "qwen3"
