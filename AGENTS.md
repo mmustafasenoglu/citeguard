@@ -21,7 +21,7 @@ never treat `unresolved` as meaning `fake`.
 ## Repository map
 
 - `citeguard/__main__.py`: `python -m citeguard` entry point.
-- `citeguard/cli.py`: Click command-line entry point (`inspect`, `check`, `suggest`, `verify`, `init`).
+- `citeguard/cli.py`: Click command-line entry point (`inspect`, `check`, `suggest`, `verify`, `init`, `llm doctor`, `llm list`).
 - `citeguard/extractor.py`: document reading, paragraph splitting, and citation detection.
 - `citeguard/bibliography.py`: bibliography section detection, entry parsing, and consistency checks.
 - `citeguard/claims.py`: deterministic claim extraction and citation-to-claim linking (SPEC §9).
@@ -36,8 +36,10 @@ never treat `unresolved` as meaning `fake`.
 - `citeguard/cache.py`: versioned local JSON response cache.
 - `citeguard/scoring.py`: deterministic audit metrics, health score, and priority scoring.
 - `citeguard/llm.py`: multi-provider LLM integration (claim extraction, entailment, source matching).
-- `citeguard/llm_backends.py`: LLMBackend protocol and provider implementations (Anthropic, OpenAI, xAI, Groq, OpenRouter, NVIDIA, custom).
-- `citeguard/config.py`: global defaults, environment-backed settings, and LLMProviderSettings.
+- `citeguard/llm_backends.py`: LLMBackend protocol, provider implementations, LLMResponse, LLMCapabilities, ProviderSpec.
+- `citeguard/llm_router.py`: resilient LLM router with retry, exponential backoff, circuit breaker, and failover chain.
+- `citeguard/llm_cache.py`: LLM response cache with prompt-version-aware invalidation.
+- `citeguard/config.py`: global defaults, environment-backed settings, LLMProviderSettings, and TaskModelSettings.
 - `citeguard/report.py`: terminal, Markdown, and JSON report formatters.
 - `tests/`: offline pytest suite.
 - `examples/`: non-sensitive example documents and committed output files.

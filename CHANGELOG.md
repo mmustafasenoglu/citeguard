@@ -41,6 +41,31 @@ All notable changes to citeguard will be documented here.
   detection, fixing false negatives when LLM strips citation markers from claim text.
 - Integration tests for evidence pipeline, `--require-evidence` filter, and sentence-mapping
   citation detection.
+- **LLMResponse** dataclass replaces `str|None` return type: structured response with provider,
+  model, latency_ms, status_code, attempts, error, and token usage fields.
+- **LLMCapabilities**: per-provider capability declaration (structured_output, json_schema,
+  temperature, seed, responses_api).
+- **ProviderSpec**: declarative provider config for DRY backend implementations.
+- **OpenAICompatibleBackend**: generic Chat Completions backend replacing duplicated code.
+- **OpenAIResponsesBackend**: generic Responses API backend replacing duplicated code.
+- **LLMRouter** (``llm_router.py``): resilient call chain with primary + fallback providers
+  (``CITEGUARD_LLM_FALLBACKS``), retry with exponential backoff, Retry-After header parsing,
+  auth error fast-fail (401/403), and circuit breaker integration.
+- **CircuitBreaker**: per-provider failure tracking with configurable threshold (5 failures)
+  and recovery period (60s).
+- **ProviderHealth**: rolling success/failure/latency stats per provider for health-aware routing.
+- **LLMCache** (``llm_cache.py``): TTL-based response cache keyed by provider+model+
+  prompt_version+hash(system+user_message). Automatic version-based invalidation.
+- **LLMAuditEntry**: per-call audit trail with task, provider, latency, tokens, cached flag.
+- **Task-specific model resolution**: ``CITEGUARD_CLAIM_PROVIDER/MODEL`` and
+  ``CITEGUARD_ENTAILMENT_PROVIDER/MODEL`` env vars for using different models per task.
+- **Structured output JSON schemas** for claim extraction and entailment classification.
+- ``citeguard llm doctor``: tests connectivity to all configured providers with latency
+  reporting and active/fallback display.
+- ``citeguard llm list``: shows current LLM configuration (no secrets exposed).
+- 26 new resilience tests covering LLMResponse, capabilities, CircuitBreaker, ProviderHealth,
+  LLMCache, LLMRouter with mock backends.
+- Live integration test markers (``pytest -m live_llm``) for manual provider smoke tests.
 
 ### Changed
 
