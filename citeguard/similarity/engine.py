@@ -196,8 +196,9 @@ def _compute_quote_coverage(
     """Compute the fraction of matched chars that lie inside quotation marks.
 
     Matched spans are merged to avoid double-counting overlaps before
-    computing the intersection with quote ranges.  Partial intersections
-    are counted proportionally.
+    computing the intersection with quote ranges.  Overlapping or nested
+    quote pairs are also merged so that shared characters are never
+    counted more than once.
 
     Returns a float in [0.0, 1.0].  Returns 0.0 when spans are empty.
     """
@@ -207,6 +208,18 @@ def _compute_quote_coverage(
     quote_pairs = _find_quote_pairs(sentence_text)
     if not quote_pairs:
         return 0.0
+
+    # Merge overlapping/nested quote pairs to prevent double-counting.
+    # Pairs are sorted by start, then end-adjacent or overlapping pairs
+    # are merged into a single range.
+    sorted_quotes = sorted(quote_pairs, key=lambda q: (q[0], q[1]))
+    merged_quotes: list[tuple[int, int]] = [sorted_quotes[0]]
+    for q_start, q_end in sorted_quotes[1:]:
+        last_start, last_end = merged_quotes[-1]
+        if q_start < last_end:
+            merged_quotes[-1] = (last_start, max(last_end, q_end))
+        else:
+            merged_quotes.append((q_start, q_end))
 
     # Merge overlapping matched spans to avoid double-counting
     merged = _merge_spans(matched_spans)
@@ -221,8 +234,8 @@ def _compute_quote_coverage(
             continue
         total_chars += span_len
 
-        # Accumulate intersection with every quote range
-        for q_start, q_end in quote_pairs:
+        # Accumulate intersection with every merged quote range
+        for q_start, q_end in merged_quotes:
             inter_start = max(sent_start, q_start)
             inter_end = min(sent_end, q_end)
             if inter_start < inter_end:

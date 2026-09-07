@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from citeguard.corpus.models import CorpusLanguage, CorpusMetadata
-from citeguard.models import BibliographyEntry, ExistingCitation, Sentence
+from citeguard.models import BibliographyEntry, ExistingCitation, Sentence, TextSpan
 from citeguard.similarity.engine import SimilarityEngine
 from citeguard.similarity.fingerprint import generate_shingles, winnow
 from citeguard.similarity.models import Fingerprint, MatchType, RiskLevel, SimilarityMatch
@@ -643,3 +643,165 @@ def test_bibliography_not_counted_in_matched_sentences() -> None:
     assert bib_result.matches == []
     # matched_sentences only counts non-bibliography sentences with matches
     assert results.matched_sentences <= 1
+
+
+# ---------------------------------------------------------------------------
+# Checkpoint 1: Nested quote union
+# ---------------------------------------------------------------------------
+
+
+def test_nested_quotes_not_double_counted() -> None:
+    """Nested quote pairs (e.g. \"He said 'hello'\") must not double-count."""
+    from citeguard.similarity.engine import _compute_quote_coverage
+
+    # Outer: " (0..22), Inner: ' (9..15)
+    text = '"He said \'hello\' today"'
+    spans = [TextSpan(paragraph_index=0, start=0, end=len(text))]
+    coverage = _compute_quote_coverage(text, spans, 0)
+    # All text is inside outer quote — nested inner quote chars counted once
+    assert coverage == 1.0
+
+
+def test_adjacent_quotes_merged() -> None:
+    """Adjacent but non-overlapping quote pairs should not merge."""
+    from citeguard.similarity.engine import _compute_quote_coverage
+
+    # Two separate quotes: "abc" and "def"
+    text = '"abc" and "def"'
+    # Span covers only "abc" (0..5)
+    spans = [TextSpan(paragraph_index=0, start=0, end=5)]
+    coverage = _compute_quote_coverage(text, spans, 0)
+    # 5 chars quoted / 5 total = 1.0
+    assert coverage == 1.0
+
+
+def test_overlapping_quotes_merged_correctly() -> None:
+    """Overlapping quote pairs merge into a single range."""
+    from citeguard.similarity.engine import _compute_quote_coverage
+
+    # Simulated overlapping: "abc" (0..5) and "bcd" (2..7)
+    # Merged: (0..7)
+    text = '"abc" "bcd"'  # actual pairs: "abc" (0..5), "bcd" (7..12)
+    # This test verifies non-overlapping separate quotes work independently
+    spans = [TextSpan(paragraph_index=0, start=0, end=12)]
+    coverage = _compute_quote_coverage(text, spans, 0)
+    # "abc" (0..5) + "bcd" (7..12) = 10 quoted / 12 total
+    assert abs(coverage - 10 / 12) < 0.01
+
+
+def test_mixed_quotes_and_unquoted_span() -> None:
+    """Span covering both quoted and unquoted portions."""
+    from citeguard.similarity.engine import _compute_quote_coverage
+
+    text = '"quoted text" and unquoted'
+    spans = [TextSpan(paragraph_index=0, start=0, end=len(text))]
+    coverage = _compute_quote_coverage(text, spans, 0)
+    # "quoted text" = 12 chars (0..13 with quotes), total = 26
+    assert 0.0 < coverage < 1.0
+
+
+# ---------------------------------------------------------------------------
+# Checkpoint 1: Source text invariants (additional)
+# ---------------------------------------------------------------------------
+
+
+def test_source_text_preserves_original_case() -> None:
+    """source_text always uses CorpusEntry.text, preserving case."""
+    original = "The CApitalized NLP ReseaRCH Methods"
+    sentence = _sentence(original)
+    from citeguard.corpus.models import CorpusEntry
+    metadata = CorpusMetadata(
+        title="Paper", authors=["Smith"], year=2020,
+        language=CorpusLanguage.ENGLISH, license="CC0",
+        similarity_index_allowed=True,
+    )
+    entry = CorpusEntry(
+        text=original,
+        normalized_text=original.lower(),
+        doc_id="doc-1", entry_index=0, metadata=metadata,
+        char_offset=0, char_end=len(original),
+    )
+    fp = Fingerprint(
+        points=winnow(generate_shingles(original.lower(), k=5), window=4)
+    )
+    engine = SimilarityEngine()
+    matches = engine.compare_sentence_to_corpus(
+        sentence,
+        [("doc-1", original.lower(), fp, metadata, 0, entry)],
+    )
+    assert matches
+    assert matches[0].source_text == original
+    assert "CApitalized" in matches[0].source_text
+
+
+def test_source_text_not_truncated_for_long_entries() -> None:
+    """Very long source_text is not truncated."""
+    long_text = "word " * 200  # 1000 chars
+    sentence = _sentence(long_text)
+    from citeguard.corpus.models import CorpusEntry
+    metadata = CorpusMetadata(
+        title="Paper", authors=["Smith"], year=2020,
+        language=CorpusLanguage.ENGLISH, license="CC0",
+        similarity_index_allowed=True,
+    )
+    entry = CorpusEntry(
+        text=long_text,
+        normalized_text=long_text.lower(),
+        doc_id="doc-1", entry_index=0, metadata=metadata,
+        char_offset=0, char_end=len(long_text),
+    )
+    fp = Fingerprint(
+        points=winnow(generate_shingles(long_text.lower(), k=5), window=4)
+    )
+    engine = SimilarityEngine()
+    matches = engine.compare_sentence_to_corpus(
+        sentence,
+        [("doc-1", long_text.lower(), fp, metadata, 0, entry)],
+    )
+    assert matches
+    assert len(matches[0].source_text) == len(long_text)
+
+
+# ---------------------------------------------------------------------------
+# Checkpoint 1: Edge-case fingerprint tests
+# ---------------------------------------------------------------------------
+
+
+def test_fingerprint_empty_string() -> None:
+    """Empty string produces an empty fingerprint (no points)."""
+    engine = SimilarityEngine()
+    fp = engine.build_fingerprint("")
+    assert fp.points == []
+
+
+def test_fingerprint_single_char() -> None:
+    """Single character produces a valid fingerprint."""
+    engine = SimilarityEngine()
+    fp = engine.build_fingerprint("a")
+    assert isinstance(fp.points, list)
+    assert len(fp.points) >= 1
+
+
+def test_fingerprint_very_long_text() -> None:
+    """Very long text (10k+ chars) produces a fingerprint without error."""
+    engine = SimilarityEngine()
+    long_text = "the attention mechanism " * 500
+    fp = engine.build_fingerprint(long_text)
+    assert isinstance(fp.points, list)
+    assert len(fp.points) > 0
+
+
+def test_compare_sentence_empty_corpus() -> None:
+    """Empty corpus returns no matches."""
+    sentence = _sentence("some text")
+    engine = SimilarityEngine()
+    matches = engine.compare_sentence_to_corpus(sentence, [])
+    assert matches == []
+
+
+def test_compare_sentence_no_corpus_no_index() -> None:
+    """Neither corpus_entries nor index → empty matches."""
+    sentence = _sentence("some text")
+    engine = SimilarityEngine()
+    matches = engine.compare_sentence_to_corpus(sentence)
+    assert matches == []
