@@ -23,6 +23,7 @@ class MatchType(str, Enum):
     EXACT = "exact"
     NEAR_DUPLICATE = "near_duplicate"
     LEXICAL_OVERLAP = "lexical_overlap"
+    SEMANTIC_OVERLAP = "semantic_overlap"
     UNMATCHED = "unmatched"
 
 
@@ -86,6 +87,8 @@ class SimilarityMatch:
     matched_source_spans: list[TextSpan] = field(default_factory=list)
     matched_document_spans: list[TextSpan] = field(default_factory=list)
     match_type: MatchType = MatchType.UNMATCHED
+    semantic_similarity_raw: float = 0.0
+    semantic_rerank_score: float = 0.0
 
 
 @dataclass(slots=True)

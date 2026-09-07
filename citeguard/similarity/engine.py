@@ -290,6 +290,7 @@ class SimilarityEngine:
         corpus_entries: list[CorpusEntryTuple] | None = None,
         tfidf_info: tuple | None = None,
         index: SimilarityIndex | None = None,
+        candidate_indices: list[int] | None = None,
     ) -> list[SimilarityMatch]:
         """Return similarity matches for one sentence against a corpus.
 
@@ -304,10 +305,11 @@ class SimilarityEngine:
             Optional (vectorizer, matrix) from corpus documents.
             Ignored when *index* is provided.
         index:
-            Pre-built ``SimilarityIndex``.  When provided the engine reads
-            entries and TF-IDF state from the index instead of the raw
-            parameters.  **Every** entry is still evaluated — no candidate
-            pruning in this commit.
+            Pre-built ``SimilarityIndex``.
+        candidate_indices:
+            When provided, only evaluate entries at these indices.
+            When *None*, evaluate all entries (backward-compatible
+            full scan).
 
         Returns
         -------
@@ -341,7 +343,17 @@ class SimilarityEngine:
                 compute_cosine_similarity(sentence.normalized_text, vectorizer, matrix)
             )
 
-        for entry_index, entry in enumerate(resolved_entries):
+        # Determine which entries to evaluate
+        if candidate_indices is not None:
+            entry_iter = (
+                (i, resolved_entries[i])
+                for i in candidate_indices
+                if i < len(resolved_entries)
+            )
+        else:
+            entry_iter = enumerate(resolved_entries)
+
+        for entry_index, entry in entry_iter:
             (
                 doc_id, doc_text, doc_fp, metadata,
                 source_entry_index, corpus_entry_obj,
@@ -370,41 +382,50 @@ class SimilarityEngine:
                 + self.config.combined_weight_lexical * ls
             )
 
-            # 5) Find matching spans using fingerprint
-            segments = find_matching_segments_pair(
-                sentence_fp, doc_fp, k=self.config.shingle_size
-            )
-            # Remap document spans: normalized sentence coords → original paragraph coords
-            matched_doc_spans = [
-                TextSpan(
-                    paragraph_index=sentence.paragraph_index,
-                    start=sentence.start_offset + remap_span(start, end, sentence_offset_map)[0],
-                    end=sentence.start_offset + remap_span(start, end, sentence_offset_map)[1],
+            # 5) SEMANTIC_OVERLAP invariant: no fake spans from cosine similarity
+            if mt == MatchType.SEMANTIC_OVERLAP:
+                matched_doc_spans = []
+                matched_src_spans = []
+            else:
+                # Find matching spans using fingerprint
+                segments = find_matching_segments_pair(
+                    sentence_fp, doc_fp, k=self.config.shingle_size
                 )
-                for start, end in segments.document_spans
-            ]
-            # Remap source spans: normalized corpus coords → original corpus coords
-            corpus_offset_map = None
-            if (
-                corpus_entry_obj
-                and hasattr(corpus_entry_obj, 'offset_map')
-                and corpus_entry_obj.offset_map
-            ):
-                corpus_offset_map = corpus_entry_obj.offset_map
-            matched_src_spans = [
-                TextSpan(
-                    paragraph_index=source_entry_index,
-                    start=(
-                        remap_span(start, end, corpus_offset_map)[0]
-                        if corpus_offset_map else start
-                    ),
-                    end=(
-                        remap_span(start, end, corpus_offset_map)[1]
-                        if corpus_offset_map else end
-                    ),
-                )
-                for start, end in segments.source_spans
-            ]
+                # Remap document spans: normalized sentence coords → original paragraph coords
+                matched_doc_spans = [
+                    TextSpan(
+                        paragraph_index=sentence.paragraph_index,
+                        start=sentence.start_offset + remap_span(
+                            start, end, sentence_offset_map
+                        )[0],
+                        end=sentence.start_offset + remap_span(
+                            start, end, sentence_offset_map
+                        )[1],
+                    )
+                    for start, end in segments.document_spans
+                ]
+                # Remap source spans: normalized corpus coords → original corpus coords
+                corpus_offset_map = None
+                if (
+                    corpus_entry_obj
+                    and hasattr(corpus_entry_obj, 'offset_map')
+                    and corpus_entry_obj.offset_map
+                ):
+                    corpus_offset_map = corpus_entry_obj.offset_map
+                matched_src_spans = [
+                    TextSpan(
+                        paragraph_index=source_entry_index,
+                        start=(
+                            remap_span(start, end, corpus_offset_map)[0]
+                            if corpus_offset_map else start
+                        ),
+                        end=(
+                            remap_span(start, end, corpus_offset_map)[1]
+                            if corpus_offset_map else end
+                        ),
+                    )
+                    for start, end in segments.source_spans
+                ]
 
             authors = metadata.authors if metadata is not None else []
             year = metadata.year if metadata is not None else None

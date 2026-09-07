@@ -160,8 +160,10 @@ def classify_match_type(
     exact_threshold: float = 0.95,
     near_duplicate_threshold: float = 0.70,
     lexical_overlap_threshold: float = 0.40,
+    semantic_score: float | None = None,
+    semantic_threshold: float | None = None,
 ) -> MatchType:
-    """Classify match type based on exact and lexical similarity scores.
+    """Classify match type based on exact, lexical, and optionally semantic scores.
 
     Parameters
     ----------
@@ -175,6 +177,12 @@ def classify_match_type(
         Threshold for "near_duplicate" classification.
     lexical_overlap_threshold:
         Threshold for "lexical_overlap" classification.
+    semantic_score:
+        Optional raw semantic cosine.  When provided and all lexical
+        thresholds are missed, this is checked for SEMANTIC_OVERLAP.
+    semantic_threshold:
+        Optional threshold for semantic classification.  Only effective
+        when ``semantic_score`` is also provided.
 
     Returns
     -------
@@ -186,4 +194,10 @@ def classify_match_type(
         return MatchType.NEAR_DUPLICATE
     if lexical_similarity >= lexical_overlap_threshold:
         return MatchType.LEXICAL_OVERLAP
+    if (
+        semantic_score is not None
+        and semantic_threshold is not None
+        and semantic_score >= semantic_threshold
+    ):
+        return MatchType.SEMANTIC_OVERLAP
     return MatchType.UNMATCHED
