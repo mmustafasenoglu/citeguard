@@ -1437,3 +1437,370 @@ class TestConservativeSourceType:
     def test_missing_work_type_unknown(self) -> None:
         candidate = _make_candidate(work_type=None)
         assert _classify_source_type(candidate) == SourceType.UNKNOWN
+
+
+# ---------------------------------------------------------------------------
+# Cache round-trip preserves candidate metadata (P0)
+# ---------------------------------------------------------------------------
+
+
+class TestCacheRoundTrip:
+    def test_work_type_round_trip(self) -> None:
+        from citeguard.providers.base import (
+            candidate_from_dict,
+            candidate_to_dict,
+        )
+
+        candidate = _make_candidate(work_type="research-article")
+        restored = candidate_from_dict(candidate_to_dict(candidate))
+        assert restored.work_type == "research-article"
+
+    def test_provenance_round_trip(self) -> None:
+        from citeguard.providers.base import (
+            candidate_from_dict,
+            candidate_to_dict,
+        )
+
+        candidate = _make_candidate(
+            doi="10.1000/test",
+            source_api="crossref",
+            work_type="research-article",
+        )
+        candidate.source_apis = ["crossref", "openalex"]
+        candidate.provider_records = {
+            "crossref": {
+                "title": candidate.title,
+                "authors": list(candidate.authors),
+                "year": candidate.year,
+                "doi": candidate.doi,
+                "work_type": candidate.work_type,
+                "venue": candidate.venue,
+            },
+            "openalex": {
+                "title": "Other Title",
+                "authors": ["Jane Smith"],
+                "year": 2021,
+                "doi": "10.1000/test",
+                "work_type": "journal-article",
+                "venue": "Journal",
+            },
+        }
+        restored = candidate_from_dict(candidate_to_dict(candidate))
+        assert restored.work_type == "research-article"
+        assert restored.source_apis == ["crossref", "openalex"]
+        assert restored.provider_records["crossref"]["title"] == candidate.title
+        assert restored.provider_records["openalex"]["title"] == "Other Title"
+        assert restored.provider_records["openalex"]["year"] == 2021
+
+    def test_old_cache_dict_loads_with_defaults(self) -> None:
+        from citeguard.providers.base import candidate_from_dict
+
+        old_cached = {
+            "title": "A Useful Paper",
+            "authors": ["Jane Smith"],
+            "year": 2020,
+            "venue": "Journal",
+            "doi": "10.1000/test",
+            "url": None,
+            "abstract": None,
+            "source_api": "crossref",
+            "arxiv_id": None,
+        }
+        restored = candidate_from_dict(old_cached)
+        assert restored.title == "A Useful Paper"
+        assert restored.work_type is None
+        assert restored.source_apis == []
+        assert restored.provider_records == {}
+
+    def test_malformed_optional_provenance_defaults_safely(self) -> None:
+        from citeguard.providers.base import candidate_from_dict
+
+        cached = {
+            "title": "A Useful Paper",
+            "authors": ["Jane Smith"],
+            "year": 2020,
+            "venue": None,
+            "doi": None,
+            "url": None,
+            "abstract": None,
+            "source_api": "crossref",
+            "arxiv_id": None,
+            "work_type": 123,
+            "source_apis": "crossref",
+            "provider_records": ["not", "a", "dict"],
+        }
+        restored = candidate_from_dict(cached)
+        assert restored.work_type is None
+        assert restored.source_apis == []
+        assert restored.provider_records == {}
+
+    def test_malformed_provider_record_entries_dropped(self) -> None:
+        from citeguard.providers.base import candidate_from_dict
+
+        cached = {
+            "title": "A Useful Paper",
+            "authors": ["Jane Smith"],
+            "year": 2020,
+            "venue": None,
+            "doi": None,
+            "url": None,
+            "abstract": None,
+            "source_api": "crossref",
+            "arxiv_id": None,
+            "work_type": "research-article",
+            "source_apis": ["crossref", 42, ""],
+            "provider_records": {
+                "crossref": {"title": "A Useful Paper"},
+                "openalex": "not-a-dict",
+                "": {"title": "empty key"},
+            },
+        }
+        restored = candidate_from_dict(cached)
+        assert restored.work_type == "research-article"
+        assert restored.source_apis == ["crossref"]
+        assert set(restored.provider_records) == {"crossref"}
+
+    def test_core_malformed_still_rejected(self) -> None:
+        from citeguard.providers.base import (
+            ProviderResponseError,
+            candidate_from_dict,
+        )
+
+        with pytest.raises(ProviderResponseError):
+            candidate_from_dict({"title": "missing source_api"})
+        with pytest.raises(ProviderResponseError):
+            candidate_from_dict("not a dict")
+
+
+# ---------------------------------------------------------------------------
+# Different-DOI conflict semantics (P0)
+# ---------------------------------------------------------------------------
+
+
+class TestDifferentDoiConflicts:
+    def _ranked(self, first: SourceCandidate, second: SourceCandidate):
+        entry = _make_entry(doi=None, title=first.title, authors="Smith", year=2020)
+        return [
+            (metadata_scores(entry, first), first),
+            (metadata_scores(entry, second), second),
+        ]
+
+    def test_same_metadata_different_doi_conflict(self) -> None:
+        c1 = _make_candidate(
+            doi="10.1000/a", title="Deep Learning for X",
+            authors=["Jane Smith"], year=2020, source_api="crossref",
+        )
+        c2 = _make_candidate(
+            doi="10.1000/b", title="Deep Learning for X",
+            authors=["Jane Smith"], year=2020, source_api="openalex",
+        )
+        conflicts = _detect_provider_conflicts(self._ranked(c1, c2))
+        assert len(conflicts) == 1
+        assert "DOI conflict" in conflicts[0]
+
+    def test_near_identical_title_different_doi_conflict(self) -> None:
+        c1 = _make_candidate(
+            doi="10.1000/a", title="Deep Learning for Image Classification",
+            authors=["Jane Smith"], year=2020, source_api="crossref",
+        )
+        c2 = _make_candidate(
+            doi="10.1000/b", title="Deep Learning for Image Classifications",
+            authors=["Jane Smith"], year=2020, source_api="openalex",
+        )
+        conflicts = _detect_provider_conflicts(self._ranked(c1, c2))
+        assert len(conflicts) == 1
+        assert "DOI conflict" in conflicts[0]
+
+    def test_completely_different_titles_no_conflict(self) -> None:
+        c1 = _make_candidate(
+            doi="10.1000/a", title="Machine Learning Methods",
+            authors=["Jane Smith"], year=2020, source_api="crossref",
+        )
+        c2 = _make_candidate(
+            doi="10.1000/b", title="Quantum Computing Basics",
+            authors=["Jane Smith"], year=2020, source_api="openalex",
+        )
+        conflicts = _detect_provider_conflicts(self._ranked(c1, c2))
+        assert conflicts == []
+
+    def test_missing_doi_no_doi_conflict(self) -> None:
+        c1 = _make_candidate(
+            doi=None, title="Deep Learning for X",
+            authors=["Jane Smith"], year=2020, source_api="crossref",
+        )
+        c2 = _make_candidate(
+            doi="10.1000/b", title="Deep Learning for X",
+            authors=["Jane Smith"], year=2020, source_api="openalex",
+        )
+        conflicts = _detect_provider_conflicts(self._ranked(c1, c2))
+        assert conflicts == []
+
+    def test_both_missing_doi_no_doi_conflict(self) -> None:
+        c1 = _make_candidate(
+            doi=None, title="Deep Learning for X",
+            authors=["Jane Smith"], year=2020, source_api="crossref",
+        )
+        c2 = _make_candidate(
+            doi=None, title="Deep Learning for X",
+            authors=["Jane Smith"], year=2020, source_api="openalex",
+        )
+        conflicts = _detect_provider_conflicts(self._ranked(c1, c2))
+        assert conflicts == []
+
+    def test_year_mismatch_no_same_work_conflict(self) -> None:
+        c1 = _make_candidate(
+            doi="10.1000/a", title="Deep Learning for X",
+            authors=["Jane Smith"], year=2020, source_api="crossref",
+        )
+        c2 = _make_candidate(
+            doi="10.1000/b", title="Deep Learning for X",
+            authors=["Jane Smith"], year=2021, source_api="openalex",
+        )
+        conflicts = _detect_provider_conflicts(self._ranked(c1, c2))
+        assert conflicts == []
+
+    def test_author_mismatch_no_same_work_conflict(self) -> None:
+        c1 = _make_candidate(
+            doi="10.1000/a", title="Deep Learning for X",
+            authors=["Jane Smith"], year=2020, source_api="crossref",
+        )
+        c2 = _make_candidate(
+            doi="10.1000/b", title="Deep Learning for X",
+            authors=["John Doe"], year=2020, source_api="openalex",
+        )
+        conflicts = _detect_provider_conflicts(self._ranked(c1, c2))
+        assert conflicts == []
+
+    def test_exact_doi_verified_despite_doi_conflict(self) -> None:
+        entry = _make_entry(
+            doi="10.1000/a", title="Deep Learning for X",
+            authors="Smith", year=2020,
+        )
+        c1 = _make_candidate(
+            doi="10.1000/a", title="Deep Learning for X",
+            authors=["Jane Smith"], year=2020, source_api="crossref",
+        )
+        c2 = _make_candidate(
+            doi="10.1000/b", title="Deep Learning for X",
+            authors=["Jane Smith"], year=2020, source_api="openalex",
+        )
+        ranked = [
+            (metadata_scores(entry, c1), c1),
+            (metadata_scores(entry, c2), c2),
+        ]
+        assert _determine_status(entry, c1, ranked[0][0], ranked) == (
+            VerificationStatus.VERIFIED
+        )
+        conflicts = _detect_provider_conflicts(ranked)
+        assert len(conflicts) == 1
+
+
+# ---------------------------------------------------------------------------
+# End-to-end: cache + retrieval + verification (P0)
+# ---------------------------------------------------------------------------
+
+
+class TestCacheRetrievalVerificationEndToEnd:
+    def test_cache_hydration_preserves_classification_provenance(self) -> None:
+        from citeguard.cache import FileCache
+        from citeguard.retrieval import deduplicate_candidates
+
+        fresh_crossref = SourceCandidate(
+            title="Deep Learning for X",
+            authors=["Jane Smith"],
+            year=2020,
+            venue="Journal",
+            doi="10.1000/test",
+            url=None,
+            abstract=None,
+            source_api="crossref",
+            work_type="research-article",
+        )
+        fresh_openalex = SourceCandidate(
+            title="Deep Learning for X",
+            authors=["Jane Smith"],
+            year=2020,
+            venue="Journal",
+            doi="10.1000/test",
+            url=None,
+            abstract=None,
+            source_api="openalex",
+            work_type="research-article",
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = FileCache(pathlib.Path(tmp))
+            first_provider = MagicMock()
+            first_provider.name = "crossref"
+            first_provider.search.return_value = [fresh_crossref]
+            second_provider = MagicMock()
+            second_provider.name = "openalex"
+            second_provider.search.return_value = [fresh_openalex]
+            live_engine = RetrievalEngine(
+                [first_provider, second_provider],
+                cache=cache,
+                use_cache=True,
+                parallel=False,
+                rate_limit=False,
+            )
+            live_result = live_engine.search_with_result(
+                "Deep Learning for X Smith 2020", max_results=5
+            )
+            assert len(live_result.candidates) == 1
+            live_candidate = live_result.candidates[0]
+
+            empty_provider = MagicMock()
+            empty_provider.name = "crossref"
+            empty_provider.search.return_value = []
+            empty_second = MagicMock()
+            empty_second.name = "openalex"
+            empty_second.search.return_value = []
+            cached_engine = RetrievalEngine(
+                [empty_provider, empty_second],
+                cache=cache,
+                use_cache=True,
+                parallel=False,
+                rate_limit=False,
+            )
+            cached_result = cached_engine.search_with_result(
+                "Deep Learning for X Smith 2020", max_results=5
+            )
+            assert empty_provider.search.call_count == 0
+            assert empty_second.search.call_count == 0
+            assert len(cached_result.candidates) == 1
+            cached_candidate = cached_result.candidates[0]
+
+            assert cached_candidate.work_type == live_candidate.work_type
+            assert cached_candidate.source_apis == live_candidate.source_apis
+            assert (
+                cached_candidate.provider_records
+                == live_candidate.provider_records
+            )
+
+            hydrated = deduplicate_candidates(
+                [cached_candidate, fresh_openalex]
+            )
+            assert len(hydrated) == 1
+            assert "crossref" in hydrated[0].source_apis
+            assert "openalex" in hydrated[0].source_apis
+
+            entry = BibliographyEntry(
+                raw_text="Smith (2020). Deep Learning for X. 10.1000/test",
+                authors="Smith",
+                year=2020,
+                title="Deep Learning for X",
+                doi="10.1000/test",
+            )
+            with patch(
+                "citeguard.verification.RetrievalEngine.search_with_result"
+            ) as mock_search:
+                mock_search.return_value = MagicMock(
+                    candidates=[cached_candidate],
+                    warnings=[],
+                    queried_providers=["crossref", "openalex"],
+                    provider_errors=[],
+                )
+                verify_engine = RetrievalEngine([MagicMock()])
+                results = verify_bibliography([entry], verify_engine, max_results=5)
+            assert results[0].status == VerificationStatus.VERIFIED
+            assert results[0].source_type == SourceType.PRIMARY
+            assert results[0].provider_conflicts == []

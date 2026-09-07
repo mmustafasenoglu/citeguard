@@ -86,6 +86,31 @@ def candidate_to_dict(candidate: SourceCandidate) -> dict[str, Any]:
     return asdict(candidate)
 
 
+def _coerce_work_type(value: Any) -> str | None:
+    if isinstance(value, str) and value:
+        return value
+    return None
+
+
+def _coerce_source_apis(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str) and item]
+
+
+def _coerce_provider_records(value: Any) -> dict[str, dict[str, object]]:
+    if not isinstance(value, dict):
+        return {}
+    cleaned: dict[str, dict[str, object]] = {}
+    for key, record in value.items():
+        if not isinstance(key, str) or not key:
+            continue
+        if not isinstance(record, dict):
+            continue
+        cleaned[key] = dict(record)
+    return cleaned
+
+
 def candidate_from_dict(value: Any) -> SourceCandidate:
     if not isinstance(value, dict):
         raise ProviderResponseError("Cached provider result is malformed.")
@@ -100,6 +125,11 @@ def candidate_from_dict(value: Any) -> SourceCandidate:
             abstract=str(value["abstract"]) if value.get("abstract") else None,
             source_api=str(value["source_api"]),
             arxiv_id=str(value["arxiv_id"]) if value.get("arxiv_id") else None,
+            work_type=_coerce_work_type(value.get("work_type")),
+            source_apis=_coerce_source_apis(value.get("source_apis")),
+            provider_records=_coerce_provider_records(
+                value.get("provider_records")
+            ),
         )
     except (KeyError, TypeError, ValueError) as exc:
         raise ProviderResponseError("Cached provider result is malformed.") from exc

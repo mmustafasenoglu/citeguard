@@ -223,25 +223,43 @@ def _detect_provider_conflicts(
     if not conflicts:
         top_candidate = ranked[0][1] if ranked else None
         if top_candidate:
-            top_scores = ranked[0][0]
-            for second_scores, second_candidate in ranked[1:]:
-                dois_differ = (
-                    normalize_doi(top_candidate.doi)
-                    != normalize_doi(second_candidate.doi)
-                )
-                titles_differ = normalize_title(top_candidate.title) != normalize_title(
-                    second_candidate.title
-                )
-                both_strong = (
-                    top_scores.overall >= VERIFIED_METADATA_THRESHOLD
-                    and second_scores.overall >= VERIFIED_METADATA_THRESHOLD
-                )
-                if dois_differ and both_strong and titles_differ:
+            for _second_scores, second_candidate in ranked[1:]:
+                if _is_same_work_different_doi(top_candidate, second_candidate):
                     conflicts.append(
-                        f"Provider conflict: '{top_candidate.title}' ({top_candidate.source_api}) "
-                        f"vs '{second_candidate.title}' ({second_candidate.source_api})"
+                        f"DOI conflict: providers describe the same work "
+                        f"with different DOIs: '{top_candidate.title}' "
+                        f"({top_candidate.source_api}, "
+                        f"{normalize_doi(top_candidate.doi)}) vs "
+                        f"'{second_candidate.title}' "
+                        f"({second_candidate.source_api}, "
+                        f"{normalize_doi(second_candidate.doi)})."
                     )
     return conflicts
+
+
+def _is_same_work_different_doi(
+    first: SourceCandidate, second: SourceCandidate
+) -> bool:
+    """Return True when two candidates carry different real DOIs but their
+    deterministic metadata strongly suggests the same bibliographic work.
+
+    A missing DOI is never a conflicting DOI: both sides must carry a valid
+    normalized DOI identity that disagrees.
+    """
+    doi_a = normalize_doi(first.doi)
+    doi_b = normalize_doi(second.doi)
+    if not doi_a or not doi_b or doi_a == doi_b:
+        return False
+    title_similarity = _text_similarity(first.title, second.title)
+    if title_similarity is None or title_similarity < VERIFIED_METADATA_THRESHOLD:
+        return False
+    if first.year is not None and second.year is not None and first.year != second.year:
+        return False
+    if first.authors and second.authors:
+        author_score = _author_similarity(", ".join(first.authors), second.authors)
+        if author_score is None or author_score < _PARTIAL_METADATA_THRESHOLD:
+            return False
+    return True
 
 
 def bibliography_query(entry: BibliographyEntry, *, prefer_doi: bool = True) -> str:
