@@ -32,6 +32,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+semantic = [
+  "sentence-transformers>=2.2,<4",
+]
 dev = [
   "build>=1,<2",
   "pytest>=8,<9",
@@ -48,7 +51,7 @@ Repository = "https://github.com/mmustafasenoglu/citeguard"
 Issues = "https://github.com/mmustafasenoglu/citeguard/issues"
 
 [tool.setuptools]
-packages = ["citeguard", "citeguard.providers", "citeguard.corpus", "citeguard.similarity"]
+packages = ["citeguard", "citeguard.providers", "citeguard.corpus", "citeguard.similarity", "citeguard.similarity.embeddings"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

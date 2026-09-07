@@ -115,10 +115,27 @@ class SimilarityEngineResult:
 
 @dataclass(frozen=True, slots=True)
 class SimilarityConfig:
-    """Configuration for similarity computation thresholds."""
+    """Configuration for similarity computation thresholds.
+
+    Fields are divided into two categories:
+
+    **Artifact-producing** (changing these invalidates a persisted index):
+    ``shingle_size``, ``winnow_window``, ``ngram_range``,
+    ``max_passage_chars``, ``embedding_model``, ``embedding_dimension``.
+
+    **Runtime** (changing these does NOT invalidate a persisted index):
+    ``exact_threshold``, ``near_duplicate_threshold``,
+    ``lexical_overlap_threshold``, ``max_results_per_sentence``,
+    ``combined_weight_exact``, ``combined_weight_lexical``,
+    ``quotation_coverage_threshold``, ``enable_semantic``,
+    ``semantic_threshold``, ``allow_model_download``,
+    ``rrf_k``, ``weight_fingerprint``, ``weight_tfidf``,
+    ``weight_semantic``.
+    """
 
     shingle_size: int = 5
     winnow_window: int = 4
+    ngram_range: tuple[int, int] = (1, 3)
     exact_threshold: float = 0.95
     near_duplicate_threshold: float = 0.70
     lexical_overlap_threshold: float = 0.40
@@ -127,6 +144,22 @@ class SimilarityConfig:
     combined_weight_exact: float = 0.6
     combined_weight_lexical: float = 0.4
     quotation_coverage_threshold: float = 0.95
+
+    # Semantic configuration (runtime)
+    enable_semantic: bool = False
+    embedding_model: str = "paraphrase-multilingual-MiniLM-L12-v2"
+    embedding_dimension: int = 384
+    allow_model_download: bool = True
+    semantic_threshold: float | None = None  # uncalibrated until benchmark
+
+    # Passage segmentation (artifact-producing)
+    max_passage_chars: int = 500
+
+    # RRF / reranker (runtime)
+    rrf_k: int = 60
+    weight_fingerprint: float = 0.3
+    weight_tfidf: float = 0.3
+    weight_semantic: float = 0.4
 
 
 @dataclass(frozen=True, slots=True)
