@@ -191,3 +191,46 @@ class SimilarityMetrics:
 #   4: entry_index   – int (position within original document)
 #   5: CorpusEntry   – object (raw corpus entry for offset_map etc.)
 CorpusEntryTuple = tuple[str, str, Fingerprint, "CorpusMetadata | None", int, object]
+
+
+# ---------------------------------------------------------------------------
+# Indexed passage (Checkpoint 3)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class IndexedPassage:
+    """A passage within or as a whole corpus entry, with full provenance.
+
+    Created by ``SimilarityIndex.build()`` when passage segmentation is
+    enabled (``max_passage_chars``).  Each passage carries its own
+    ``offset_map`` so that normalised spans can be remapped to original
+    passage coordinates, and ``offset_in_parent`` connects back to the
+    parent entry's original text.
+
+    Segmentation order (strict):
+
+    1. Parent ORIGINAL text
+    2. Sentence / passage segmentation
+    3. Passage ORIGINAL text
+    4. ``normalize_corpus_text_with_map()``
+    5. ``normalized_text`` + ``offset_map``
+    6. Fingerprint from ``normalized_text``
+    """
+
+    passage_id: str              # "doc-1#p0"
+    parent_entry_id: str         # "doc-1"
+
+    original_text: str           # orijinal passage (kesilmemiş)
+    normalized_text: str         # normalize edilmiş
+
+    # normalized passage index → original passage index
+    offset_map: list[int]
+
+    # original passage start inside parent source
+    offset_in_parent: int
+
+    fingerprint: Fingerprint
+    metadata: object             # CorpusMetadata | None
+    source_entry_index: int      # parent'ın entry_index'i
+    corpus_entry: object         # orijinal CorpusEntry referansı
