@@ -285,6 +285,8 @@ def _verification_item(result: ReferenceVerification) -> dict[str, Any]:
                 "doi": candidate.doi,
                 "url": candidate.url,
                 "source_api": candidate.source_api,
+                "source_apis": candidate.source_apis or [candidate.source_api],
+                "work_type": candidate.work_type,
             }
             if candidate
             else None

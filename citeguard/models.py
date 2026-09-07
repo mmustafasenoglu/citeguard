@@ -115,6 +115,8 @@ class SourceCandidate:
     abstract: str | None
     source_api: str
     arxiv_id: str | None = None
+    work_type: str | None = None
+    source_apis: list[str] = field(default_factory=list)
 
 
 @dataclass(slots=True)

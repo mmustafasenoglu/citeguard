@@ -80,20 +80,23 @@ class OpenAlexProvider:
                     display_name = author_obj.get("display_name")
                     if isinstance(display_name, str) and display_name.strip():
                         authors.append(display_name.strip())
-            year = None
             primary_loc = item.get("primary_location")
-            if isinstance(primary_loc, dict):
-                source = primary_loc.get("source")
-                if isinstance(source, dict):
-                    pub_year = source.get("publication_year")
-                    if isinstance(pub_year, int):
-                        year = pub_year
+            year = None
+            pub_year = item.get("publication_year")
+            if isinstance(pub_year, int) and 1000 <= pub_year <= 9999:
+                year = pub_year
             if year is None:
                 biblio = item.get("biblio")
                 if isinstance(biblio, dict):
                     by = biblio.get("year")
-                    if isinstance(by, int):
+                    if isinstance(by, int) and 1000 <= by <= 9999:
                         year = by
+            if year is None and isinstance(primary_loc, dict):
+                source = primary_loc.get("source")
+                if isinstance(source, dict):
+                    loc_year = source.get("publication_year")
+                    if isinstance(loc_year, int) and 1000 <= loc_year <= 9999:
+                        year = loc_year
             venue = None
             if isinstance(primary_loc, dict):
                 source = primary_loc.get("source")
@@ -117,6 +120,9 @@ class OpenAlexProvider:
             inv_index = item.get("abstract_inverted_index")
             if isinstance(inv_index, dict):
                 abstract = _reconstruct_abstract(inv_index)
+            work_type = item.get("type")
+            if not isinstance(work_type, str):
+                work_type = None
             candidates.append(
                 SourceCandidate(
                     title=title.strip(),
@@ -127,6 +133,7 @@ class OpenAlexProvider:
                     url=url_val,
                     abstract=abstract,
                     source_api=self.name,
+                    work_type=work_type,
                 )
             )
         return candidates

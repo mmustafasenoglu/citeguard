@@ -6,7 +6,7 @@ import re
 import time
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass, fields, replace
+from dataclasses import dataclass, field, fields, replace
 from difflib import SequenceMatcher
 from typing import Any
 
@@ -41,6 +41,7 @@ class RetrievalResult:
     warnings: list[str]
     queried_providers: list[str]
     early_stopped: bool = False
+    provider_errors: list[str] = field(default_factory=list)
 
 
 class _RateLimiter:
@@ -105,26 +106,28 @@ class RetrievalEngine:
         gathered: list[SourceCandidate] = []
         warnings: list[str] = []
         queried: list[str] = []
+        provider_errors: list[str] = []
         early_stopped = False
 
         if self.parallel and len(self.providers) > 1:
-            gathered, warnings, queried, early_stopped = self._search_parallel(
-                query, max_results
+            gathered, warnings, queried, early_stopped, provider_errors = (
+                self._search_parallel(query, max_results)
             )
         else:
-            gathered, warnings, queried, early_stopped = self._search_sequential(
-                query, max_results
+            gathered, warnings, queried, early_stopped, provider_errors = (
+                self._search_sequential(query, max_results)
             )
 
         candidates = rank_candidates(query, deduplicate_candidates(gathered))[:max_results]
-        return RetrievalResult(candidates, warnings, queried, early_stopped)
+        return RetrievalResult(candidates, warnings, queried, early_stopped, provider_errors)
 
     def _search_sequential(
         self, query: str, max_results: int
-    ) -> tuple[list[SourceCandidate], list[str], list[str], bool]:
+    ) -> tuple[list[SourceCandidate], list[str], list[str], bool, list[str]]:
         gathered: list[SourceCandidate] = []
         warnings: list[str] = []
         queried: list[str] = []
+        provider_errors: list[str] = []
         for index, provider in enumerate(self.providers):
             queried.append(provider.name)
             if self._rate_limiter:
@@ -132,16 +135,16 @@ class RetrievalEngine:
             try:
                 candidates = self._provider_search(provider, query, max_results)
             except Exception as exc:
-                warnings.append(f"{provider.name}: {exc}")
+                provider_errors.append(f"{provider.name}: {exc}")
                 continue
             gathered.extend(candidates)
             if index == 0 and any(is_strong_match(query, item) for item in candidates):
-                return gathered, warnings, queried, True
-        return gathered, warnings, queried, False
+                return gathered, warnings, queried, True, provider_errors
+        return gathered, warnings, queried, False, provider_errors
 
     def _search_parallel(
         self, query: str, max_results: int
-    ) -> tuple[list[SourceCandidate], list[str], list[str], bool]:
+    ) -> tuple[list[SourceCandidate], list[str], list[str], bool, list[str]]:
         first_provider = self.providers[0]
         remaining = self.providers[1:]
 
@@ -153,16 +156,16 @@ class RetrievalEngine:
             )
         except Exception as exc:
             first_candidates = []
-            warnings_first = [f"{first_provider.name}: {exc}"]
+            provider_errors_first = [f"{first_provider.name}: {exc}"]
         else:
-            warnings_first = []
+            provider_errors_first = []
 
         if any(is_strong_match(query, item) for item in first_candidates):
-            return first_candidates, warnings_first, [first_provider.name], True
+            return first_candidates, [], [first_provider.name], True, provider_errors_first
 
         remaining_queried = [p.name for p in remaining]
         remaining_gathered: list[SourceCandidate] = []
-        remaining_warnings: list[str] = []
+        remaining_provider_errors: list[str] = []
 
         if remaining:
             with ThreadPoolExecutor(max_workers=len(remaining)) as executor:
@@ -178,14 +181,14 @@ class RetrievalEngine:
                     if result is None:
                         pass
                     elif isinstance(result, Exception):
-                        remaining_warnings.append(f"{provider.name}: {result}")
+                        remaining_provider_errors.append(f"{provider.name}: {result}")
                     else:
                         remaining_gathered.extend(result)
 
         all_gathered = first_candidates + remaining_gathered
-        all_warnings = warnings_first + remaining_warnings
         all_queried = [first_provider.name] + remaining_queried
-        return all_gathered, all_warnings, all_queried, False
+        all_errors = provider_errors_first + remaining_provider_errors
+        return all_gathered, [], all_queried, False, all_errors
 
     def _safe_provider_search(
         self, provider: SourceProvider, query: str, max_results: int
@@ -297,6 +300,9 @@ def deduplicate_candidates(candidates: list[SourceCandidate]) -> list[SourceCand
 
 
 def candidate_relevance(query: str, candidate: SourceCandidate) -> int:
+    query_doi = normalize_doi(query)
+    if query_doi and query_doi == normalize_doi(candidate.doi):
+        return 100
     normalized_query = normalize_title(query)
     normalized_candidate = normalize_title(candidate.title)
     if not normalized_query or not normalized_candidate:
@@ -326,23 +332,30 @@ def rank_candidates(query: str, candidates: list[SourceCandidate]) -> list[Sourc
         candidates,
         key=lambda candidate: (
             -candidate_relevance(query, candidate),
-            _PROVIDER_PRIORITY.get(candidate.source_api, len(_PROVIDER_PRIORITY)),
             -(candidate.year or 0),
             normalize_title(candidate.title),
             normalize_doi(candidate.doi) or "",
+            _PROVIDER_PRIORITY.get(candidate.source_api, len(_PROVIDER_PRIORITY)),
         ),
     )
 
 
 def _merge_candidates(first: SourceCandidate, second: SourceCandidate) -> SourceCandidate:
     values: dict[str, Any] = {}
-    for field in fields(SourceCandidate):
-        first_value = getattr(first, field.name)
-        second_value = getattr(second, field.name)
-        values[field.name] = first_value or second_value
+    for fld in fields(SourceCandidate):
+        if fld.name == "source_apis":
+            continue
+        first_value = getattr(first, fld.name)
+        second_value = getattr(second, fld.name)
+        values[fld.name] = first_value or second_value
     if len(second.abstract or "") > len(first.abstract or ""):
         values["abstract"] = second.abstract
     if len(second.authors) > len(first.authors):
         values["authors"] = second.authors
+    merged_apis: list[str] = list(first.source_apis) if first.source_apis else [first.source_api]
+    second_api = second.source_api
+    if second_api and second_api not in merged_apis:
+        merged_apis.append(second_api)
+    values["source_apis"] = merged_apis
     values["source_api"] = first.source_api
     return SourceCandidate(**values)

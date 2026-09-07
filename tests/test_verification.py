@@ -91,4 +91,4 @@ def test_missing_crossref_doi_falls_back_to_bibliographic_search() -> None:
     assert provider.queries[0] == "10.1000/missing"
     assert provider.queries[1] == "A Useful Paper Smith 2020"
     assert result.status == VerificationStatus.VERIFIED
-    assert "bibliographic search was used" in result.warnings[0]
+    assert "bibliographic metadata search was used" in result.warnings[0]

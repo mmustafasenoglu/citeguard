@@ -17,28 +17,27 @@ from .models import (
 from .retrieval import RetrievalEngine, normalize_doi, normalize_title
 
 VERIFIED_METADATA_THRESHOLD = 70
-PARTIAL_METADATA_THRESHOLD = 50
+_PARTIAL_METADATA_THRESHOLD = 50
 _DEFAULT_MAX_AGE_YEARS = 25
 _TOKEN_RE = re.compile(r"[a-z0-9]+")
 
-_PRIMARY_SOURCE_VENUES = {
-    "nature",
-    "science",
-    "the lancet",
-    "cell",
-    "ieee",
-    "acm",
-    "springer",
-    "elsevier",
-    "wiley",
-    "oxford",
-    "cambridge",
-    "nber",
-    "pnas",
-    "proceedings of the national academy",
-    "journal of the american chemical society",
-    "physical review",
-}
+_PRIMARY_WORK_TYPES = frozenset({
+    "journal-article",
+    "proceedings-article",
+    "book-chapter",
+    "book",
+    "dataset",
+})
+_SECONDARY_WORK_TYPES = frozenset({
+    "review",
+    "editorial",
+    "letter",
+    "commentary",
+    "erratum",
+    "retraction",
+    "book-review",
+    "supplementary-materials",
+})
 
 
 def verify_bibliography(
@@ -67,13 +66,16 @@ def verify_bibliography(
 
         retrieval = engine.search_with_result(query, max_results=max_results)
         warnings = list(retrieval.warnings)
+        has_provider_errors = bool(retrieval.provider_errors)
         if not retrieval.candidates and entry.doi:
             fallback_query = bibliography_query(entry, prefer_doi=False)
             if fallback_query:
                 retrieval = engine.search_with_result(fallback_query, max_results=max_results)
                 warnings.extend(retrieval.warnings)
+                has_provider_errors = has_provider_errors or bool(retrieval.provider_errors)
                 warnings.append(
-                    "The DOI was not registered in Crossref; bibliographic search was used."
+                    "The DOI lookup returned no match; "
+                    "bibliographic metadata search was used."
                 )
 
         ranked = sorted(
@@ -84,11 +86,10 @@ def verify_bibliography(
             key=lambda item: (-item[0].overall, normalize_title(item[1].title)),
         )
         if not ranked:
-            status = (
-                VerificationStatus.NOT_FOUND
-                if not warnings
-                else VerificationStatus.PROVIDER_ERROR
-            )
+            if has_provider_errors:
+                status = VerificationStatus.PROVIDER_ERROR
+            else:
+                status = VerificationStatus.NOT_FOUND
             results.append(
                 ReferenceVerification(
                     entry_index=index,
@@ -137,7 +138,7 @@ def _determine_status(
             return VerificationStatus.METADATA_MISMATCH
     if scores.overall >= VERIFIED_METADATA_THRESHOLD:
         return VerificationStatus.VERIFIED
-    if scores.overall >= PARTIAL_METADATA_THRESHOLD:
+    if scores.overall >= _PARTIAL_METADATA_THRESHOLD:
         return VerificationStatus.PARTIALLY_VERIFIED
     if len(ranked) > 1:
         second_scores = ranked[1][0]
@@ -167,13 +168,14 @@ def _check_recency(
 
 
 def _classify_source_type(candidate: SourceCandidate) -> SourceType:
-    venue = (candidate.venue or "").lower()
-    if not venue:
+    work_type = (candidate.work_type or "").lower().strip()
+    if not work_type:
         return SourceType.UNKNOWN
-    for pattern in _PRIMARY_SOURCE_VENUES:
-        if pattern in venue:
-            return SourceType.PRIMARY
-    return SourceType.SECONDARY
+    if work_type in _SECONDARY_WORK_TYPES:
+        return SourceType.SECONDARY
+    if work_type in _PRIMARY_WORK_TYPES:
+        return SourceType.PRIMARY
+    return SourceType.UNKNOWN
 
 
 def _detect_provider_conflicts(
@@ -183,17 +185,27 @@ def _detect_provider_conflicts(
         return []
     conflicts: list[str] = []
     top_scores, top_candidate = ranked[0]
-    for second_scores, second_candidate in ranked[1:2]:
+    for second_scores, second_candidate in ranked[1:]:
+        dois_differ = normalize_doi(top_candidate.doi) != normalize_doi(second_candidate.doi)
+        same_doi = (
+            normalize_doi(top_candidate.doi) is not None
+            and normalize_doi(top_candidate.doi) == normalize_doi(second_candidate.doi)
+        )
         titles_differ = normalize_title(top_candidate.title) != normalize_title(
             second_candidate.title
         )
-        dois_differ = normalize_doi(top_candidate.doi) != normalize_doi(second_candidate.doi)
-        if (
+        years_differ = top_candidate.year != second_candidate.year
+        both_strong = (
             top_scores.overall >= VERIFIED_METADATA_THRESHOLD
             and second_scores.overall >= VERIFIED_METADATA_THRESHOLD
-            and titles_differ
-            and dois_differ
-        ):
+        )
+        if same_doi and (titles_differ or years_differ):
+            conflicts.append(
+                f"Metadata conflict for DOI {normalize_doi(top_candidate.doi)}: "
+                f"'{top_candidate.title}' ({top_candidate.source_api}) "
+                f"vs '{second_candidate.title}' ({second_candidate.source_api})"
+            )
+        elif dois_differ and both_strong and titles_differ:
             conflicts.append(
                 f"Provider conflict: '{top_candidate.title}' ({top_candidate.source_api}) "
                 f"vs '{second_candidate.title}' ({second_candidate.source_api})"

@@ -74,7 +74,7 @@ def test_provider_failure_falls_back_and_preserves_order() -> None:
         "arxiv",
     ]
     assert result.candidates[0].source_api == "arxiv"
-    assert result.warnings == ["semantic_scholar: unavailable"]
+    assert result.provider_errors == ["semantic_scholar: unavailable"]
 
 
 def test_strong_semantic_scholar_match_early_stops() -> None:
@@ -139,7 +139,7 @@ def test_parallel_search_with_provider_failure() -> None:
     results = engine.search("Paper")
     assert len(results) == 2
     assert engine.last_result is not None
-    assert any("semantic_scholar" in w for w in engine.last_result.warnings)
+    assert any("semantic_scholar" in e for e in engine.last_result.provider_errors)
 
 
 def test_sequential_fallback_when_parallel_false() -> None:
