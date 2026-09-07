@@ -828,3 +828,322 @@ class TestPassageOffsetTracking:
         entry = _make_entry(text)
         index = SimilarityIndex.build([entry], max_passage_chars=1000)
         assert index.size == 1
+
+
+# ===========================================================================
+# 1. Semantic-active detection: embeddings alone must not activate semantic
+# ===========================================================================
+
+
+class TestSemanticActiveDetection:
+    """Semantic ordering must only activate when semantic_scores are present."""
+
+    def test_index_with_embeddings_no_scores_preserves_legacy_order(self) -> None:
+        """enable_semantic=False + index.has_embeddings → combined_score ordering."""
+        # Two entries: exact match (doc-0) and partial (doc-1)
+        text_exact = "the attention mechanism changed nlp research methods"
+        text_partial = "attention"
+        sentence = _sentence(text_exact)
+
+        metadata = CorpusMetadata(
+            title="P", authors=["S"], year=2020,
+            language=CorpusLanguage.ENGLISH, license="CC0",
+            similarity_index_allowed=True,
+        )
+        entries = []
+        for i, text in enumerate([text_exact, text_partial]):
+            ce = CorpusEntry(
+                text=text, normalized_text=text.lower(),
+                doc_id=f"doc-{i}", entry_index=i,
+                metadata=metadata, char_offset=0, char_end=len(text),
+            )
+            fp = Fingerprint(
+                points=winnow(generate_shingles(text.lower(), k=5), window=4),
+            )
+            entries.append((f"doc-{i}", text.lower(), fp, metadata, i, ce))
+
+        index = SimilarityIndex.build(entries)
+        # Add embeddings — index has them, but semantic is disabled
+        index._embeddings = np.array(
+            [[0.9, 0.1, 0.0], [0.1, 0.9, 0.0]], dtype=np.float32,
+        )
+        assert index.has_embeddings
+
+        config = SimilarityConfig(
+            enable_semantic=False,
+            weight_fingerprint=0.1,
+            weight_tfidf=0.1,
+            weight_semantic=0.8,
+        )
+        engine = SimilarityEngine(config=config)
+        result = engine.analyze_document([sentence], index=index)
+
+        # Best match should be doc-0 (exact) by combined_score ordering
+        assert result.results[0].best_match is not None
+        assert result.results[0].best_match.source_id == "doc-0"
+        # ranking_score should NOT have been used for sorting
+        # (combined_score has different weights but doc-0 still wins on exact)
+
+    def test_compare_sentence_no_scores_means_not_semantic(self) -> None:
+        """compare_sentence_to_corpus with semantic_scores=None → semantic_disabled."""
+        text = "the attention mechanism changed nlp"
+        sentence = _sentence(text)
+        entry = _make_entry(text)
+
+        config = SimilarityConfig(
+            enable_semantic=False,
+            weight_fingerprint=0.1,
+            weight_tfidf=0.1,
+            weight_semantic=0.8,
+        )
+        engine = SimilarityEngine(config=config)
+        matches = engine.compare_sentence_to_corpus(
+            sentence,
+            corpus_entries=[entry],
+            semantic_scores=None,
+        )
+        assert len(matches) >= 1
+        # All matches should have zero semantic scores when scores not provided
+        for m in matches:
+            assert m.semantic_similarity_raw == 0.0
+
+
+# ===========================================================================
+# 2. Fail fast with SemanticBackendError
+# ===========================================================================
+
+
+class TestFailFastSemantic:
+    """enable_semantic=True with missing prerequisites must raise."""
+
+    def test_missing_index_raises(self) -> None:
+        """enable_semantic=True + no index → SemanticBackendError."""
+        from citeguard.similarity.embeddings import SemanticBackendError
+
+        sentence = _sentence("test")
+        config = SimilarityConfig(enable_semantic=True)
+        engine = SimilarityEngine(config=config)
+        backend = MockEmbeddingBackend()
+
+        with pytest.raises(SemanticBackendError, match="index"):
+            engine.analyze_document(
+                [sentence], index=None, embedding_backend=backend,
+            )
+
+    def test_missing_embeddings_raises(self) -> None:
+        """enable_semantic=True + index without embeddings → SemanticBackendError."""
+        from citeguard.similarity.embeddings import SemanticBackendError
+
+        sentence = _sentence("test text")
+        entry = _make_entry("test text")
+        index = SimilarityIndex.build([entry])
+        # No embeddings added
+        assert not index.has_embeddings
+
+        config = SimilarityConfig(enable_semantic=True)
+        engine = SimilarityEngine(config=config)
+        backend = MockEmbeddingBackend()
+
+        with pytest.raises(SemanticBackendError, match="embeddings"):
+            engine.analyze_document(
+                [sentence], index=index, embedding_backend=backend,
+            )
+
+    def test_missing_backend_raises(self) -> None:
+        """enable_semantic=True + no backend → SemanticBackendError."""
+        from citeguard.similarity.embeddings import SemanticBackendError
+
+        sentence = _sentence("test text")
+        entry = _make_entry("test text")
+        index = SimilarityIndex.build([entry])
+        index._embeddings = np.array([[1.0, 0.0, 0.0]], dtype=np.float32)
+        assert index.has_embeddings
+
+        config = SimilarityConfig(enable_semantic=True)
+        engine = SimilarityEngine(config=config)
+
+        with pytest.raises(SemanticBackendError, match="backend"):
+            engine.analyze_document(
+                [sentence], index=index, embedding_backend=None,
+            )
+
+
+# ===========================================================================
+# 3. Passage segmentation provenance exact
+# ===========================================================================
+
+
+class TestSegmentProvenance:
+    """Every _Segment.text must equal parent_text[start:end]."""
+
+    def test_short_text_unchanged(self) -> None:
+        """Text shorter than max_chars returns as single segment."""
+        text = "Hello World"
+        segs = _segment_passages(text, 100)
+        assert len(segs) == 1
+        assert segs[0].text == text
+        assert segs[0].start == 0
+        assert segs[0].end == len(text)
+
+    def test_two_paragraphs(self) -> None:
+        """Paragraphs are split correctly with original text preserved."""
+        text = "First paragraph.\n\nSecond paragraph."
+        segs = _segment_passages(text, 30)
+        assert len(segs) == 2
+        for s in segs:
+            assert s.text == text[s.start:s.end]
+
+    def test_indentation_preserved(self) -> None:
+        """Leading whitespace in paragraphs is preserved in segment text."""
+        text = "    Indented paragraph.\n\n  Another indented paragraph."
+        segs = _segment_passages(text, 100)
+        for s in segs:
+            assert s.text == text[s.start:s.end]
+        assert "    Indented" in segs[0].text
+
+    def test_trailing_whitespace_preserved(self) -> None:
+        """Trailing whitespace in paragraphs is preserved."""
+        text = "First paragraph.   \n\nSecond paragraph.  "
+        segs = _segment_passages(text, 100)
+        for s in segs:
+            assert s.text == text[s.start:s.end]
+        assert text[0:18] == "First paragraph.  " or segs[0].end <= len(text)
+
+    def test_three_plus_newline_separator(self) -> None:
+        """3+ newline separators between paragraphs handled correctly."""
+        text = "Paragraph one.\n\n\n\nParagraph two."
+        segs = _segment_passages(text, 30)
+        for s in segs:
+            assert s.text == text[s.start:s.end]
+        assert len(segs) == 2
+
+    def test_hard_split_preserves_text(self) -> None:
+        """Hard-split paragraph chunks are exact slices."""
+        text = "a" * 50
+        segs = _segment_passages(text, 20)
+        assert len(segs) == 3
+        for s in segs:
+            assert s.text == text[s.start:s.end]
+        # Reassembled text should equal original
+        reassembled = "".join(s.text for s in segs)
+        assert reassembled == text
+
+    def test_grouping_preserves_newlines(self) -> None:
+        """Grouped paragraphs preserve exact newlines between them."""
+        text = "First.\n\nSecond.\n\nThird."
+        segs = _segment_passages(text, 100)
+        assert len(segs) == 1
+        assert segs[0].text == text
+        assert "\n\n" in segs[0].text
+
+    def test_mixed_newline_separators(self) -> None:
+        """Mixed separators (2, 3, 4 newlines) all split paragraphs."""
+        text = "Para1.\n\nPara2.\n\n\nPara3.\n\n\n\nPara4."
+        segs = _segment_passages(text, 20)
+        for s in segs:
+            assert s.text == text[s.start:s.end]
+        assert len(segs) >= 2
+
+
+# ===========================================================================
+# 4. Deep index validation in recovery
+# ===========================================================================
+
+
+class TestDeepRecoveryValidation:
+    """recovery usability validation catches all artifact inconsistencies."""
+
+    def test_stale_recovery_catches_entry_count_mismatch(self, tmp_path) -> None:
+        """Recovery rejects index where entries.jsonl count != manifest."""
+        ctac_dir = tmp_path / ".ctac"
+        ctac_dir.mkdir()
+        manifest = IndexManifest(entry_count=5, passage_count=5)
+        with open(ctac_dir / "manifest.json", "w") as f:
+            import json
+            json.dump(manifest.to_dict(), f)
+        with open(ctac_dir / "entries.jsonl", "w") as f:
+            f.write('{"i":0}\n')  # only 1 line but manifest says 5
+
+        result = recover_index_state(ctac_dir)
+        # Primary is NOT usable (entry count mismatch), no backup → missing
+        assert result == "missing"
+
+    def test_valid_index_passes_recovery(self, tmp_path) -> None:
+        """Valid index passes both save validation and recovery."""
+        ctac_dir = tmp_path / ".ctac"
+        manifest = IndexManifest(entry_count=2, passage_count=2)
+        save_index(ctac_dir, [{"i": 0}, {"i": 1}], manifest)
+        result = recover_index_state(ctac_dir)
+        assert result == "valid"
+
+    def test_is_valid_catches_entry_count_mismatch(self, tmp_path) -> None:
+        """is_index_valid rejects when entry line count != manifest."""
+        import json
+
+        idx_dir = tmp_path / "test.ctac"
+        idx_dir.mkdir()
+        manifest = IndexManifest(entry_count=3, passage_count=3)
+        with open(idx_dir / "manifest.json", "w") as f:
+            json.dump(manifest.to_dict(), f)
+        with open(idx_dir / "entries.jsonl", "w") as f:
+            f.write('{"i":0}\n')  # 1 line, manifest says 3
+
+        expected = IndexManifest(entry_count=3, passage_count=3)
+        assert is_index_valid(idx_dir, expected) is False
+
+
+# ===========================================================================
+# 5. enable_semantic=False + has_embeddings preserves legacy combined_score
+# ===========================================================================
+
+
+class TestLexicalBackwardCompatWithEmbeddings:
+    """enable_semantic=False + index.has_embeddings must not alter ordering."""
+
+    def test_combined_score_ordering_with_embeddings(self) -> None:
+        """Ordering follows combined_score (0.6*exact + 0.4*lexical), not ranking_score."""
+        text_high = "the attention mechanism changed nlp research methods"
+        text_low = "attention"
+        sentence = _sentence(text_high)
+
+        metadata = CorpusMetadata(
+            title="P", authors=["S"], year=2020,
+            language=CorpusLanguage.ENGLISH, license="CC0",
+            similarity_index_allowed=True,
+        )
+        entries = []
+        for i, text in enumerate([text_high, text_low]):
+            ce = CorpusEntry(
+                text=text, normalized_text=text.lower(),
+                doc_id=f"doc-{i}", entry_index=i,
+                metadata=metadata, char_offset=0, char_end=len(text),
+            )
+            fp = Fingerprint(
+                points=winnow(generate_shingles(text.lower(), k=5), window=4),
+            )
+            entries.append((f"doc-{i}", text.lower(), fp, metadata, i, ce))
+
+        index = SimilarityIndex.build(entries)
+        # Embeddings that would reverse order if semantic were active
+        index._embeddings = np.array(
+            [[0.1, 0.9, 0.0], [0.9, 0.1, 0.0]],
+            dtype=np.float32,
+        )
+        assert index.has_embeddings
+
+        config = SimilarityConfig(
+            enable_semantic=False,
+            weight_fingerprint=0.1,
+            weight_tfidf=0.1,
+            weight_semantic=0.8,
+        )
+        engine = SimilarityEngine(config=config)
+        result = engine.analyze_document([sentence], index=index)
+
+        # doc-0 (exact match) must still be best — combined_score ordering
+        assert result.results[0].best_match is not None
+        assert result.results[0].best_match.source_id == "doc-0"
+        # No semantic scores on any match
+        for r in result.results:
+            for m in r.matches:
+                assert m.semantic_similarity_raw == 0.0

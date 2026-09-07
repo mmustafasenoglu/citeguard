@@ -303,12 +303,18 @@ def save_index(
 
 
 def _is_directory_usable(directory: Path) -> bool:
-    """Check if a .ctac directory has all required artifacts and a valid manifest.
+    """Deep-check if a .ctac directory has all required artifacts and valid data.
 
-    This goes beyond ``load_index()`` which only checks manifest parsing.
     Used by ``recover_index_state()`` to determine whether an index is
-    genuinely usable — manifest must parse, entries.jsonl must exist,
-    and required artifact files must be present.
+    genuinely usable.  Validates:
+        - manifest.json parseable and schema valid
+        - entries.jsonl exists with correct line count
+        - TF-IDF vectorizer + matrix present when tfidf_config_hash set
+        - TF-IDF matrix rows == entry_count
+        - embeddings present when embedding_enabled=True
+        - embeddings rows == entry_count
+        - embedding dimension matches manifest
+        - normalization contract when embedding_normalized=True
     """
     if not directory.exists():
         return False
@@ -330,24 +336,33 @@ def _is_directory_usable(directory: Path) -> bool:
     if not entries_path.exists():
         return False
 
-    # Verify at least some entries exist (line count may differ during crash)
+    # Verify entry line count matches manifest
     line_count = 0
     with open(entries_path, encoding="utf-8") as f:
         for line in f:
             if line.strip():
                 line_count += 1
 
-    if line_count == 0 and manifest.entry_count > 0:
+    if line_count != manifest.entry_count:
         return False
 
-    # Check TF-IDF artifacts if expected
+    # Check TF-IDF artifacts: vectorizer.pkl AND tfidf_matrix.npz must exist
     if manifest.tfidf_config_hash:
         if not (directory / "tfidf_vectorizer.pkl").exists():
             return False
-        if not (directory / "tfidf_matrix.npz").exists():
+        tfidf_mat_path = directory / "tfidf_matrix.npz"
+        if not tfidf_mat_path.exists():
+            return False
+        # Validate TF-IDF matrix row count
+        try:
+            from scipy import sparse
+            matrix = sparse.load_npz(str(tfidf_mat_path))
+            if matrix.shape[0] != manifest.entry_count:
+                return False
+        except Exception:
             return False
 
-    # Check embedding artifacts if expected
+    # Check embedding artifacts
     if manifest.embedding_enabled:
         emb_path = directory / "embeddings.npy"
         if not emb_path.exists():
@@ -356,11 +371,17 @@ def _is_directory_usable(directory: Path) -> bool:
         try:
             import numpy as np
             embeddings = np.load(str(emb_path))
-            if embeddings.shape[0] == 0:
+            if embeddings.shape[0] != manifest.entry_count:
                 return False
             if (manifest.embedding_dimension > 0
                     and embeddings.shape[1] != manifest.embedding_dimension):
                 return False
+            # Normalization contract
+            if manifest.embedding_normalized and embeddings.shape[0] > 0:
+                norms = np.linalg.norm(embeddings, axis=1)
+                non_unit = np.abs(norms - 1.0) > 0.1
+                if np.any(non_unit):
+                    return False
         except Exception:
             return False
 
@@ -643,8 +664,9 @@ def is_index_valid(
 ) -> bool:
     """Check whether a persisted index matches the expected configuration.
 
-    Only artifact-producing config fields are compared.  Runtime config
-    differences (thresholds, weights) do not invalidate the index.
+    Artifact-producing config fields are compared and deep artifact
+    validation is performed.  Runtime config differences (thresholds,
+    weights) do not invalidate the index.
     """
     try:
         actual, _, _, _ = load_index(directory)
@@ -657,16 +679,50 @@ def is_index_valid(
     if not entries_path.exists():
         return False
 
+    # Validate entry line count matches manifest
+    line_count = 0
+    with open(entries_path, encoding="utf-8") as f:
+        for line in f:
+            if line.strip():
+                line_count += 1
+    if line_count != actual.entry_count:
+        return False
+
     # Validate TF-IDF artifacts when expected
     if actual.tfidf_config_hash:
         if not (directory / "tfidf_vectorizer.pkl").exists():
             return False
-        if not (directory / "tfidf_matrix.npz").exists():
+        tfidf_mat_path = directory / "tfidf_matrix.npz"
+        if not tfidf_mat_path.exists():
+            return False
+        try:
+            from scipy import sparse
+            matrix = sparse.load_npz(str(tfidf_mat_path))
+            if matrix.shape[0] != actual.entry_count:
+                return False
+        except Exception:
             return False
 
     # Validate embedding artifacts when expected
-    if actual.embedding_enabled and not (directory / "embeddings.npy").exists():
-        return False
+    if actual.embedding_enabled:
+        emb_path = directory / "embeddings.npy"
+        if not emb_path.exists():
+            return False
+        try:
+            import numpy as np
+            embeddings = np.load(str(emb_path))
+            if embeddings.shape[0] != actual.entry_count:
+                return False
+            if (actual.embedding_dimension > 0
+                    and embeddings.shape[1] != actual.embedding_dimension):
+                return False
+            if actual.embedding_normalized and embeddings.shape[0] > 0:
+                norms = np.linalg.norm(embeddings, axis=1)
+                non_unit = np.abs(norms - 1.0) > 0.1
+                if np.any(non_unit):
+                    return False
+        except Exception:
+            return False
 
     return (
         actual.schema_version == expected_manifest.schema_version

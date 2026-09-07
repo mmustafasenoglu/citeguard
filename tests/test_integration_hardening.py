@@ -131,12 +131,31 @@ def test_e2e_semantic_excluded_from_textual_pct() -> None:
         embedding_dim=3,
     )
 
+    class _MockBackend:
+        @property
+        def model_name(self):
+            return "mock"
+
+        @property
+        def dimension(self):
+            return 3
+
+        def encode(self, texts):
+            import numpy as _np
+            result = []
+            for _ in texts:
+                emb = _np.array([0.9, 0.1, 0.0], dtype=_np.float32)
+                emb = emb / _np.linalg.norm(emb)
+                result.append(emb)
+            return _np.array(result, dtype=_np.float32)
+
     config = SimilarityConfig(semantic_threshold=0.5, enable_semantic=True)
     engine = SimilarityEngine(config=config)
 
     result = engine.analyze_document(
         sentences=[sentence],
         index=index,
+        embedding_backend=_MockBackend(),
     )
 
     all_semantic = all(

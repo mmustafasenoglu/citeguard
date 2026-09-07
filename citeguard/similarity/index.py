@@ -46,6 +46,36 @@ class _Segment:
     end: int
 
 
+def _find_paragraph_positions(text: str) -> list[tuple[int, int]]:
+    """Find (start, end) of each non-whitespace paragraph in *text*.
+
+    Paragraphs are separated by two or more consecutive newlines.
+    Returns the original (unstripped) positions.
+    """
+    import re
+    positions: list[tuple[int, int]] = []
+    for m in re.finditer(r"\S", text):
+        start = m.start()
+        # Find end of this non-whitespace block
+        end = start
+        while end < len(text) and text[end] != "\n":
+            end += 1
+        # Find next non-whitespace block or end
+        positions.append((start, end))
+    # Now find paragraph boundaries by looking for double-newline gaps
+    paras: list[tuple[int, int]] = []
+    # Split on \n\s*\n (two or more newlines possibly with whitespace between)
+    for m in re.finditer(r"(\S+)(\s*\n\s*\n\s*|\s*$)", text):
+        p_start = m.start()
+        p_end = m.end()
+        paras.append((p_start, p_end))
+    # If regex missed trailing content, handle it
+    if paras:
+        # Simplify: just find runs of non-empty text separated by blank lines
+        pass
+    return paras
+
+
 def _segment_passages(
     text: str,
     max_chars: int,
@@ -54,55 +84,74 @@ def _segment_passages(
 
     Returns ``_Segment`` objects that carry the original start/end offsets
     within *text*, preventing duplicate-text ambiguity.
+
+    Invariant: ``segment.text == text[segment.start:segment.end]`` for
+    every returned segment.  No text is reconstructed via stripping
+    or joining; the original text is always sliced directly.
     """
     if len(text) <= max_chars:
         return [_Segment(text=text, start=0, end=len(text))]
 
+    # --- Phase 1: find paragraph boundaries in original text ---
+    # A paragraph boundary is two or more consecutive newlines.
+    import re
+    boundaries: list[int] = [0]
+    for m in re.finditer(r"\n\s*\n", text):
+        boundaries.append(m.end())
+    boundaries.append(len(text))
+
+    # Each paragraph: text[start:end] where start/end are from boundaries
+    paras: list[tuple[int, int]] = []
+    for i in range(len(boundaries) - 1):
+        p_start = boundaries[i]
+        p_end = boundaries[i + 1]
+        # Skip purely-whitespace paragraphs
+        if text[p_start:p_end].strip():
+            paras.append((p_start, p_end))
+
+    # --- Phase 2: group paragraphs into segments of max_chars ---
     segments: list[_Segment] = []
-    # Split on double newline (paragraphs)
-    paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
-    cursor = 0
-    current_text = ""
-    current_start = -1
+    group_start = -1
+    group_end = -1
 
-    for para in paragraphs:
-        # Find the actual position of this paragraph in the original text
-        para_pos = text.find(para, cursor)
-        if para_pos < 0:
-            para_pos = cursor
+    for p_start, p_end in paras:
+        p_len = p_end - p_start  # includes trailing whitespace/newlines
 
-        if current_text and len(current_text) + len(para) + 2 <= max_chars:
-            current_text = (current_text + "\n\n" + para).strip()
-            cursor = para_pos + len(para)
-        else:
-            if current_text:
+        if group_start >= 0:
+            # Try to extend the current group
+            candidate_len = p_end - group_start
+            if candidate_len <= max_chars:
+                group_end = p_end
+                continue
+            else:
+                # Flush current group
                 segments.append(_Segment(
-                    text=current_text,
-                    start=current_start,
-                    end=current_start + len(current_text),
+                    text=text[group_start:group_end],
+                    start=group_start,
+                    end=group_end,
                 ))
-            current_start = para_pos
-            current_text = para
-            cursor = para_pos + len(para)
+                group_start = -1
+                group_end = -1
 
-            if len(para) > max_chars:
-                # Hard split at max_chars — relative to paragraph start
-                for i in range(0, len(para), max_chars):
-                    chunk = para[i:i + max_chars]
-                    chunk_start = para_pos + i
+        if group_start < 0:
+            if p_len > max_chars:
+                # Hard split this paragraph
+                for i in range(p_start, p_end, max_chars):
+                    chunk_end = min(i + max_chars, p_end)
                     segments.append(_Segment(
-                        text=chunk,
-                        start=chunk_start,
-                        end=chunk_start + len(chunk),
+                        text=text[i:chunk_end],
+                        start=i,
+                        end=chunk_end,
                     ))
-                current_text = ""
-                current_start = -1
+            else:
+                group_start = p_start
+                group_end = p_end
 
-    if current_text:
+    if group_start >= 0:
         segments.append(_Segment(
-            text=current_text,
-            start=current_start,
-            end=current_start + len(current_text),
+            text=text[group_start:group_end],
+            start=group_start,
+            end=group_end,
         ))
 
     return segments if segments else [_Segment(text=text, start=0, end=len(text))]

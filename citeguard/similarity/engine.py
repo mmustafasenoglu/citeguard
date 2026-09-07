@@ -300,10 +300,10 @@ class SimilarityEngine:
         else:
             return []
 
-        semantic_enabled = (
-            semantic_scores is not None
-            or (index is not None and index.has_embeddings)
-        )
+        # Semantic is active only when actual semantic_scores were computed
+        # and passed in.  An index merely containing embeddings must NOT
+        # change lexical-only ordering.
+        semantic_enabled = semantic_scores is not None and len(semantic_scores) > 0
 
         matches: list[SimilarityMatch] = []
 
@@ -624,7 +624,24 @@ class SimilarityEngine:
 
             index = SimilarityIndex.build(corpus_entries)
 
-        # Determine semantic capability
+        # Fail fast when semantic is explicitly requested but prerequisites missing
+        if self.config.enable_semantic:
+            from citeguard.similarity.embeddings import SemanticBackendError
+
+            if index is None:
+                raise SemanticBackendError(
+                    "Semantic matching requires a similarity index"
+                )
+            if not index.has_embeddings:
+                raise SemanticBackendError(
+                    "Semantic matching requires an index with embeddings"
+                )
+            if embedding_backend is None:
+                raise SemanticBackendError(
+                    "Semantic matching requires an embedding backend"
+                )
+
+        # Determine semantic capability (for the actual execution path)
         semantic_enabled = (
             index is not None
             and index.has_embeddings
