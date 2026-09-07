@@ -1,4 +1,4 @@
-"""Similarity engine orchestration for Citeguard v0.3.
+"""Similarity engine orchestration for Citeguard v0.4.
 
 Responsibilities:
 - Compare sentences to corpus fingerprints
@@ -26,6 +26,7 @@ from citeguard.similarity.lexical import (
     compute_cosine_similarity,
 )
 from citeguard.similarity.models import (
+    CorpusEntryTuple,
     Fingerprint,
     MatchType,
     RiskLevel,
@@ -37,14 +38,12 @@ from citeguard.similarity.models import (
 from citeguard.similarity.normalize import build_offset_map, remap_span
 
 if TYPE_CHECKING:
-    from citeguard.corpus.models import CorpusMetadata
     from citeguard.models import (
         BibliographyEntry,
         ExistingCitation,
         Sentence,
     )
-
-CorpusEntryTuple = tuple[str, str, Fingerprint, "CorpusMetadata | None", int, object]
+    from citeguard.similarity.index import SimilarityIndex
 
 # ---------------------------------------------------------------------------
 # Helper: merge overlapping/adjacent spans (paragraph-relative)
@@ -275,8 +274,9 @@ class SimilarityEngine:
     def compare_sentence_to_corpus(
         self,
         sentence: Sentence,
-        corpus_entries: list[CorpusEntryTuple],
+        corpus_entries: list[CorpusEntryTuple] | None = None,
         tfidf_info: tuple | None = None,
+        index: SimilarityIndex | None = None,
     ) -> list[SimilarityMatch]:
         """Return similarity matches for one sentence against a corpus.
 
@@ -285,14 +285,35 @@ class SimilarityEngine:
         sentence:
             The sentence to match.
         corpus_entries:
-            List of (doc_id, normalized_text, Fingerprint, metadata, entry_index) tuples.
+            List of (doc_id, text, Fingerprint, metadata, entry_index) tuples.
+            Ignored when *index* is provided.
         tfidf_info:
             Optional (vectorizer, matrix) from corpus documents.
+            Ignored when *index* is provided.
+        index:
+            Pre-built ``SimilarityIndex``.  When provided the engine reads
+            entries and TF-IDF state from the index instead of the raw
+            parameters.  **Every** entry is still evaluated — no candidate
+            pruning in this commit.
 
         Returns
         -------
         list[SimilarityMatch]
         """
+        # -- Resolve data source ------------------------------------------------
+        if index is not None:
+            resolved_entries: list[CorpusEntryTuple] = index.entries
+            resolved_tfidf = (
+                (index.tfidf_vectorizer, index.tfidf_matrix)
+                if index.tfidf_vectorizer is not None
+                else None
+            )
+        elif corpus_entries is not None:
+            resolved_entries = corpus_entries
+            resolved_tfidf = tfidf_info
+        else:
+            return []
+
         matches: list[SimilarityMatch] = []
 
         # 1) Exact/fingerprint overlap
@@ -301,13 +322,13 @@ class SimilarityEngine:
             sentence.text, sentence.normalized_text,
         )
         tfidf_scores: dict[int, float] = {}
-        if tfidf_info is not None:
-            vectorizer, matrix = tfidf_info
+        if resolved_tfidf is not None:
+            vectorizer, matrix = resolved_tfidf
             tfidf_scores = dict(
                 compute_cosine_similarity(sentence.normalized_text, vectorizer, matrix)
             )
 
-        for entry_index, entry in enumerate(corpus_entries):
+        for entry_index, entry in enumerate(resolved_entries):
             (
                 doc_id, doc_text, doc_fp, metadata,
                 source_entry_index, corpus_entry_obj,
@@ -315,7 +336,7 @@ class SimilarityEngine:
             eo = exact_overlap(sentence_fp, doc_fp)
 
             # 2) Lexical similarity
-            if tfidf_info is not None:
+            if resolved_tfidf is not None:
                 ls = tfidf_scores.get(entry_index, 0.0)
             else:
                 # Fallback to char n-gram Jaccard
@@ -548,8 +569,9 @@ class SimilarityEngine:
     def analyze_document(
         self,
         sentences: list[Sentence],
-        corpus_entries: list[CorpusEntryTuple],
+        corpus_entries: list[CorpusEntryTuple] | None = None,
         bibliography_entries: list[BibliographyEntry] | None = None,
+        index: SimilarityIndex | None = None,
     ) -> SimilarityEngineResult:
         """Run full similarity analysis over a document's sentences.
 
@@ -559,19 +581,24 @@ class SimilarityEngine:
             Document sentences (EnrichedDocument output).
         corpus_entries:
             Corpus entries as (doc_id, text, Fingerprint, metadata, entry_index).
+            Ignored when *index* is provided.
         bibliography_entries:
             Bibliography entries used for citation-to-source matching.
+        index:
+            Pre-built ``SimilarityIndex``.  When *None* and *corpus_entries*
+            is provided the engine builds one internally so that the old
+            positional calling convention keeps working.
 
         Returns
         -------
         SimilarityEngineResult
         """
         bibliography_entries = bibliography_entries or []
-        # Build TF-IDF index from corpus if we have entries
-        tfidf_info = None
-        if corpus_entries:
-            corpus_texts = [entry[1] for entry in corpus_entries]
-            tfidf_info = build_tfidf_index(corpus_texts)
+
+        # Build index if not supplied (backward-compatible path)
+        if index is None and corpus_entries:
+            from citeguard.similarity.index import SimilarityIndex
+            index = SimilarityIndex.build(corpus_entries)
 
         results: list[SimilarityResult] = []
         high_risk = 0
@@ -593,7 +620,7 @@ class SimilarityEngine:
                 continue
 
             sent_matches = self.compare_sentence_to_corpus(
-                sent, corpus_entries, tfidf_info
+                sent, index=index,
             )
 
             # Compute attribution risk for the best match

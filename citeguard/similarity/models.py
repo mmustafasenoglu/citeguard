@@ -1,6 +1,7 @@
 """Similarity data models for Citeguard v0.3.
 
-Defines fingerprint structures, match types, risk levels, and result containers.
+Defines fingerprint structures, match types, risk levels, result containers,
+and the ``CorpusEntryTuple`` type alias shared by the engine and index.
 All dataclasses use frozen=True + slots=True for immutability and performance.
 """
 
@@ -8,8 +9,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from citeguard.models import Sentence, TextSpan
+
+if TYPE_CHECKING:
+    from citeguard.corpus.models import CorpusMetadata
 
 
 class MatchType(str, Enum):
@@ -136,3 +141,20 @@ class SimilarityMetrics:
     avg_overlap: float
     unique_matched_chars: int
     eligible_chars: int
+
+
+# ---------------------------------------------------------------------------
+# Corpus entry tuple type alias
+# ---------------------------------------------------------------------------
+
+# Lives here (neutral module) to avoid circular imports between engine.py
+# and index.py.  Both import from this module.
+#
+# Fields:
+#   0: doc_id        – str
+#   1: normalized_text – str (lowercased / normalized)
+#   2: Fingerprint
+#   3: CorpusMetadata | None
+#   4: entry_index   – int (position within original document)
+#   5: CorpusEntry   – object (raw corpus entry for offset_map etc.)
+CorpusEntryTuple = tuple[str, str, Fingerprint, "CorpusMetadata | None", int, object]

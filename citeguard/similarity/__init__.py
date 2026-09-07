@@ -1,10 +1,11 @@
-"""Citeguard similarity engine — v0.3.
+"""Citeguard similarity engine — v0.4.
 
 Public API for deterministic similarity computation:
 - Fingerprinting (BLAKE2b hashing, ordered shingles, winnowing)
 - Lexical similarity (TF-IDF cosine, char-n-gram Jaccard)
 - Match-type classification
 - Engine orchestration
+- Corpus indexing (SimilarityIndex)
 """
 
 from citeguard.similarity.fingerprint import (
@@ -14,6 +15,7 @@ from citeguard.similarity.fingerprint import (
     stable_hash,
     winnow,
 )
+from citeguard.similarity.index import SimilarityIndex
 from citeguard.similarity.lexical import (
     build_tfidf_index,
     char_ngram_jaccard,
@@ -22,6 +24,7 @@ from citeguard.similarity.lexical import (
     normalize_turkish,
 )
 from citeguard.similarity.models import (
+    CorpusEntryTuple,
     Fingerprint,
     FingerprintPoint,
     MatchType,
@@ -35,12 +38,13 @@ from citeguard.similarity.models import (
 )
 
 __all__ = [
+    "CorpusEntryTuple",
     "Fingerprint",
     "FingerprintPoint",
     "MatchType",
     "RiskLevel",
     "Shingle",
-    "similarity_index",
+    "SimilarityIndex",
     "build_tfidf_index",
     "char_ngram_jaccard",
     "classify_match_type",

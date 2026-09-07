@@ -43,7 +43,8 @@ from .report import (
 )
 from .retrieval import RetrievalEngine
 from .scoring import AuditMetrics, compute_audit_metrics, overall_confidence, priority_list
-from .similarity.models import Fingerprint, SimilarityEngineResult
+from .similarity.index import SimilarityIndex
+from .similarity.models import SimilarityEngineResult
 from .verification import verify_bibliography
 
 console = Console()
@@ -660,11 +661,11 @@ def check_command(
     if show_similarity:
         console.print("[dim]Running similarity analysis...[/dim]")
         enriched = parse_enriched_document(file)
-        corpus_entries = _load_similarity_corpus(corpus, corpus_license)
+        index = _load_similarity_corpus(corpus, corpus_license)
         sim_engine = SimilarityEngine(config=SimilarityConfig())
         sim_result = sim_engine.analyze_document(
             enriched.sentences,
-            corpus_entries,
+            index=index,
             bibliography_entries=enriched.bibliography_entries,
         )
 
@@ -1051,20 +1052,20 @@ def _extract_claims_hybrid(
 
 def _load_similarity_corpus(
     corpus_path: Path | None, license_str: str | None = None
-) -> list[tuple[str, str, Fingerprint, object | None, int, object]]:
+) -> SimilarityIndex:
     """Load and fingerprint a similarity corpus.
 
-    Returns list of (doc_id, normalized_text, Fingerprint, metadata,
-    entry_index, CorpusEntry) tuples.
+    Returns a ``SimilarityIndex`` holding corpus entries, fingerprints,
+    and TF-IDF state.
     """
     if not corpus_path:
-        return []
+        return SimilarityIndex()
         
     import sys
 
     from .corpus import deduplicate_entries, ingest_directory, ingest_file
     from .similarity.fingerprint import generate_shingles, winnow
-    from .similarity.models import Fingerprint
+    from .similarity.models import Fingerprint as _Fingerprint
     
     print(f"Loading corpus from {corpus_path}...", file=sys.stderr)
     if corpus_path.is_dir():
@@ -1082,13 +1083,13 @@ def _load_similarity_corpus(
     for entry in deduped:
         shingles = generate_shingles(entry.normalized_text)
         points = winnow(shingles)
-        fp = Fingerprint(points=points, doc_id=entry.doc_id)
+        fp = _Fingerprint(points=points, doc_id=entry.doc_id)
         corpus_entries.append(
             (entry.doc_id, entry.normalized_text, fp, entry.metadata, entry.entry_index, entry)
         )
         
     print(f"Corpus loaded: {len(docs)} docs, {len(deduped)} unique segments", file=sys.stderr)
-    return corpus_entries
+    return SimilarityIndex.build(corpus_entries)
 
 
 @main.command("similarity")
@@ -1139,7 +1140,7 @@ def similarity_command(
     from .similarity.models import SimilarityConfig
     
     # Corpus ingestion
-    corpus_entries = _load_similarity_corpus(corpus, corpus_license)
+    index = _load_similarity_corpus(corpus, corpus_license)
 
     enriched = parse_enriched_document(file)
 
@@ -1150,7 +1151,7 @@ def similarity_command(
     # Run similarity analysis
     result = engine.analyze_document(
         sentences=enriched.sentences,
-        corpus_entries=corpus_entries,
+        index=index,
         bibliography_entries=enriched.bibliography_entries,
     )
 
