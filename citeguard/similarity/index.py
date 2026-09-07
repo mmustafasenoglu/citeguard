@@ -170,3 +170,43 @@ class SimilarityIndex:
                 seen.add(idx)
                 candidates.append(idx)
         return candidates[:top_k]
+
+    def retrieve_semantic(
+        self, query_embedding: object, top_k: int = 50,
+    ) -> list[tuple[int, float]]:
+        """Return ``(entry_index, raw_cosine)`` sorted descending by semantic similarity.
+
+        Parameters
+        ----------
+        query_embedding:
+            1-D numpy array (query vector).  Must have the same
+            dimensionality as the stored embeddings.
+        top_k:
+            Maximum results to return.
+
+        Returns
+        -------
+        list[tuple[int, float]]
+            Pairs of ``(entry_index, raw_cosine_score)``.  Raw cosine
+            is in ``[-1, 1]`` — no normalization is applied here.
+
+        .. note::
+
+           Requires ``self._embeddings`` to be set (e.g. via
+           ``SimilarityIndex.build()`` with semantic enabled).
+           Returns empty list when embeddings are not available.
+        """
+        import numpy as np
+
+        if self._embeddings is None or len(self._embeddings) == 0:
+            return []
+
+        query = np.asarray(query_embedding, dtype=np.float32).ravel()
+        if query.shape[0] != self._embeddings.shape[1]:
+            return []
+
+        # Compute cosine similarity (embeddings are L2-normalized)
+        scores = self._embeddings @ query
+        indexed = list(enumerate(scores.tolist()))
+        indexed.sort(key=lambda x: (-x[1], x[0]))
+        return indexed[:top_k]
