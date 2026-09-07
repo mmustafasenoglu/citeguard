@@ -1176,12 +1176,21 @@ def similarity_command(
 
 def _similarity_to_markdown(result: SimilarityEngineResult, show_sentences: bool) -> str:
     """Convert similarity result to markdown format."""
+    from citeguard.similarity.models import MatchType
+
+    semantic_count = sum(
+        1 for r in result.results
+        for m in r.matches
+        if m.match_type == MatchType.SEMANTIC_OVERLAP
+    )
+
     lines = [
         "# Citeguard Similarity Report\n",
         f"- **Overall similarity**: {result.overall_similarity_pct:.1f}%\n",
         f"- **High risk**: {result.high_risk_count}, **Medium risk**: {result.medium_risk_count}\n",
         f"- **Matched sentences**: {result.matched_sentences}/{result.total_sentences}\n",
         f"- **Unique matched chars**: {result.unique_matched_chars}/{result.eligible_chars}\n",
+        f"- **Semantic matches**: {semantic_count}\n",
     ]
 
     if show_sentences:
@@ -1191,10 +1200,15 @@ def _similarity_to_markdown(result: SimilarityEngineResult, show_sentences: bool
             lines.append(f"*Original*: {r.sentence.text[:80]}...")
             lines.append(f"*Normalized*: {r.sentence.normalized_text[:80]}...")
             if r.best_match:
-                lines.append(f"- **Best match**: {r.best_match.source_text[:60]}...")
-                lines.append(f"  - Exact overlap: {r.best_match.exact_overlap:.2f}")
-                lines.append(f"  - Lexical similarity: {r.best_match.lexical_similarity:.2f}")
-                lines.append(f"  - Combined score: {r.best_match.combined_score:.2f}")
+                bm = r.best_match
+                lines.append(f"- **Best match**: {bm.source_text[:60]}...")
+                lines.append(f"  - Match type: {bm.match_type.value}")
+                lines.append(f"  - Exact overlap: {bm.exact_overlap:.2f}")
+                lines.append(f"  - Lexical similarity: {bm.lexical_similarity:.2f}")
+                if bm.match_type == MatchType.SEMANTIC_OVERLAP:
+                    lines.append(f"  - Semantic cosine: {bm.semantic_similarity_raw:.4f}")
+                lines.append(f"  - Combined score: {bm.combined_score:.2f}")
+                lines.append(f"  - Ranking score: {bm.ranking_score:.4f}")
                 lines.append(f"  - Attribution risk: {r.attribution_risk.value}")
                 lines.append(f"  - Reason: {r.attribution_reason}")
             else:
@@ -1209,6 +1223,8 @@ def _similarity_to_markdown(result: SimilarityEngineResult, show_sentences: bool
     matched_chars = result.unique_matched_chars
     eligible = result.eligible_chars
     lines.append(f"- Unique matched characters: {matched_chars}/{eligible}\n")
+    if semantic_count:
+        lines.append(f"- Semantic matches: {semantic_count}\n")
     return "".join(lines)
 
 
@@ -1217,7 +1233,15 @@ def _print_similarity_terminal(result: SimilarityEngineResult, show_sentences: b
     from rich.console import Console
     from rich.table import Table
 
+    from citeguard.similarity.models import MatchType
+
     console = Console()
+
+    semantic_count = sum(
+        1 for r in result.results
+        for m in r.matches
+        if m.match_type == MatchType.SEMANTIC_OVERLAP
+    )
 
     table = Table(title="Citeguard Similarity Analysis")
     table.add_column("Metric", justify="right")
@@ -1228,6 +1252,8 @@ def _print_similarity_terminal(result: SimilarityEngineResult, show_sentences: b
     table.add_row("Medium risk matches", str(result.medium_risk_count))
     table.add_row("Matched sentences", f"{result.matched_sentences}/{result.total_sentences}")
     table.add_row("Unique matched chars", f"{result.unique_matched_chars}/{result.eligible_chars}")
+    if semantic_count:
+        table.add_row("Semantic matches", str(semantic_count))
 
     console.print(table)
 
@@ -1237,10 +1263,15 @@ def _print_similarity_terminal(result: SimilarityEngineResult, show_sentences: b
             console.print(f"\n**Sentence {r.sentence.sentence_index + 1}**")
             console.print(f"*: {r.sentence.text[:60]}...*")
             if r.best_match:
-                console.print(f"- Best match: {r.best_match.source_text[:50]}...")
-                exact = r.best_match.exact_overlap
-                lex = r.best_match.lexical_similarity
+                bm = r.best_match
+                console.print(f"- Best match: {bm.source_text[:50]}...")
+                console.print(f"  Match type: {bm.match_type.value}")
+                exact = bm.exact_overlap
+                lex = bm.lexical_similarity
                 console.print(f"  Exact: {exact:.2f}, Lexical: {lex:.2f}")
+                if bm.match_type == MatchType.SEMANTIC_OVERLAP:
+                    console.print(f"  Semantic cosine: {bm.semantic_similarity_raw:.4f}")
+                console.print(f"  Ranking score: {bm.ranking_score:.4f}")
                 console.print(f"  Risk: {r.attribution_risk.value}")
             else:
                 console.print("- No matches")

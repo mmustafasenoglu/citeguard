@@ -141,7 +141,7 @@ def test_is_valid_when_matching(tmp_path: Path) -> None:
     manifest = IndexManifest(
         corpus_hash="sha256:x", entry_count=5,
         fingerprint_config_hash="sha256:fp",
-        tfidf_config_hash="sha256:tf",
+        tfidf_config_hash="",
         passage_config_hash="sha256:pg",
         embedding_model="m", embedding_dimension=128,
     )
@@ -171,6 +171,35 @@ def test_is_invalid_when_schema_mismatch(tmp_path: Path) -> None:
 
     expected = IndexManifest(schema_version="2", entry_count=1)
     assert is_index_valid(idx_dir, expected) is False
+
+
+def test_is_invalid_when_tfidf_expected_but_missing(tmp_path: Path) -> None:
+    """tfidf_config_hash set but tfidf files not present -> invalid."""
+    idx_dir = tmp_path / "test.ctac"
+    manifest = IndexManifest(
+        entry_count=1,
+        tfidf_config_hash="sha256:tf",
+    )
+    save_index(idx_dir, [{"i": 0}], manifest)
+    assert is_index_valid(idx_dir, manifest) is False
+
+
+def test_is_invalid_when_embedding_enabled_but_missing(tmp_path: Path) -> None:
+    """embedding_enabled=True but embeddings.npy not present -> invalid."""
+    import numpy as np
+
+    idx_dir = tmp_path / "test.ctac"
+    emb = np.array([[1.0, 0.0, 0.0]], dtype=np.float32)
+    manifest = IndexManifest(
+        entry_count=1,
+        embedding_enabled=True,
+        embedding_model="m",
+        embedding_dimension=3,
+    )
+    save_index(idx_dir, [{"i": 0}], manifest, embeddings=emb)
+    # Now remove the embeddings file to simulate corruption
+    (idx_dir / "embeddings.npy").unlink()
+    assert is_index_valid(idx_dir, manifest) is False
 
 
 # ---------------------------------------------------------------------------

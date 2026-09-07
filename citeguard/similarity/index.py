@@ -12,6 +12,7 @@ individually.
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -31,38 +32,80 @@ from citeguard.similarity.models import (
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Segment with positional tracking (P1-12)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class _Segment:
+    """A passage with its start/end coordinates in the parent text."""
+
+    text: str
+    start: int
+    end: int
+
+
 def _segment_passages(
     text: str,
     max_chars: int,
-) -> list[str]:
+) -> list[_Segment]:
     """Split *text* into passages of at most *max_chars* characters.
 
-    Splits on paragraph boundaries first, then sentence boundaries,
-    then hard-breaks at *max_chars* as a last resort.
+    Returns ``_Segment`` objects that carry the original start/end offsets
+    within *text*, preventing duplicate-text ambiguity.
     """
     if len(text) <= max_chars:
-        return [text]
+        return [_Segment(text=text, start=0, end=len(text))]
 
-    passages: list[str] = []
+    segments: list[_Segment] = []
     # Split on double newline (paragraphs)
     paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
-    current = ""
+    cursor = 0
+    current_text = ""
+    current_start = -1
+
     for para in paragraphs:
-        if len(current) + len(para) + 2 <= max_chars:
-            current = (current + "\n\n" + para).strip() if current else para
+        # Find the actual position of this paragraph in the original text
+        para_pos = text.find(para, cursor)
+        if para_pos < 0:
+            para_pos = cursor
+
+        if current_text and len(current_text) + len(para) + 2 <= max_chars:
+            current_text = (current_text + "\n\n" + para).strip()
+            cursor = para_pos + len(para)
         else:
-            if current:
-                passages.append(current)
+            if current_text:
+                segments.append(_Segment(
+                    text=current_text,
+                    start=current_start,
+                    end=current_start + len(current_text),
+                ))
+            current_start = para_pos
+            current_text = para
+            cursor = para_pos + len(para)
+
             if len(para) > max_chars:
-                # Hard split at max_chars
+                # Hard split at max_chars — relative to paragraph start
                 for i in range(0, len(para), max_chars):
-                    passages.append(para[i:i + max_chars])
-                current = ""
-            else:
-                current = para
-    if current:
-        passages.append(current)
-    return passages if passages else [text]
+                    chunk = para[i:i + max_chars]
+                    chunk_start = para_pos + i
+                    segments.append(_Segment(
+                        text=chunk,
+                        start=chunk_start,
+                        end=chunk_start + len(chunk),
+                    ))
+                current_text = ""
+                current_start = -1
+
+    if current_text:
+        segments.append(_Segment(
+            text=current_text,
+            start=current_start,
+            end=current_start + len(current_text),
+        ))
+
+    return segments if segments else [_Segment(text=text, start=0, end=len(text))]
 
 
 class SimilarityIndex:
@@ -157,6 +200,8 @@ class SimilarityIndex:
         cls,
         corpus_entries: list[CorpusEntryTuple],
         max_passage_chars: int = 0,
+        shingle_size: int = 5,
+        winnow_window: int = 4,
     ) -> SimilarityIndex:
         """Build an index from pre-built corpus entry tuples.
 
@@ -168,13 +213,17 @@ class SimilarityIndex:
             When > 0, segment each entry into passages of at most this
             many characters before fingerprinting.  Each passage
             normalizes independently and carries its own offset_map.
+        shingle_size:
+            Shingle size for fingerprint generation (artifact-producing).
+        winnow_window:
+            Winnowing window size (artifact-producing).
         """
         if not corpus_entries:
             return cls()
 
         from citeguard.corpus.models import CorpusMetadata
+        from citeguard.corpus.normalize import normalize_corpus_text_with_map
         from citeguard.similarity.fingerprint import generate_shingles, winnow
-        from citeguard.similarity.normalize import normalize_with_map
 
         entries_to_index: list[CorpusEntryTuple] = []
 
@@ -194,13 +243,15 @@ class SimilarityIndex:
                 original_text = _norm_text
 
             if max_passage_chars > 0 and len(original_text) > max_passage_chars:
-                # Passage segmentation
-                passages = _segment_passages(original_text, max_passage_chars)
-                for p_idx, passage_text in enumerate(passages):
-                    norm_text, offset_map = normalize_with_map(passage_text)
+                # Passage segmentation with positional tracking (P1-12)
+                segments = _segment_passages(original_text, max_passage_chars)
+                for p_idx, seg in enumerate(segments):
+                    # P0-2: Use corpus normalization, not document-side heuristic
+                    norm_text, offset_map = normalize_corpus_text_with_map(seg.text)
                     fp = Fingerprint(
                         points=winnow(
-                            generate_shingles(norm_text, k=5), window=4
+                            generate_shingles(norm_text, k=shingle_size),
+                            window=winnow_window,
                         ),
                         doc_id=f"{doc_id}#p{p_idx}",
                     )
@@ -218,12 +269,10 @@ class SimilarityIndex:
                         IndexedPassage(
                             passage_id=f"{doc_id}#p{p_idx}",
                             parent_entry_id=doc_id,
-                            original_text=passage_text,
+                            original_text=seg.text,
                             normalized_text=norm_text,
                             offset_map=offset_map,
-                            offset_in_parent=_find_offset(
-                                original_text, passage_text
-                            ),
+                            offset_in_parent=seg.start,
                             fingerprint=fp,
                             metadata=passage_meta,
                             source_entry_index=entry_idx,
@@ -313,6 +362,7 @@ class SimilarityIndex:
         query_fp: Fingerprint,
         query_embedding: Any | None = None,
         top_k: int = 50,
+        rrf_k: int = 60,
     ) -> CandidateSet:
         """RRF-based candidate retrieval combining fingerprint + TF-IDF + semantic.
 
@@ -334,7 +384,7 @@ class SimilarityIndex:
         if semantic_hits:
             ranked_lists.append([idx for idx, _ in semantic_hits])
 
-        fused = reciprocal_rank_fusion(ranked_lists, k=60)
+        fused = reciprocal_rank_fusion(ranked_lists, k=rrf_k)
 
         semantic_map = dict(semantic_hits)
         rrf_map = dict(fused)
@@ -356,9 +406,3 @@ class SimilarityIndex:
         # The query encoding requires the backend, which lives outside the index.
         # For now, return None — the engine will encode externally.
         return None
-
-
-def _find_offset(haystack: str, needle: str) -> int:
-    """Find the character offset of *needle* within *haystack*."""
-    idx = haystack.find(needle)
-    return idx if idx >= 0 else 0

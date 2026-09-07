@@ -28,6 +28,7 @@ from citeguard.similarity.lexical import (
 from citeguard.similarity.models import (
     CorpusEntryTuple,
     Fingerprint,
+    IndexedPassage,
     MatchType,
     RiskLevel,
     SimilarityConfig,
@@ -419,13 +420,16 @@ class SimilarityEngine:
             title = metadata.title if metadata is not None else doc_id
             url = metadata.url if metadata is not None else None
 
-            # 8) Build match
+            # 8) Resolve source_text: prefer original text from the corpus object
+            if isinstance(corpus_entry_obj, IndexedPassage):
+                source_text = corpus_entry_obj.original_text
+            elif corpus_entry_obj is not None and hasattr(corpus_entry_obj, "text"):
+                source_text = corpus_entry_obj.text
+            else:
+                source_text = doc_text
+
             match = SimilarityMatch(
-                source_text=(
-                    corpus_entry_obj.text
-                    if corpus_entry_obj and hasattr(corpus_entry_obj, "text")
-                    else doc_text
-                ),
+                source_text=source_text,
                 source_title=title,
                 source_id=doc_id,
                 exact_overlap=eo,
@@ -444,10 +448,13 @@ class SimilarityEngine:
             )
             matches.append(match)
 
-        # Filter out UNMATCHED, sort by ranking_score descending, then
+        # Filter out UNMATCHED, sort by appropriate score, then
         # cap results per sentence when max_results_per_sentence > 0.
         matches = [m for m in matches if m.match_type != MatchType.UNMATCHED]
-        matches.sort(key=lambda m: -m.ranking_score)
+        if semantic_enabled:
+            matches.sort(key=lambda m: -m.ranking_score)
+        else:
+            matches.sort(key=lambda m: -m.combined_score)
         if self.config.max_results_per_sentence > 0:
             matches = matches[:self.config.max_results_per_sentence]
         return matches
@@ -651,7 +658,13 @@ class SimilarityEngine:
                     query_emb = embedding_backend.encode(
                         [sent.normalized_text]
                     )[0]
-                except Exception:
+                except Exception as exc:
+                    if self.config.enable_semantic:
+                        from citeguard.similarity.embeddings import SemanticBackendError
+
+                        raise SemanticBackendError(
+                            f"Semantic query encoding failed: {exc}"
+                        ) from exc
                     query_emb = None
 
                 if query_emb is not None:
@@ -662,12 +675,18 @@ class SimilarityEngine:
                             query_fp=sentence_fp,
                             query_embedding=query_emb,
                             top_k=self.config.max_candidates,
+                            rrf_k=self.config.rrf_k,
                         )
                         candidate_indices = candidates.indices
                         semantic_scores = candidates.semantic_scores
-                    except ValueError:
+                    except ValueError as exc:
+                        if self.config.enable_semantic:
+                            from citeguard.similarity.embeddings import SemanticBackendError
+
+                            raise SemanticBackendError(
+                                f"Semantic retrieval failed: {exc}"
+                            ) from exc
                         # Dimension mismatch or near-zero norm — skip semantic
-                        pass
 
             sent_matches = self.compare_sentence_to_corpus(
                 sent,

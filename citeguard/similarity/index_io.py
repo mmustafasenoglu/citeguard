@@ -12,7 +12,8 @@ execute arbitrary code via pickle deserialization.
 Manifest fields that trigger invalidation (artifact-producing config):
     schema_version, normalization_version, corpus_hash,
     fingerprint_config_hash, tfidf_config_hash, passage_config_hash,
-    embedding_model, embedding_dimension, embedding_normalized, entry_count.
+    embedding_model, embedding_dimension, embedding_normalized, entry_count,
+    passage_count, embedding_enabled.
 
 Runtime config (does NOT invalidate index):
     semantic_threshold, rrf_k, reranker weights, max_results_per_sentence,
@@ -104,6 +105,111 @@ def compute_corpus_hash(entries_jsonl: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Temp index validation (P1-7)
+# ---------------------------------------------------------------------------
+
+
+def _validate_temp_index(
+    tmp_dir: Path,
+    manifest: IndexManifest,
+) -> None:
+    """Validate a newly-written temporary index directory before swap.
+
+    Checks:
+        - manifest.json is parseable and schema matches
+        - entries.jsonl exists and entry count matches manifest
+        - passage_count consistency
+        - TF-IDF matrix row count matches indexed passages when both present
+        - embeddings presence when embedding_enabled=True
+        - embeddings row count matches indexed passages
+        - embedding dimension matches manifest
+        - corpus/config manifest fields are internally consistent
+
+    Raises
+    ------
+    ValueError
+        If validation fails.
+    """
+    # 1. Manifest parseable and schema valid
+    manifest_path = tmp_dir / "manifest.json"
+    if not manifest_path.exists():
+        raise ValueError("Temp index missing manifest.json")
+
+    with open(manifest_path, encoding="utf-8") as f:
+        loaded = IndexManifest.from_dict(json.load(f))
+
+    if loaded.schema_version != SCHEMA_VERSION:
+        raise ValueError(
+            f"Temp index schema version mismatch: {loaded.schema_version}"
+        )
+
+    if loaded.entry_count != manifest.entry_count:
+        raise ValueError(
+            f"Temp index entry_count mismatch: {loaded.entry_count} != {manifest.entry_count}"
+        )
+
+    if loaded.passage_count != manifest.passage_count:
+        raise ValueError(
+            f"Temp index passage_count mismatch: {loaded.passage_count} != {manifest.passage_count}"
+        )
+
+    # 2. entries.jsonl exists and line count matches
+    entries_path = tmp_dir / "entries.jsonl"
+    if not entries_path.exists():
+        raise ValueError("Temp index missing entries.jsonl")
+
+    line_count = 0
+    with open(entries_path, encoding="utf-8") as f:
+        for line in f:
+            if line.strip():
+                line_count += 1
+
+    if line_count != manifest.entry_count:
+        raise ValueError(
+            f"Temp index entries.jsonl line count {line_count} != manifest {manifest.entry_count}"
+        )
+
+    # 3. TF-IDF matrix row count (only validate if both manifest claims it and file exists)
+    tfidf_mat_path = tmp_dir / "tfidf_matrix.npz"
+    if loaded.tfidf_config_hash and tfidf_mat_path.exists():
+        from scipy import sparse
+        matrix = sparse.load_npz(str(tfidf_mat_path))
+        if matrix.shape[0] != manifest.entry_count:
+            raise ValueError(
+                f"TF-IDF matrix rows {matrix.shape[0]} != entry count {manifest.entry_count}"
+            )
+
+    # 4. Embedding artifacts
+    if manifest.embedding_enabled:
+        emb_path = tmp_dir / "embeddings.npy"
+        if not emb_path.exists():
+            raise ValueError("Temp index missing embeddings.npy (embedding_enabled=True)")
+
+        import numpy as np
+        embeddings = np.load(str(emb_path))
+
+        if embeddings.shape[0] != manifest.entry_count:
+            raise ValueError(
+                f"Embedding rows {embeddings.shape[0]} != entry count {manifest.entry_count}"
+            )
+
+        if manifest.embedding_dimension > 0 and embeddings.shape[1] != manifest.embedding_dimension:
+            raise ValueError(
+                f"Embedding dim {embeddings.shape[1]} != manifest {manifest.embedding_dimension}"
+            )
+
+        # Check normalization contract: each row should have unit norm
+        if manifest.embedding_normalized and embeddings.shape[0] > 0:
+            norms = np.linalg.norm(embeddings, axis=1)
+            non_unit = np.abs(norms - 1.0) > 0.1
+            if np.any(non_unit):
+                raise ValueError(
+                    "Embedding normalization contract violated: "
+                    f"{np.sum(non_unit)} vectors have non-unit norm"
+                )
+
+
+# ---------------------------------------------------------------------------
 # Save / load with backup/rollback
 # ---------------------------------------------------------------------------
 
@@ -120,10 +226,11 @@ def save_index(
 
     Strategy:
         1. Build new index in .ctac_tmp/
-        2. Rename existing .ctac → .ctac.backup (if exists)
-        3. Rename .ctac_tmp → .ctac
-        4. Delete .ctac.backup on success
-        5. Rollback .ctac.backup → .ctac on rename failure
+        2. Validate temp index
+        3. Rename existing .ctac → .ctac.backup (if exists)
+        4. Rename .ctac_tmp → .ctac
+        5. Delete .ctac.backup on success
+        6. Rollback .ctac.backup → .ctac on rename failure
     """
     directory = Path(directory)
     tmp_dir = Path(tempfile.mkdtemp(dir=directory.parent, prefix=".ctac_tmp_"))
@@ -154,6 +261,9 @@ def save_index(
             from scipy import sparse
 
             sparse.save_npz(str(tmp_dir / "tfidf_matrix.npz"), tfidf_matrix)
+
+        # --- Validate temp index before swap (P1-7) ---
+        _validate_temp_index(tmp_dir, manifest)
 
         # --- Backup/swap/rollback ---
         # Clean stale tmp from prior failed saves
@@ -187,14 +297,92 @@ def save_index(
         raise
 
 
+# ---------------------------------------------------------------------------
+# Deep index validation helper (P1-8, P1-9)
+# ---------------------------------------------------------------------------
+
+
+def _is_directory_usable(directory: Path) -> bool:
+    """Check if a .ctac directory has all required artifacts and a valid manifest.
+
+    This goes beyond ``load_index()`` which only checks manifest parsing.
+    Used by ``recover_index_state()`` to determine whether an index is
+    genuinely usable — manifest must parse, entries.jsonl must exist,
+    and required artifact files must be present.
+    """
+    if not directory.exists():
+        return False
+
+    manifest_path = directory / "manifest.json"
+    if not manifest_path.exists():
+        return False
+
+    try:
+        with open(manifest_path, encoding="utf-8") as f:
+            manifest = IndexManifest.from_dict(json.load(f))
+    except (json.JSONDecodeError, ValueError, KeyError):
+        return False
+
+    if manifest.schema_version != SCHEMA_VERSION:
+        return False
+
+    entries_path = directory / "entries.jsonl"
+    if not entries_path.exists():
+        return False
+
+    # Verify at least some entries exist (line count may differ during crash)
+    line_count = 0
+    with open(entries_path, encoding="utf-8") as f:
+        for line in f:
+            if line.strip():
+                line_count += 1
+
+    if line_count == 0 and manifest.entry_count > 0:
+        return False
+
+    # Check TF-IDF artifacts if expected
+    if manifest.tfidf_config_hash:
+        if not (directory / "tfidf_vectorizer.pkl").exists():
+            return False
+        if not (directory / "tfidf_matrix.npz").exists():
+            return False
+
+    # Check embedding artifacts if expected
+    if manifest.embedding_enabled:
+        emb_path = directory / "embeddings.npy"
+        if not emb_path.exists():
+            return False
+
+        try:
+            import numpy as np
+            embeddings = np.load(str(emb_path))
+            if embeddings.shape[0] == 0:
+                return False
+            if (manifest.embedding_dimension > 0
+                    and embeddings.shape[1] != manifest.embedding_dimension):
+                return False
+        except Exception:
+            return False
+
+    return True
+
+
 def recover_index_state(directory: Path) -> str:
     """Check and recover index state after a potential crash.
 
+    Recovery logic:
+        - valid primary → use primary and clean stale temp
+        - invalid/missing primary + valid backup → restore backup
+        - invalid primary + invalid backup → raise clear error
+        - stale temp → remove safely
+
+    Never deletes the only valid index during recovery.
+
     Returns one of:
-        ``"valid"``  — .ctac is present and valid
+        ``"valid"``    — .ctac is present and valid
         ``"restored"`` — backup was restored
         ``"stale_cleaned"`` — stale .tmp was cleaned
-        ``"missing"`` — neither .ctac nor backup exists
+        ``"missing"``  — neither .ctac nor backup exists
 
     Raises ValueError when both .ctac and backup are corrupt.
     """
@@ -202,38 +390,48 @@ def recover_index_state(directory: Path) -> str:
     backup_dir = directory.parent / ".ctac.backup"
     stale_tmp_dirs = sorted(directory.parent.glob(".ctac_tmp_*"))
 
-    # Case 1: .ctac exists and has valid manifest
-    if directory.exists() and (directory / "manifest.json").exists():
-        # Validate manifest content is parseable
-        try:
-            with open(directory / "manifest.json", encoding="utf-8") as f:
-                IndexManifest.from_dict(json.load(f))
-            for tmp in stale_tmp_dirs:
-                shutil.rmtree(tmp, ignore_errors=True)
-            return "valid"
-        except (json.JSONDecodeError, ValueError, KeyError):
-            pass  # Corrupt manifest — try backup
+    primary_usable = _is_directory_usable(directory)
+    backup_usable = _is_directory_usable(backup_dir)
 
-    # Case 2: .ctac missing + backup exists -> restore
-    if not directory.exists() and backup_dir.exists():
+    # Case 1: primary valid → clean stale tmp and backup
+    if primary_usable:
+        for tmp in stale_tmp_dirs:
+            shutil.rmtree(tmp, ignore_errors=True)
+        if backup_dir.exists():
+            shutil.rmtree(backup_dir, ignore_errors=True)
+        return "valid"
+
+    # Case 2: primary invalid/missing + backup valid → restore
+    if backup_usable:
+        if directory.exists():
+            shutil.rmtree(directory, ignore_errors=True)
         os.rename(str(backup_dir), str(directory))
         for tmp in stale_tmp_dirs:
             shutil.rmtree(tmp, ignore_errors=True)
         logger.info("Restored index from backup: %s", directory)
         return "restored"
 
-    # Case 3: .ctac exists but manifest corrupt + backup exists -> restore
-    if directory.exists() and backup_dir.exists():
-        shutil.rmtree(directory, ignore_errors=True)
-        os.rename(str(backup_dir), str(directory))
-        for tmp in stale_tmp_dirs:
-            shutil.rmtree(tmp, ignore_errors=True)
-        logger.info("Restored index from backup (corrupt primary): %s", directory)
-        return "restored"
-
-    # Case 4: stale tmps only → clean
+    # Case 3: both invalid → clean stale tmp and raise
     for tmp in stale_tmp_dirs:
         shutil.rmtree(tmp, ignore_errors=True)
+
+    if directory.exists() and backup_dir.exists():
+        # Both exist but neither is usable — raise
+        raise ValueError(
+            f"Both primary index ({directory}) and backup ({backup_dir}) are corrupt. "
+            "Rebuild the index."
+        )
+
+    if directory.exists():
+        # Primary exists but is not usable, no backup → clean and report missing
+        shutil.rmtree(directory, ignore_errors=True)
+        return "missing"
+
+    if backup_dir.exists():
+        # Backup exists but is not usable → clean and report missing
+        shutil.rmtree(backup_dir, ignore_errors=True)
+
+    # Case 4: stale tmps only → clean
     if stale_tmp_dirs:
         return "stale_cleaned"
 
@@ -453,6 +651,23 @@ def is_index_valid(
     except (FileNotFoundError, ValueError):
         return False
 
+    # Check required artifact files exist
+    directory = Path(directory)
+    entries_path = directory / "entries.jsonl"
+    if not entries_path.exists():
+        return False
+
+    # Validate TF-IDF artifacts when expected
+    if actual.tfidf_config_hash:
+        if not (directory / "tfidf_vectorizer.pkl").exists():
+            return False
+        if not (directory / "tfidf_matrix.npz").exists():
+            return False
+
+    # Validate embedding artifacts when expected
+    if actual.embedding_enabled and not (directory / "embeddings.npy").exists():
+        return False
+
     return (
         actual.schema_version == expected_manifest.schema_version
         and actual.normalization_version == expected_manifest.normalization_version
@@ -463,7 +678,9 @@ def is_index_valid(
         and actual.embedding_model == expected_manifest.embedding_model
         and actual.embedding_dimension == expected_manifest.embedding_dimension
         and actual.embedding_normalized == expected_manifest.embedding_normalized
+        and actual.embedding_enabled == expected_manifest.embedding_enabled
         and actual.entry_count == expected_manifest.entry_count
+        and actual.passage_count == expected_manifest.passage_count
     )
 
 

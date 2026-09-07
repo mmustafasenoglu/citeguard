@@ -283,7 +283,7 @@ def test_corrupt_index_recovery(tmp_path) -> None:
 
     backup_dir.mkdir()
     (backup_dir / "manifest.json").write_text(
-        '{"schema_version":"1","entry_count":5,"passage_count":5}'
+        '{"schema_version":"1","entry_count":0,"passage_count":0}'
     )
     (backup_dir / "entries.jsonl").write_text("")
 
@@ -302,7 +302,7 @@ def test_stale_tmp_cleanup(tmp_path) -> None:
     ctac_dir = Path(str(tmp_path)) / ".ctac"
     ctac_dir.mkdir()
     (ctac_dir / "manifest.json").write_text(
-        '{"schema_version":"1","entry_count":1,"passage_count":1}'
+        '{"schema_version":"1","entry_count":0,"passage_count":0}'
     )
     (ctac_dir / "entries.jsonl").write_text("")
 
