@@ -46,36 +46,6 @@ class _Segment:
     end: int
 
 
-def _find_paragraph_positions(text: str) -> list[tuple[int, int]]:
-    """Find (start, end) of each non-whitespace paragraph in *text*.
-
-    Paragraphs are separated by two or more consecutive newlines.
-    Returns the original (unstripped) positions.
-    """
-    import re
-    positions: list[tuple[int, int]] = []
-    for m in re.finditer(r"\S", text):
-        start = m.start()
-        # Find end of this non-whitespace block
-        end = start
-        while end < len(text) and text[end] != "\n":
-            end += 1
-        # Find next non-whitespace block or end
-        positions.append((start, end))
-    # Now find paragraph boundaries by looking for double-newline gaps
-    paras: list[tuple[int, int]] = []
-    # Split on \n\s*\n (two or more newlines possibly with whitespace between)
-    for m in re.finditer(r"(\S+)(\s*\n\s*\n\s*|\s*$)", text):
-        p_start = m.start()
-        p_end = m.end()
-        paras.append((p_start, p_end))
-    # If regex missed trailing content, handle it
-    if paras:
-        # Simplify: just find runs of non-empty text separated by blank lines
-        pass
-    return paras
-
-
 def _segment_passages(
     text: str,
     max_chars: int,

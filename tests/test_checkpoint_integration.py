@@ -636,13 +636,13 @@ class TestIsValidArtifactChecks:
     """is_index_valid must verify all artifact-producing fields."""
 
     def test_rejects_when_tfidf_expected_but_missing(self, tmp_path) -> None:
-        """tfidf_config_hash set but no tfidf files → invalid."""
+        """tfidf_config_hash set but no tfidf files → save_index raises."""
         idx_dir = tmp_path / "test.ctac"
         manifest = IndexManifest(
             entry_count=1, tfidf_config_hash="sha256:tf",
         )
-        save_index(idx_dir, [{"i": 0}], manifest)
-        assert is_index_valid(idx_dir, manifest) is False
+        with pytest.raises(ValueError, match="tfidf_vectorizer"):
+            save_index(idx_dir, [{"i": 0}], manifest)
 
     def test_rejects_when_embedding_expected_but_missing(self, tmp_path) -> None:
         """embedding_enabled=True but no embeddings → invalid."""
@@ -1147,3 +1147,92 @@ class TestLexicalBackwardCompatWithEmbeddings:
         for r in result.results:
             for m in r.matches:
                 assert m.semantic_similarity_raw == 0.0
+
+
+# ===========================================================================
+# Persistence cleanup: tfidf mandatory artifacts
+# ===========================================================================
+
+
+class TestTfidfMandatoryArtifacts:
+    """When tfidf_config_hash is non-empty, both pkl and npz are mandatory."""
+
+    def test_missing_vectorizer_rejects_temp_save(self, tmp_path) -> None:
+        """tfidf_config_hash set + missing vectorizer.pkl → ValueError."""
+        from scipy import sparse
+
+        idx_dir = tmp_path / "test.ctac"
+        matrix = sparse.csr_matrix(np.array([[1.0, 0.0]]))
+        manifest = IndexManifest(
+            entry_count=1, passage_count=1,
+            tfidf_config_hash="sha256:tf",
+        )
+        # Pass matrix but NOT vectorizer → validation rejects
+        with pytest.raises(ValueError, match="tfidf_vectorizer.pkl"):
+            save_index(
+                idx_dir, [{"i": 0}], manifest,
+                tfidf_matrix=matrix,
+            )
+
+    def test_missing_matrix_rejects_temp_save(self, tmp_path) -> None:
+        """tfidf_config_hash set + missing tfidf_matrix.npz → ValueError."""
+        idx_dir = tmp_path / "test.ctac"
+        manifest = IndexManifest(
+            entry_count=1, passage_count=1,
+            tfidf_config_hash="sha256:tf",
+        )
+        # Pass vectorizer but NOT matrix → validation rejects
+        with pytest.raises(ValueError, match="tfidf_matrix.npz"):
+            save_index(
+                idx_dir, [{"i": 0}], manifest,
+                tfidf_vectorizer={"vocabulary": ["a"]},
+            )
+
+
+# ===========================================================================
+# Persistence cleanup: embedding normalization contract
+# ===========================================================================
+
+
+class TestEmbeddingNormalizationValidation:
+    """Embedding normalization validation uses np.allclose (rtol=1e-3, atol=1e-3)."""
+
+    def test_non_unit_embedding_rejected(self, tmp_path) -> None:
+        """Embedding with norm=5.0 is rejected when embedding_normalized=True."""
+        idx_dir = tmp_path / "test.ctac"
+        manifest = IndexManifest(
+            entry_count=1, passage_count=1,
+            embedding_enabled=True, embedding_normalized=True,
+            embedding_model="m", embedding_dimension=3,
+        )
+        bad_emb = np.array([[3.0, 4.0, 5.0]], dtype=np.float32)  # norm=7.07
+        with pytest.raises(ValueError, match="normalization contract"):
+            save_index(idx_dir, [{"i": 0}], manifest, embeddings=bad_emb)
+
+    def test_unit_embedding_accepted(self, tmp_path) -> None:
+        """Properly unit-normalized float32 embeddings are accepted."""
+        idx_dir = tmp_path / "test.ctac"
+        manifest = IndexManifest(
+            entry_count=2, passage_count=2,
+            embedding_enabled=True, embedding_normalized=True,
+            embedding_model="m", embedding_dimension=3,
+        )
+        # Build unit vectors
+        v1 = np.array([1.0, 0.0, 0.0], dtype=np.float32)
+        v2 = np.array([0.0, 1.0, 0.0], dtype=np.float32)
+        good_emb = np.stack([v1, v2])
+        save_index(idx_dir, [{"i": 0}, {"i": 1}], manifest, embeddings=good_emb)
+        assert idx_dir.exists()
+
+    def test_near_unit_embedding_accepted(self, tmp_path) -> None:
+        """Embeddings within rtol=1e-3 of unit norm are accepted."""
+        idx_dir = tmp_path / "test.ctac"
+        manifest = IndexManifest(
+            entry_count=1, passage_count=1,
+            embedding_enabled=True, embedding_normalized=True,
+            embedding_model="m", embedding_dimension=3,
+        )
+        # norm ≈ 1.0005, within tolerance
+        emb = np.array([[0.5774, 0.5774, 0.5778]], dtype=np.float32)
+        save_index(idx_dir, [{"i": 0}], manifest, embeddings=emb)
+        assert idx_dir.exists()

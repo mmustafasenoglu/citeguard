@@ -169,11 +169,23 @@ def _validate_temp_index(
             f"Temp index entries.jsonl line count {line_count} != manifest {manifest.entry_count}"
         )
 
-    # 3. TF-IDF matrix row count (only validate if both manifest claims it and file exists)
-    tfidf_mat_path = tmp_dir / "tfidf_matrix.npz"
-    if loaded.tfidf_config_hash and tfidf_mat_path.exists():
+    # 3. TF-IDF artifacts: when tfidf_config_hash is non-empty, BOTH
+    #    tfidf_vectorizer.pkl AND tfidf_matrix.npz are mandatory
+    if loaded.tfidf_config_hash:
+        vec_path = tmp_dir / "tfidf_vectorizer.pkl"
+        if not vec_path.exists():
+            raise ValueError(
+                "Temp index missing tfidf_vectorizer.pkl "
+                "(tfidf_config_hash is non-empty)"
+            )
+        mat_path = tmp_dir / "tfidf_matrix.npz"
+        if not mat_path.exists():
+            raise ValueError(
+                "Temp index missing tfidf_matrix.npz "
+                "(tfidf_config_hash is non-empty)"
+            )
         from scipy import sparse
-        matrix = sparse.load_npz(str(tfidf_mat_path))
+        matrix = sparse.load_npz(str(mat_path))
         if matrix.shape[0] != manifest.entry_count:
             raise ValueError(
                 f"TF-IDF matrix rows {matrix.shape[0]} != entry count {manifest.entry_count}"
@@ -198,14 +210,13 @@ def _validate_temp_index(
                 f"Embedding dim {embeddings.shape[1]} != manifest {manifest.embedding_dimension}"
             )
 
-        # Check normalization contract: each row should have unit norm
         if manifest.embedding_normalized and embeddings.shape[0] > 0:
             norms = np.linalg.norm(embeddings, axis=1)
-            non_unit = np.abs(norms - 1.0) > 0.1
-            if np.any(non_unit):
+            if not np.allclose(norms, 1.0, rtol=1e-3, atol=1e-3):
+                bad = np.sum(~np.isclose(norms, 1.0, rtol=1e-3, atol=1e-3))
                 raise ValueError(
-                    "Embedding normalization contract violated: "
-                    f"{np.sum(non_unit)} vectors have non-unit norm"
+                    f"Embedding normalization contract violated: "
+                    f"{bad} vectors have non-unit norm"
                 )
 
 
@@ -379,8 +390,7 @@ def _is_directory_usable(directory: Path) -> bool:
             # Normalization contract
             if manifest.embedding_normalized and embeddings.shape[0] > 0:
                 norms = np.linalg.norm(embeddings, axis=1)
-                non_unit = np.abs(norms - 1.0) > 0.1
-                if np.any(non_unit):
+                if not np.allclose(norms, 1.0, rtol=1e-3, atol=1e-3):
                     return False
         except Exception:
             return False
@@ -718,8 +728,7 @@ def is_index_valid(
                 return False
             if actual.embedding_normalized and embeddings.shape[0] > 0:
                 norms = np.linalg.norm(embeddings, axis=1)
-                non_unit = np.abs(norms - 1.0) > 0.1
-                if np.any(non_unit):
+                if not np.allclose(norms, 1.0, rtol=1e-3, atol=1e-3):
                     return False
         except Exception:
             return False
