@@ -1051,10 +1051,11 @@ def _extract_claims_hybrid(
 
 def _load_similarity_corpus(
     corpus_path: Path | None, license_str: str | None = None
-) -> list[tuple[str, str, Fingerprint, object | None, int]]:
+) -> list[tuple[str, str, Fingerprint, object | None, int, object]]:
     """Load and fingerprint a similarity corpus.
 
-    Returns list of (doc_id, normalized_text, Fingerprint, metadata, entry_index) tuples.
+    Returns list of (doc_id, normalized_text, Fingerprint, metadata,
+    entry_index, CorpusEntry) tuples.
     """
     if not corpus_path:
         return []
@@ -1083,7 +1084,7 @@ def _load_similarity_corpus(
         points = winnow(shingles)
         fp = Fingerprint(points=points, doc_id=entry.doc_id)
         corpus_entries.append(
-            (entry.doc_id, entry.normalized_text, fp, entry.metadata, entry.entry_index)
+            (entry.doc_id, entry.normalized_text, fp, entry.metadata, entry.entry_index, entry)
         )
         
     print(f"Corpus loaded: {len(docs)} docs, {len(deduped)} unique segments", file=sys.stderr)

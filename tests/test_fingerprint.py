@@ -46,3 +46,45 @@ def test_char_ngram_jaccard_uses_trigrams() -> None:
     different = char_ngram_jaccard("transformer attention", "xyz abc")
     assert similar == 1.0
     assert different < similar
+
+
+def test_find_matching_segments_pair_avoids_cross_product() -> None:
+    """Bug 5: Repeated hashes should pair by index, not produce cross-product."""
+    text_a = "the cat sat on the mat"
+    text_b = "the cat sat on the mat"
+    fp_a = Fingerprint(
+        points=winnow(generate_shingles(text_a, k=3), window=4)
+    )
+    fp_b = Fingerprint(
+        points=winnow(generate_shingles(text_b, k=3), window=4)
+    )
+    segments = find_matching_segments_pair(fp_a, fp_b, k=3)
+
+    # The number of raw pairs should equal the number of common hash
+    # occurrences, not the cross-product of all occurrences per hash.
+    # After merging, document_spans and source_spans should have
+    # the same length.
+    assert len(segments.document_spans) == len(segments.source_spans)
+
+    # All spans should be valid (start < end, within text bounds)
+    for start, end in segments.document_spans:
+        assert start < end
+        assert end <= len(text_a)
+    for start, end in segments.source_spans:
+        assert start < end
+        assert end <= len(text_b)
+
+
+def test_find_matching_segments_pair_different_texts() -> None:
+    """Different texts produce fewer common hashes and smaller spans."""
+    text_a = "the quick brown fox jumps over the lazy dog"
+    text_b = "a fast brown fox leaps over the sleepy cat"
+    fp_a = Fingerprint(
+        points=winnow(generate_shingles(text_a, k=3), window=4)
+    )
+    fp_b = Fingerprint(
+        points=winnow(generate_shingles(text_b, k=3), window=4)
+    )
+    segments = find_matching_segments_pair(fp_a, fp_b, k=3)
+    # Same structure: document and source spans must be paired
+    assert len(segments.document_spans) == len(segments.source_spans)

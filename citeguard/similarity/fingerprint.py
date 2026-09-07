@@ -220,11 +220,18 @@ def find_matching_segments_pair(
     *,
     k: int = 5,
 ) -> MatchingSegments:
-    """Return matching spans in both fingerprint coordinate systems."""
-    if not fp1.points or not fp2.points:
-        return MatchingSegments(document_spans=[], source_spans=[])
+    """Return matching spans in both fingerprint coordinate systems.
 
-    # Map hash -> list of positions for each fingerprint
+    For each common hash, occurrences in fp1 and fp2 are paired by
+    position order (i-th occurrence in fp1 ↔ i-th occurrence in fp2)
+    to avoid cross-product explosion on repeated shingles.
+    """
+    if not fp1.points or not fp2.points:
+        return MatchingSegments(
+            document_spans=[], source_spans=[]
+        )
+
+    # Map hash -> list of positions (sorted) for each fingerprint
     pos1: dict[int, list[FingerprintPoint]] = {}
     for p in fp1.points:
         pos1.setdefault(p.hash, []).append(p)
@@ -236,40 +243,28 @@ def find_matching_segments_pair(
     # Find hashes present in both fingerprints
     common_hashes = set(pos1.keys()) & set(pos2.keys())
     if not common_hashes:
-        return MatchingSegments(document_spans=[], source_spans=[])
+        return MatchingSegments(
+            document_spans=[], source_spans=[]
+        )
 
-    # Collect matching spans as (start, end) in fp1's coordinate system
-    # We use the start position from fp1 and extend to the end of the
-    # corresponding fp1 point.
-    raw_spans: list[tuple[int, int]] = []
-    raw_source_spans: list[tuple[int, int]] = []
+    # For each common hash, pair occurrences by index order
+    doc_spans: list[tuple[int, int]] = []
+    src_spans: list[tuple[int, int]] = []
     for h in common_hashes:
-        for p1 in pos1[h]:
-            raw_spans.append((p1.start, p1.end))
-        for p2 in pos2[h]:
-            raw_source_spans.append((p2.start, p2.end))
+        pts1 = pos1[h]
+        pts2 = pos2[h]
+        for p1, p2 in zip(pts1, pts2, strict=False):
+            doc_spans.append((p1.start, p1.end))
+            src_spans.append((p2.start, p2.end))
 
-    if not raw_spans:
-        return MatchingSegments(document_spans=[], source_spans=[])
-
-    # Merge adjacent/overlapping spans
-    raw_spans.sort()
-    merged: list[tuple[int, int]] = []
-    for span in raw_spans:
-        if not merged:
-            merged.append(span)
-        else:
-            last_start, last_end = merged[-1]
-            cur_start, cur_end = span
-            # Merge if overlapping or touching (cur_start <= last_end)
-            if cur_start <= last_end:
-                merged[-1] = (last_start, max(last_end, cur_end))
-            else:
-                merged.append(span)
+    if not doc_spans:
+        return MatchingSegments(
+            document_spans=[], source_spans=[]
+        )
 
     return MatchingSegments(
-        document_spans=merged,
-        source_spans=_merge_tuple_spans(raw_source_spans),
+        document_spans=_merge_tuple_spans(doc_spans),
+        source_spans=_merge_tuple_spans(src_spans),
     )
 
 

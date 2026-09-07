@@ -50,6 +50,7 @@ class CorpusEntry:
     char_offset: int = 0
     char_end: int = 0
     fingerprint_hash: int | None = None
+    offset_map: list[int] | None = None
 
 
 @dataclass(slots=True)

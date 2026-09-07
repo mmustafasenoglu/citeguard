@@ -17,7 +17,7 @@ from citeguard.corpus.models import (
     CorpusLanguage,
     CorpusMetadata,
 )
-from citeguard.corpus.normalize import normalize_corpus_text
+from citeguard.corpus.normalize import normalize_corpus_text_with_map
 from citeguard.extractor import read_paragraphs
 from citeguard.sentence_splitter import split_sentences
 
@@ -115,7 +115,7 @@ def ingest_file(
     for para_text in paragraphs:
         sentences = split_sentences(para_text)
         for sent in sentences:
-            normalized = normalize_corpus_text(sent.text)
+            normalized, offset_map = normalize_corpus_text_with_map(sent.text)
             if not normalized or len(normalized) < 10:
                 char_cursor += len(sent.text)
                 continue
@@ -128,6 +128,7 @@ def ingest_file(
                     metadata=metadata,
                     char_offset=char_cursor + sent.start_offset,
                     char_end=char_cursor + sent.end_offset,
+                    offset_map=offset_map,
                 )
             )
             global_idx += 1

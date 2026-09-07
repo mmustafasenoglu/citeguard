@@ -34,6 +34,7 @@ from citeguard.similarity.models import (
     SimilarityMatch,
     SimilarityResult,
 )
+from citeguard.similarity.normalize import build_offset_map, remap_span
 
 if TYPE_CHECKING:
     from citeguard.corpus.models import CorpusMetadata
@@ -43,7 +44,7 @@ if TYPE_CHECKING:
         Sentence,
     )
 
-CorpusEntryTuple = tuple[str, str, Fingerprint, "CorpusMetadata | None", int]
+CorpusEntryTuple = tuple[str, str, Fingerprint, "CorpusMetadata | None", int, object]
 
 # ---------------------------------------------------------------------------
 # Helper: merge overlapping/adjacent spans (paragraph-relative)
@@ -139,6 +140,55 @@ def _has_quotation_markers(text: str) -> bool:
     return any(marker in text for marker in ('"', "“", "”", "«", "»"))
 
 
+def _find_quote_pairs(text: str) -> list[tuple[int, int]]:
+    """Find all quotation mark pairs in text, returning (start, end) indices.
+
+    Supports standard quotes ("), curly quotes (""), and guillemets («»).
+    Returns list of (start, end) tuples where start is the opening quote index
+    and end is the closing quote index (exclusive).
+    """
+    quote_pairs: list[tuple[int, int]] = []
+    stack: list[tuple[str, int]] = []  # (quote_char, position)
+
+    matching = {'"': '"', "\u201c": "\u201d", "\u00ab": "\u00bb"}
+    curly_opening = {'\u201c', '\u00ab'}
+    curly_closing = {'\u201d', '\u00bb'}
+
+    for i, char in enumerate(text):
+        if char in curly_opening:
+            stack.append((char, i))
+        elif char in curly_closing:
+            if stack and matching.get(stack[-1][0]) == char:
+                _open_char, open_pos = stack.pop()
+                quote_pairs.append((open_pos, i + 1))
+        elif char == '"':
+            if stack and stack[-1][0] == '"':
+                _open_char, open_pos = stack.pop()
+                quote_pairs.append((open_pos, i + 1))
+            else:
+                stack.append((char, i))
+
+    return quote_pairs
+
+
+def _span_within_quotes(text: str, span_start: int, span_end: int) -> bool:
+    """Check if a span is fully contained within quotation marks.
+
+    Args:
+        text: The original sentence text.
+        span_start: Start index of span (inclusive) in text coordinates.
+        span_end: End index of span (exclusive) in text coordinates.
+
+    Returns:
+        True if the span is fully contained within any quote pair.
+    """
+    quote_pairs = _find_quote_pairs(text)
+    return any(
+        q_start <= span_start and span_end <= q_end
+        for q_start, q_end in quote_pairs
+    )
+
+
 # ---------------------------------------------------------------------------
 # SimilarityEngine class
 # ---------------------------------------------------------------------------
@@ -209,9 +259,11 @@ class SimilarityEngine:
                 compute_cosine_similarity(sentence.normalized_text, vectorizer, matrix)
             )
 
-        for entry_index, (doc_id, doc_text, doc_fp, metadata, source_entry_index) in enumerate(
-            corpus_entries
-        ):
+        for entry_index, entry in enumerate(corpus_entries):
+            (
+                doc_id, doc_text, doc_fp, metadata,
+                source_entry_index, corpus_entry_obj,
+            ) = entry
             eo = exact_overlap(sentence_fp, doc_fp)
 
             # 2) Lexical similarity
@@ -240,16 +292,37 @@ class SimilarityEngine:
             segments = find_matching_segments_pair(
                 sentence_fp, doc_fp, k=self.config.shingle_size
             )
+            # Remap document spans from normalized sentence coords to original paragraph coords
+            sentence_offset_map = build_offset_map(sentence.text, sentence.normalized_text)
             matched_doc_spans = [
                 TextSpan(
                     paragraph_index=sentence.paragraph_index,
-                    start=sentence.start_offset + start,
-                    end=sentence.start_offset + end,
+                    start=sentence.start_offset + remap_span(start, end, sentence_offset_map)[0],
+                    end=sentence.start_offset + remap_span(start, end, sentence_offset_map)[1],
                 )
                 for start, end in segments.document_spans
             ]
+            # Remap source spans from normalized corpus coords to original corpus coords
+            # corpus_entry_obj is already unpacked from the tuple
+            corpus_offset_map = None
+            if (
+                corpus_entry_obj
+                and hasattr(corpus_entry_obj, 'offset_map')
+                and corpus_entry_obj.offset_map
+            ):
+                corpus_offset_map = corpus_entry_obj.offset_map
             matched_src_spans = [
-                TextSpan(paragraph_index=source_entry_index, start=start, end=end)
+                TextSpan(
+                    paragraph_index=source_entry_index,
+                    start=(
+                        remap_span(start, end, corpus_offset_map)[0]
+                        if corpus_offset_map else start
+                    ),
+                    end=(
+                        remap_span(start, end, corpus_offset_map)[1]
+                        if corpus_offset_map else end
+                    ),
+                )
                 for start, end in segments.source_spans
             ]
 
@@ -277,9 +350,12 @@ class SimilarityEngine:
             )
             matches.append(match)
 
-        # Filter out UNMATCHED and sort by combined score descending
+        # Filter out UNMATCHED, sort by combined score descending, then
+        # cap results per sentence when max_results_per_sentence > 0.
         matches = [m for m in matches if m.match_type != MatchType.UNMATCHED]
         matches.sort(key=lambda m: -m.combined_score)
+        if self.config.max_results_per_sentence > 0:
+            matches = matches[:self.config.max_results_per_sentence]
         return matches
 
     # ------------------------------------------------------------------
@@ -292,6 +368,7 @@ class SimilarityEngine:
         sentence_citations: list[ExistingCitation],
         bibliography_entries: list[BibliographyEntry],
         sentence_text: str = "",
+        sentence_start_offset: int = 0,
     ) -> tuple[RiskLevel, str]:
         """Determine attribution risk for a match given the sentence's citations.
 
@@ -314,7 +391,8 @@ class SimilarityEngine:
                 return RiskLevel.HIGH, "high exact overlap without citation"
             return RiskLevel.MEDIUM, "similar text without citation"
 
-        # Sentence has citations — check each
+        # Sentence has citations — check if ANY citation matches the detected source
+        at_least_one_matches = False
         citation_issues: list[str] = []
 
         for cit in sentence_citations:
@@ -326,19 +404,46 @@ class SimilarityEngine:
                 bibliography_entries=bibliography_entries,
             )
 
-            if not citation_matches_source:
+            if citation_matches_source:
+                at_least_one_matches = True
+            else:
                 citation_issues.append(
                     f"citation from {cit.authors or 'unknown'} ({cit.year or 'n.d.'}) "
                     f"does not match detected source"
                 )
 
-        # Decision
-        if citation_issues:
+        # Decision: if at least one citation matches, attribution is not "wrong source"
+        if not at_least_one_matches:
             return RiskLevel.HIGH, "; ".join(citation_issues)
+        
+        # At least one citation matches the detected source
         if match.exact_overlap >= 0.95:
-            if _has_quotation_markers(sentence_text):
-                return RiskLevel.LOW, "quoted high overlap with matching citation"
-            return RiskLevel.MEDIUM, "high exact overlap with matching citation"
+            # Span-aware quote detection: check if matched spans fall
+            # within quotation marks.  Fallback to sentence-level check
+            # when matched_document_spans are not populated.
+            quoted = False
+            if match.matched_document_spans:
+                for span in match.matched_document_spans:
+                    sent_rel_start = span.start - sentence_start_offset
+                    sent_rel_end = span.end - sentence_start_offset
+                    if (
+                        0 <= sent_rel_start < sent_rel_end <= len(sentence_text)
+                        and _span_within_quotes(
+                            sentence_text, sent_rel_start, sent_rel_end
+                        )
+                    ):
+                        quoted = True
+                        break
+            else:
+                quoted = _has_quotation_markers(sentence_text)
+
+            if quoted:
+                return RiskLevel.LOW, (
+                    "quoted high overlap with matching citation"
+                )
+            return RiskLevel.MEDIUM, (
+                "high exact overlap with matching citation"
+            )
         if match.exact_overlap < 0.70:
             return RiskLevel.MEDIUM, "citations match but low exact overlap"
         return RiskLevel.LOW, "citations match detected source"
@@ -442,6 +547,7 @@ class SimilarityEngine:
                     sent.citations,
                     bibliography_entries,
                     sentence_text=sent.text,
+                    sentence_start_offset=sent.start_offset,
                 )
             else:
                 best = None
