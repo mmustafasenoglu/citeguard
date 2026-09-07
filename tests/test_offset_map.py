@@ -77,3 +77,87 @@ def test_offset_map_is_monotonic() -> None:
     mapping = build_offset_map(original, normalized)
     for i in range(1, len(mapping)):
         assert mapping[i] >= mapping[i - 1]
+
+
+# ---------------------------------------------------------------------------
+# Adversarial tests for corpus/normalize.py transformation-aware mapping
+# ---------------------------------------------------------------------------
+
+
+def _corpus_remap(original: str, norm_start: int, norm_end: int) -> str:
+    """Helper: normalize with map, remap a span, return original slice."""
+    from citeguard.corpus.normalize import normalize_corpus_text_with_map
+    normalized, mapping = normalize_corpus_text_with_map(original)
+    orig_start, orig_end = remap_span(norm_start, norm_end, mapping)
+    return original[orig_start:orig_end]
+
+
+def test_citation_removed_repeated_token_after() -> None:
+    """'foo (Bar, 2020) bar' → last 'bar' maps to original last 'bar'."""
+    original = "foo (Bar, 2020) bar"
+    from citeguard.corpus.normalize import normalize_corpus_text_with_map
+    normalized, mapping = normalize_corpus_text_with_map(original)
+    assert normalized == "foo bar"
+    start = normalized.rindex("bar")
+    end = start + 3
+    extracted = _corpus_remap(original, start, end)
+    assert extracted == "bar"
+    # Must map to the ORIGINAL last "bar", not the one inside citation
+    orig_start, orig_end = remap_span(start, end, mapping)
+    assert orig_start == original.rindex("bar")
+
+
+def test_bracket_removed_repeated_token() -> None:
+    """'foo [1] foo' → second 'foo' maps to original second 'foo'."""
+    original = "foo [1] foo"
+    from citeguard.corpus.normalize import normalize_corpus_text_with_map
+    normalized, mapping = normalize_corpus_text_with_map(original)
+    assert normalized == "foo foo"
+    start = normalized.rindex("foo")
+    end = start + 3
+    orig_start, _ = remap_span(start, end, mapping)
+    assert original[orig_start:orig_start + 3] == "foo"
+    assert orig_start == original.rindex("foo")
+
+
+def test_turkish_casing_and_citation_removal() -> None:
+    """'İstanbul   (Yılmaz, 2024) İstanbul' → last 'İstanbul' correct."""
+    original = "İstanbul   (Yılmaz, 2024) İstanbul"
+    from citeguard.corpus.normalize import normalize_corpus_text_with_map
+    normalized, mapping = normalize_corpus_text_with_map(original)
+    assert "istanbul" in normalized
+    # Find last istanbul in normalized
+    start = normalized.rindex("istanbul")
+    end = start + len("istanbul")
+    extracted = _corpus_remap(original, start, end)
+    assert extracted == "İstanbul"
+    orig_start, _ = remap_span(start, end, mapping)
+    assert orig_start == original.rindex("İstanbul")
+
+
+def test_collapsed_whitespace_and_citation_removal() -> None:
+    """'abc\\t\\tdef' → 'abc def' maps correctly."""
+    original = "abc\t\tdef"
+    from citeguard.corpus.normalize import normalize_corpus_text_with_map
+    normalized, mapping = normalize_corpus_text_with_map(original)
+    assert normalized == "abc def"
+    start = normalized.index("def")
+    end = start + 3
+    extracted = _corpus_remap(original, start, end)
+    assert extracted == "def"
+    orig_start, _ = remap_span(start, end, mapping)
+    assert original[orig_start:orig_start + 3] == "def"
+
+
+def test_turkish_casing_and_bracket_removal() -> None:
+    """'ışık [2] ışık' → second 'ışık' maps to original second."""
+    original = "ışık [2] ışık"
+    from citeguard.corpus.normalize import normalize_corpus_text_with_map
+    normalized, mapping = normalize_corpus_text_with_map(original)
+    assert normalized == "ışık ışık"
+    start = normalized.rindex("ışık")
+    end = start + 4
+    extracted = _corpus_remap(original, start, end)
+    assert extracted == "ışık"
+    orig_start, _ = remap_span(start, end, mapping)
+    assert orig_start == original.rindex("ışık")

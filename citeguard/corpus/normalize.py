@@ -4,14 +4,38 @@ Wraps the shared ``normalize_turkish`` function with additional
 corpus-level cleaning: reference marker removal, header stripping,
 and whitespace normalization. Also provides offset mapping for
 accurate span translation.
+
+The offset map is **transformation-aware**: every normalization step
+operates on ``(char, original_index)`` pairs, so the final map is
+always an exact alignment between normalized characters and their
+original positions.  No heuristic ``build_offset_map`` realignment
+is performed.
 """
 
 from __future__ import annotations
 
 import re
 
-from citeguard.similarity.lexical import normalize_turkish
-from citeguard.similarity.normalize import build_offset_map
+# ---------------------------------------------------------------------------
+# Type alias
+# ---------------------------------------------------------------------------
+
+MappedChar = tuple[str, int]
+
+# ---------------------------------------------------------------------------
+# Compiled patterns (module-level for reuse)
+# ---------------------------------------------------------------------------
+
+_REF_PATTERN = re.compile(r"\[\d+(?:[,\-–]\s*\d+)*\]")
+_CITATION_PATTERN = re.compile(
+    r"\([A-ZÀ-ÖØ-öø-ÿÇĞİÖŞÜ][a-zà-öø-ÿçğıöşü]+(?:\s+(?:et\s+al\.|ve\s+ark\.|"
+    r"vd\.))?(?:,\s*\d{4})\)"
+)
+_WS_PATTERN = re.compile(r"\s+")
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 
 def normalize_corpus_text(text: str) -> str:
@@ -21,38 +45,23 @@ def normalize_corpus_text(text: str) -> str:
     1. Strip leading/trailing whitespace.
     2. Remove common reference markers like ``[1]``, ``[2,3]``.
     3. Remove inline citations ``(Author, 2020)`` patterns.
-    4. Apply Turkish-aware lowercasing via ``normalize_turkish``.
+    4. Apply Turkish-aware lowercasing.
     5. Collapse multiple whitespace into single spaces.
     """
     if not text:
         return ""
-    result = text.strip()
-    # Remove bracketed reference markers: [1], [2,3], [1-5]
-    result = re.sub(r"\[\d+(?:[,\-–]\s*\d+)*\]", "", result)
-    # Remove simple parenthetical author-year: (Author, 2020)
-    result = re.sub(
-        r"\([A-ZÀ-ÖØ-öø-ÿÇĞİÖŞÜ][a-zà-öø-ÿçğıöşü]+(?:\s+(?:et\s+al\.|ve\s+ark\.|"
-        r"vd\.))?(?:,\s*\d{4})\)",
-        "",
-        result,
-    )
-    result = normalize_turkish(result)
-    # Collapse whitespace
-    result = re.sub(r"\s+", " ", result).strip()
-    return result
+    normalized, _ = normalize_corpus_text_with_map(text)
+    return normalized
 
 
 def normalize_corpus_text_with_map(text: str) -> tuple[str, list[int]]:
-    """Normalize corpus text and return both normalized text and offset map.
+    """Normalize corpus text and return (normalized_text, offset_map).
 
-    Applies the same normalization pipeline as ``normalize_corpus_text``
-    but also returns an offset map mapping normalized indices to original indices.
+    The offset map is built **transformation-aware**: every step
+    propagates ``(char, original_index)`` pairs, so the final map
+    exactly aligns normalized characters to their original positions.
 
-    The offset map accounts for:
-    - Reference marker removal (e.g., [1], [2,3])
-    - Inline citation removal (e.g., (Author, 2020))
-    - Turkish case folding (İ->i, I->ı)
-    - Whitespace collapse
+    No heuristic ``build_offset_map(original, final)`` is used.
 
     Args:
         text: Original text to normalize.
@@ -64,54 +73,104 @@ def normalize_corpus_text_with_map(text: str) -> tuple[str, list[int]]:
     if not text:
         return "", []
 
-    # We need to track the transformation step by step to build accurate offset map
-    # Do the transformations step by step, recording the offset map after each step
+    # Step 1: Initialise mapped pairs
+    mapped: list[MappedChar] = [(ch, i) for i, ch in enumerate(text)]
 
-    # Step 1: strip
-    result = text.strip()
-    # Build initial map: each char in stripped text maps to original index
-    stripped_start = len(text) - len(text.lstrip())
-    offset_map = list(range(stripped_start, stripped_start + len(result)))
+    mapped = _strip_whitespace(mapped)
+    mapped = _remove_pattern(mapped, _REF_PATTERN)
+    mapped = _remove_pattern(mapped, _CITATION_PATTERN)
+    mapped = _turkish_lower(mapped)
+    mapped = _collapse_whitespace(mapped)
 
-    # Step 2: remove reference markers
-    ref_pattern = re.compile(r"\[\d+(?:[,\-–]\s*\d+)*\]")
-    result = _remove_with_map(result, ref_pattern, offset_map)
-
-    # Step 3: remove inline citations
-    citation_pattern = re.compile(
-        r"\([A-ZÀ-ÖØ-öø-ÿÇĞİÖŞÜ][a-zà-öø-ÿçğıöşü]+(?:\s+(?:et\s+al\.|ve\s+ark\.|"
-        r"vd\.))?(?:,\s*\d{4})\)"
-    )
-    result = _remove_with_map(result, citation_pattern, offset_map)
-
-    # Step 4: Turkish normalization + whitespace collapse
-    # This is more complex - we'll use the simpler approach:
-    # Just apply the full normalization and then rebuild the map
-    fully_normalized = normalize_turkish(result)
-    fully_normalized = re.sub(r"\s+", " ", fully_normalized).strip()
-
-    # Rebuild map from original text to fully normalized
-    final_map = build_offset_map(text, fully_normalized)
-    return fully_normalized, final_map
+    normalized = "".join(ch for ch, _ in mapped)
+    offset_map = [idx for _, idx in mapped]
+    return normalized, offset_map
 
 
-def _remove_with_map(text: str, pattern: re.Pattern, offset_map: list[int]) -> str:
-    """Remove pattern matches from text and update offset_map accordingly."""
-    result_parts = []
-    last_end = 0
-    new_map = []
+# ---------------------------------------------------------------------------
+# Internal transformation helpers
+# ---------------------------------------------------------------------------
 
-    for match in pattern.finditer(text):
-        # Keep text before match
-        result_parts.append(text[last_end:match.start()])
-        # Update map: keep only chars before the match
-        new_map.extend(offset_map[last_end:match.start()])
-        last_end = match.end()
 
-    result_parts.append(text[last_end:])
-    new_map.extend(offset_map[last_end:])
+def _strip_whitespace(mapped: list[MappedChar]) -> list[MappedChar]:
+    """Remove leading and trailing whitespace while keeping indices."""
+    if not mapped:
+        return mapped
+    start = 0
+    while start < len(mapped) and mapped[start][0].isspace():
+        start += 1
+    end = len(mapped)
+    while end > start and mapped[end - 1][0].isspace():
+        end -= 1
+    return mapped[start:end]
 
-    return "".join(result_parts)
+
+def _remove_pattern(mapped: list[MappedChar], pattern: re.Pattern) -> list[MappedChar]:
+    """Remove regex matches from mapped chars.
+
+    Rebuilds the character list by scanning the *current* text for
+    pattern matches and dropping the matched characters while keeping
+    the surrounding ones.
+    """
+    if not mapped:
+        return mapped
+
+    # Reconstruct the current text for regex matching
+    current_text = "".join(ch for ch, _ in mapped)
+
+    # Collect ranges to remove
+    remove_ranges: list[tuple[int, int]] = [
+        (m.start(), m.end()) for m in pattern.finditer(current_text)
+    ]
+
+    if not remove_ranges:
+        return mapped
+
+    result: list[MappedChar] = []
+    prev_end = 0
+    for range_start, range_end in remove_ranges:
+        result.extend(mapped[prev_end:range_start])
+        prev_end = range_end
+    result.extend(mapped[prev_end:])
+    return result
+
+
+def _turkish_lower(mapped: list[MappedChar]) -> list[MappedChar]:
+    """Apply Turkish-aware lowercasing: İ→i, I→ı, then str.lower()."""
+    result: list[MappedChar] = []
+    for ch, idx in mapped:
+        if ch == "İ":
+            result.append(("i", idx))
+        elif ch == "I":
+            result.append(("ı", idx))
+        else:
+            result.append((ch.lower(), idx))
+    return result
+
+
+def _collapse_whitespace(mapped: list[MappedChar]) -> list[MappedChar]:
+    """Collapse consecutive whitespace into a single space.
+
+    Keeps the *first* whitespace character's original index.
+    """
+    if not mapped:
+        return mapped
+    result: list[MappedChar] = []
+    prev_was_ws = False
+    for ch, idx in mapped:
+        if ch.isspace():
+            if not prev_was_ws:
+                result.append((" ", idx))
+                prev_was_ws = True
+        else:
+            result.append((ch, idx))
+            prev_was_ws = False
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Section header stripping (no offset tracking needed)
+# ---------------------------------------------------------------------------
 
 
 def strip_section_headers(text: str) -> str:

@@ -121,6 +121,7 @@ class SimilarityConfig:
     min_match_length: int = 20
     combined_weight_exact: float = 0.6
     combined_weight_lexical: float = 0.4
+    quotation_coverage_threshold: float = 0.95
 
 
 @dataclass(frozen=True, slots=True)

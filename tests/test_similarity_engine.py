@@ -335,3 +335,311 @@ def test_max_results_per_sentence_limits_matches() -> None:
 
     matches = engine.compare_sentence_to_corpus(sentence, corpus_entries)
     assert len(matches) <= config.max_results_per_sentence
+
+
+# ---------------------------------------------------------------------------
+# P1-2: source_text invariant — spans index source_text directly
+# ---------------------------------------------------------------------------
+
+
+def test_source_text_is_original_corpus_text() -> None:
+    """source_text uses CorpusEntry.text (original), not normalized."""
+    text = "The attention mechanism changed NLP research methods"
+    prefix = "Earlier context. "
+    sentence = _sentence(text, start=len(prefix))
+    from citeguard.corpus.models import CorpusEntry
+    metadata = CorpusMetadata(
+        title="Attention",
+        authors=["Vaswani"],
+        year=2017,
+        language=CorpusLanguage.ENGLISH,
+        license="CC0",
+        similarity_index_allowed=True,
+    )
+    corpus_entry = CorpusEntry(
+        text=text,  # original with caps
+        normalized_text=text.lower(),
+        doc_id="doc-1",
+        entry_index=0,
+        metadata=metadata,
+        char_offset=0,
+        char_end=len(text),
+    )
+    fp = Fingerprint(
+        points=winnow(generate_shingles(text.lower(), k=5), window=4)
+    )
+    engine = SimilarityEngine()
+    matches = engine.compare_sentence_to_corpus(
+        sentence,
+        [("doc-1", text.lower(), fp, metadata, 0, corpus_entry)],
+    )
+    assert matches
+    # source_text must be the ORIGINAL text, not lowercased
+    assert matches[0].source_text == text
+    assert "NLP" in matches[0].source_text
+
+
+def test_source_text_span_indices_are_valid() -> None:
+    """source_text[start:end] extracts a valid substring from source_text."""
+    text = "The attention mechanism changed NLP research methods"
+    prefix = "Earlier context. "
+    sentence = _sentence(text, start=len(prefix))
+    from citeguard.corpus.models import CorpusEntry
+    metadata = CorpusMetadata(
+        title="Attention",
+        authors=["Vaswani"],
+        year=2017,
+        language=CorpusLanguage.ENGLISH,
+        license="CC0",
+        similarity_index_allowed=True,
+    )
+    corpus_entry = CorpusEntry(
+        text=text,
+        normalized_text=text.lower(),
+        doc_id="doc-1",
+        entry_index=0,
+        metadata=metadata,
+        char_offset=0,
+        char_end=len(text),
+    )
+    fp = Fingerprint(
+        points=winnow(generate_shingles(text.lower(), k=5), window=4)
+    )
+    engine = SimilarityEngine()
+    matches = engine.compare_sentence_to_corpus(
+        sentence,
+        [("doc-1", text.lower(), fp, metadata, 0, corpus_entry)],
+    )
+    assert matches
+    for span in matches[0].matched_source_spans:
+        # span indices must be within source_text bounds
+        assert 0 <= span.start < span.end <= len(matches[0].source_text)
+        extracted = matches[0].source_text[span.start:span.end]
+        assert len(extracted) > 0
+
+
+# ---------------------------------------------------------------------------
+# P1-3: Coverage-based quote detection
+# ---------------------------------------------------------------------------
+
+
+def test_mixed_span_one_quoted_one_not_is_medium() -> None:
+    """One span inside quotes, one outside → MEDIUM, not LOW."""
+    from citeguard.models import TextSpan
+    engine = SimilarityEngine()
+    citation = ExistingCitation(
+        raw_text="(Vaswani, 2017)",
+        authors="Vaswani",
+        year=2017,
+        doi=None,
+        numbered_ref=None,
+        paragraph_index=0,
+        char_offset=40,
+    )
+    sentence_text = (
+        '"quoted part" and a very long copied passage outside quotes'
+    )
+    # Span 1: inside quotes (indices 0..14)
+    # Span 2: outside quotes (indices 30..61)
+    match = _match(
+        matched_document_spans=[
+            TextSpan(paragraph_index=0, start=0, end=14),
+            TextSpan(paragraph_index=0, start=30, end=61),
+        ],
+    )
+    risk, reason = engine.compute_attribution_risk(
+        match,
+        [citation],
+        [],
+        sentence_text=sentence_text,
+        sentence_start_offset=0,
+    )
+    # Only ~30% of matched chars are quoted → MEDIUM
+    assert risk == RiskLevel.MEDIUM
+
+
+def test_high_coverage_quoted_is_low() -> None:
+    """When >= 95% of matched chars are quoted → LOW."""
+    from citeguard.models import TextSpan
+    engine = SimilarityEngine()
+    citation = ExistingCitation(
+        raw_text="(Vaswani, 2017)",
+        authors="Vaswani",
+        year=2017,
+        doi=None,
+        numbered_ref=None,
+        paragraph_index=0,
+        char_offset=50,
+    )
+    # Long quoted portion + 1 char outside
+    sentence_text = '"aaaa bbbb cccc dddd eeee ffff gggg" x'
+    # Quote pair: (0, 36) — " at index 0, " at index 35
+    # Matched span covers quote area (0..33, inside 0..36) + 1 char outside (37..38)
+    match = _match(
+        matched_document_spans=[
+            TextSpan(paragraph_index=0, start=0, end=33),
+            TextSpan(paragraph_index=0, start=37, end=38),
+        ],
+    )
+    risk, _ = engine.compute_attribution_risk(
+        match,
+        [citation],
+        [],
+        sentence_text=sentence_text,
+        sentence_start_offset=0,
+    )
+    # 33 / 34 = 97.1% → above 0.95 → LOW
+    assert risk == RiskLevel.LOW
+
+
+def test_low_coverage_quoted_is_medium() -> None:
+    """When < 95% of matched chars are quoted → MEDIUM."""
+    from citeguard.models import TextSpan
+    engine = SimilarityEngine()
+    citation = ExistingCitation(
+        raw_text="(Vaswani, 2017)",
+        authors="Vaswani",
+        year=2017,
+        doi=None,
+        numbered_ref=None,
+        paragraph_index=0,
+        char_offset=40,
+    )
+    sentence_text = '"short" and a very long copied passage outside quotes'
+    # 7 chars quoted, 30 chars not → 7/37 = 18.9% → MEDIUM
+    match = _match(
+        matched_document_spans=[
+            TextSpan(paragraph_index=0, start=0, end=7),
+            TextSpan(paragraph_index=0, start=15, end=45),
+        ],
+    )
+    risk, _ = engine.compute_attribution_risk(
+        match,
+        [citation],
+        [],
+        sentence_text=sentence_text,
+        sentence_start_offset=0,
+    )
+    assert risk == RiskLevel.MEDIUM
+
+
+def test_overlapping_spans_not_double_counted() -> None:
+    """Overlapping matched spans should not double-count characters."""
+    from citeguard.models import TextSpan
+    from citeguard.similarity.engine import _compute_quote_coverage
+    sentence_text = '"quoted text here" outside'
+    # Two overlapping spans that cover the same 10 chars inside quotes
+    spans = [
+        TextSpan(paragraph_index=0, start=0, end=10),
+        TextSpan(paragraph_index=0, start=5, end=15),
+    ]
+    coverage = _compute_quote_coverage(sentence_text, spans, 0)
+    # After merge: single span 0..15, intersection with quote [0..18) = 15
+    # 15/15 = 1.0
+    assert coverage == 1.0
+
+
+# ---------------------------------------------------------------------------
+# P1-4: Bibliography fully excluded
+# ---------------------------------------------------------------------------
+
+
+def test_bibliography_sentence_no_matches() -> None:
+    """Bibliography sentences should not be matched against corpus."""
+    text = "Vaswani et al. (2017) Attention is all you need."
+    sentence = Sentence(
+        text=text,
+        normalized_text=text.lower(),
+        paragraph_index=0,
+        sentence_index=0,
+        start_offset=0,
+        end_offset=len(text),
+        citations=[],
+        is_bibliography=True,
+    )
+    metadata = CorpusMetadata(
+        title="Attention",
+        authors=["Vaswani"],
+        year=2017,
+        language=CorpusLanguage.ENGLISH,
+        license="CC0",
+        similarity_index_allowed=True,
+    )
+    from citeguard.corpus.models import CorpusEntry
+    corpus_entry = CorpusEntry(
+        text=text.lower(),
+        normalized_text=text.lower(),
+        doc_id="doc-1",
+        entry_index=0,
+        metadata=metadata,
+        char_offset=0,
+        char_end=len(text),
+    )
+    fp = Fingerprint(
+        points=winnow(generate_shingles(text.lower(), k=5), window=4)
+    )
+    engine = SimilarityEngine()
+    results = engine.analyze_document(
+        [sentence],
+        [("doc-1", text.lower(), fp, metadata, 0, corpus_entry)],
+    )
+    # Bibliography sentence gets no matches
+    assert results.results[0].matches == []
+    assert results.results[0].attribution_risk == RiskLevel.NONE
+    assert "bibliography" in results.results[0].attribution_reason
+
+
+def test_bibliography_not_counted_in_matched_sentences() -> None:
+    """Bibliography sentences do not increment matched_sentences."""
+    bib_text = "Vaswani et al. (2017) Attention is all you need."
+    body_text = "The attention mechanism revolutionized NLP research."
+    bib_sentence = Sentence(
+        text=bib_text,
+        normalized_text=bib_text.lower(),
+        paragraph_index=0,
+        sentence_index=0,
+        start_offset=0,
+        end_offset=len(bib_text),
+        citations=[],
+        is_bibliography=True,
+    )
+    body_sentence = Sentence(
+        text=body_text,
+        normalized_text=body_text.lower(),
+        paragraph_index=1,
+        sentence_index=1,
+        start_offset=0,
+        end_offset=len(body_text),
+        citations=[],
+    )
+    metadata = CorpusMetadata(
+        title="Attention",
+        authors=["Vaswani"],
+        year=2017,
+        language=CorpusLanguage.ENGLISH,
+        license="CC0",
+        similarity_index_allowed=True,
+    )
+    from citeguard.corpus.models import CorpusEntry
+    corpus_entry = CorpusEntry(
+        text=bib_text.lower(),
+        normalized_text=bib_text.lower(),
+        doc_id="doc-1",
+        entry_index=0,
+        metadata=metadata,
+        char_offset=0,
+        char_end=len(bib_text),
+    )
+    fp = Fingerprint(
+        points=winnow(generate_shingles(bib_text.lower(), k=5), window=4)
+    )
+    engine = SimilarityEngine()
+    results = engine.analyze_document(
+        [bib_sentence, body_sentence],
+        [("doc-1", bib_text.lower(), fp, metadata, 0, corpus_entry)],
+    )
+    # Bib sentence matched=0, body might or might not match
+    bib_result = results.results[0]
+    assert bib_result.matches == []
+    # matched_sentences only counts non-bibliography sentences with matches
+    assert results.matched_sentences <= 1

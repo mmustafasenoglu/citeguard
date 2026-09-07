@@ -189,6 +189,51 @@ def _span_within_quotes(text: str, span_start: int, span_end: int) -> bool:
     )
 
 
+def _compute_quote_coverage(
+    sentence_text: str,
+    matched_spans: list[TextSpan],
+    sentence_start_offset: int,
+) -> float:
+    """Compute the fraction of matched chars that lie inside quotation marks.
+
+    Matched spans are merged to avoid double-counting overlaps before
+    computing the intersection with quote ranges.  Partial intersections
+    are counted proportionally.
+
+    Returns a float in [0.0, 1.0].  Returns 0.0 when spans are empty.
+    """
+    if not matched_spans:
+        return 0.0
+
+    quote_pairs = _find_quote_pairs(sentence_text)
+    if not quote_pairs:
+        return 0.0
+
+    # Merge overlapping matched spans to avoid double-counting
+    merged = _merge_spans(matched_spans)
+
+    total_chars = 0
+    quoted_chars = 0
+    for span in merged:
+        sent_start = span.start - sentence_start_offset
+        sent_end = span.end - sentence_start_offset
+        span_len = sent_end - sent_start
+        if span_len <= 0:
+            continue
+        total_chars += span_len
+
+        # Accumulate intersection with every quote range
+        for q_start, q_end in quote_pairs:
+            inter_start = max(sent_start, q_start)
+            inter_end = min(sent_end, q_end)
+            if inter_start < inter_end:
+                quoted_chars += inter_end - inter_start
+
+    if total_chars == 0:
+        return 0.0
+    return quoted_chars / total_chars
+
+
 # ---------------------------------------------------------------------------
 # SimilarityEngine class
 # ---------------------------------------------------------------------------
@@ -252,6 +297,9 @@ class SimilarityEngine:
 
         # 1) Exact/fingerprint overlap
         sentence_fp = self.build_fingerprint(sentence.normalized_text)
+        sentence_offset_map = build_offset_map(
+            sentence.text, sentence.normalized_text,
+        )
         tfidf_scores: dict[int, float] = {}
         if tfidf_info is not None:
             vectorizer, matrix = tfidf_info
@@ -292,8 +340,7 @@ class SimilarityEngine:
             segments = find_matching_segments_pair(
                 sentence_fp, doc_fp, k=self.config.shingle_size
             )
-            # Remap document spans from normalized sentence coords to original paragraph coords
-            sentence_offset_map = build_offset_map(sentence.text, sentence.normalized_text)
+            # Remap document spans: normalized sentence coords → original paragraph coords
             matched_doc_spans = [
                 TextSpan(
                     paragraph_index=sentence.paragraph_index,
@@ -302,8 +349,7 @@ class SimilarityEngine:
                 )
                 for start, end in segments.document_spans
             ]
-            # Remap source spans from normalized corpus coords to original corpus coords
-            # corpus_entry_obj is already unpacked from the tuple
+            # Remap source spans: normalized corpus coords → original corpus coords
             corpus_offset_map = None
             if (
                 corpus_entry_obj
@@ -332,9 +378,9 @@ class SimilarityEngine:
             title = metadata.title if metadata is not None else doc_id
             url = metadata.url if metadata is not None else None
 
-            # 6) Build match
+            # 6) Build match — source_text is always the original corpus text
             match = SimilarityMatch(
-                source_text=doc_text[:200],  # Truncate for storage
+                source_text=corpus_entry_obj.text if corpus_entry_obj else doc_text,
                 source_title=title,
                 source_id=doc_id,
                 exact_overlap=eo,
@@ -418,22 +464,20 @@ class SimilarityEngine:
         
         # At least one citation matches the detected source
         if match.exact_overlap >= 0.95:
-            # Span-aware quote detection: check if matched spans fall
-            # within quotation marks.  Fallback to sentence-level check
-            # when matched_document_spans are not populated.
+            # Coverage-based quote detection: compute what fraction of
+            # matched chars lie inside quotation marks.  Fallback to
+            # sentence-level check when matched_document_spans are not
+            # populated.
             quoted = False
             if match.matched_document_spans:
-                for span in match.matched_document_spans:
-                    sent_rel_start = span.start - sentence_start_offset
-                    sent_rel_end = span.end - sentence_start_offset
-                    if (
-                        0 <= sent_rel_start < sent_rel_end <= len(sentence_text)
-                        and _span_within_quotes(
-                            sentence_text, sent_rel_start, sent_rel_end
-                        )
-                    ):
-                        quoted = True
-                        break
+                coverage = _compute_quote_coverage(
+                    sentence_text,
+                    match.matched_document_spans,
+                    sentence_start_offset,
+                )
+                quoted = (
+                    coverage >= self.config.quotation_coverage_threshold
+                )
             else:
                 quoted = _has_quotation_markers(sentence_text)
 
@@ -534,7 +578,20 @@ class SimilarityEngine:
         medium_risk = 0
 
         for sent in sentences:
-            # Skip bibliography sentences for overall % but still analyze
+            # Bibliography sentences are fully excluded from similarity
+            # eligibility: no matching, no risk counting, no numerator.
+            if sent.is_bibliography:
+                results.append(
+                    SimilarityResult(
+                        sentence=sent,
+                        matches=[],
+                        best_match=None,
+                        attribution_risk=RiskLevel.NONE,
+                        attribution_reason="bibliography sentence excluded",
+                    )
+                )
+                continue
+
             sent_matches = self.compare_sentence_to_corpus(
                 sent, corpus_entries, tfidf_info
             )
