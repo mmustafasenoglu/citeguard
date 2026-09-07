@@ -67,6 +67,7 @@ def test_verify_uses_crossref_and_can_write_json(tmp_path, monkeypatch) -> None:
         ][:max_results]
 
     monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
+    monkeypatch.setattr("citeguard.cli.OpenAlexProvider.search", fake_search)
     result = CliRunner().invoke(
         main,
         [
@@ -82,6 +83,6 @@ def test_verify_uses_crossref_and_can_write_json(tmp_path, monkeypatch) -> None:
     payload = json.loads(output.read_text(encoding="utf-8"))
 
     assert result.exit_code == 0
-    assert payload["provider"] == "crossref"
+    assert payload["provider"] == "crossref+openalex"
     assert payload["results"][0]["status"] == "verified"
     assert payload["results"][0]["scores"]["overall"] == 100

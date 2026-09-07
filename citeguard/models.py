@@ -41,9 +41,20 @@ class VerificationStatus(str, Enum):
     """Citation resolution status (metadata-level, not semantic support)."""
 
     VERIFIED = "verified"
+    PARTIALLY_VERIFIED = "partially_verified"
     UNRESOLVED = "unresolved"
     NOT_FOUND = "not_found"
     SUGGESTED = "suggested"
+    PROVIDER_ERROR = "provider_error"
+    METADATA_MISMATCH = "metadata_mismatch"
+
+
+class SourceType(str, Enum):
+    """Provider-inferred source classification for primary-source signal."""
+
+    PRIMARY = "primary"
+    SECONDARY = "secondary"
+    UNKNOWN = "unknown"
 
 
 class BibliographyIssueKind(str, Enum):
@@ -324,3 +335,6 @@ class ReferenceVerification:
     candidate: SourceCandidate | None
     scores: MetadataScores | None
     warnings: list[str] = field(default_factory=list)
+    recency_warning: str | None = None
+    source_type: SourceType = SourceType.UNKNOWN
+    provider_conflicts: list[str] = field(default_factory=list)

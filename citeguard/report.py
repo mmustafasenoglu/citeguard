@@ -158,8 +158,10 @@ def verification_report(
     return {
         "schema_version": SCHEMA_VERSION,
         "document": parsed.path,
-        "provider": "crossref",
-        "privacy": "Bibliography metadata was sent to Crossref; document prose was not sent.",
+        "provider": "crossref+openalex",
+        "privacy": (
+            "Bibliography metadata was sent to Crossref/OpenAlex; document prose was not sent."
+        ),
         "summary": {
             "bibliography_entries": len(results),
             "status_counts": status_counts,
@@ -288,6 +290,9 @@ def _verification_item(result: ReferenceVerification) -> dict[str, Any]:
             else None
         ),
         "warnings": result.warnings,
+        "recency_warning": result.recency_warning,
+        "source_type": result.source_type.value,
+        "provider_conflicts": result.provider_conflicts,
     }
 
 

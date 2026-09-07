@@ -21,6 +21,7 @@ from .providers.base import (
     candidate_to_dict,
 )
 from .providers.crossref import CrossrefProvider
+from .providers.openalex import OpenAlexProvider
 from .providers.semantic_scholar import SemanticScholarProvider
 
 _DOI_RE = re.compile(r"10\.\d{4,9}/[-._;()/:a-z0-9]+", re.IGNORECASE)
@@ -31,7 +32,7 @@ _ARXIV_RE = re.compile(
 )
 _WORD_RE = re.compile(r"[a-z0-9]+")
 _TRAILING_DOI_PUNCTUATION = ".,;:)]}>"
-_PROVIDER_PRIORITY = {"semantic_scholar": 0, "crossref": 1, "arxiv": 2}
+_PROVIDER_PRIORITY = {"semantic_scholar": 0, "crossref": 1, "openalex": 2, "arxiv": 3}
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,9 +71,10 @@ class RetrievalEngine:
         parallel: bool = True,
         rate_limit: bool = True,
     ) -> None:
-        self.providers = providers or [
+        self.providers = providers if providers is not None else [
             SemanticScholarProvider(),
             CrossrefProvider(),
+            OpenAlexProvider(),
             ArxivProvider(),
         ]
         self.cache = cache

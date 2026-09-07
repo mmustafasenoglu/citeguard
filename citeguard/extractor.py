@@ -34,7 +34,7 @@ NARRATIVE_AUTHOR_YEAR_RE = re.compile(
     rf"\s+\((?P<date>{DATE_TEXT_PATTERN})"
     r"(?:\s*,\s*(?:[pP]{1,2}|[sS]{1,2})\.\s*\d+(?:\s*[-–]\s*\d+)?)?\)",
 )
-NUMBERED_RE = re.compile(r"\[(?P<numbers>\d+(?:\s*,\s*\d+)*)\]")
+NUMBERED_RE = re.compile(r"\[(?P<numbers>\d+(?:\s*[-–]\s*\d+|\s*,\s*\d+)*)\]")
 DOI_RE = re.compile(r"\b10\.\d{4,9}/[-._;()/:A-Z0-9]+", re.IGNORECASE)
 
 SUPPORTED_SUFFIXES = {".md", ".txt", ".docx"}
@@ -151,7 +151,7 @@ def extract_citations(paragraphs: list[str]) -> list[ExistingCitation]:
             occupied.append(match.span())
 
         for match in NUMBERED_RE.finditer(paragraph):
-            numbers = [int(n.strip()) for n in match.group("numbers").split(",")]
+            numbers = _expand_numbered_citations(match.group("numbers"))
             for number in numbers:
                 citations.append(
                     ExistingCitation(
@@ -193,6 +193,42 @@ def _looks_like_author(value: str) -> bool:
 
 def _is_no_date(value: str) -> bool:
     return not value.strip()[0].isdigit()
+
+
+_RANGE_SEP_RE = re.compile(r"\s*[-–]\s*")
+_MAX_RANGE_SIZE = 100
+
+
+def _expand_numbered_citations(text: str) -> list[int]:
+    numbers: list[int] = []
+    for part in text.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        range_match = _RANGE_SEP_RE.split(part, maxsplit=1)
+        if len(range_match) == 2:
+            try:
+                start = int(range_match[0].strip())
+                end = int(range_match[1].strip())
+            except ValueError:
+                continue
+            if start > end:
+                start, end = end, start
+            if end - start > _MAX_RANGE_SIZE:
+                end = start + _MAX_RANGE_SIZE
+            numbers.extend(range(start, end + 1))
+        else:
+            try:
+                numbers.append(int(part))
+            except ValueError:
+                continue
+    seen: set[int] = set()
+    unique: list[int] = []
+    for n in numbers:
+        if n not in seen and n > 0:
+            seen.add(n)
+            unique.append(n)
+    return sorted(unique)
 
 
 def parse_enriched_document(path: str | Path) -> EnrichedDocument:

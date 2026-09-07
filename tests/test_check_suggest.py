@@ -470,15 +470,19 @@ def test_check_require_evidence_filter(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search_transformers)
     monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search_transformers)
     monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search_transformers)
+    monkeypatch.setattr("citeguard.cli.OpenAlexProvider.search", fake_search_transformers)
 
     # Without --require-evidence: both claims should appear
-    result_all = CliRunner().invoke(main, ["check", str(path), "--format", "json"])
+    result_all = CliRunner().invoke(
+        main, ["check", str(path), "--format", "json", "--no-cache"]
+    )
     payload_all = json.loads(result_all.output)
     assert len(payload_all["priority_review"]) >= 2
 
     # With --require-evidence: only claim with evidence should appear
     result_filtered = CliRunner().invoke(
-        main, ["check", str(path), "--format", "json", "--require-evidence"]
+        main,
+        ["check", str(path), "--format", "json", "--require-evidence", "--no-cache"],
     )
     payload_filtered = json.loads(result_filtered.output)
     assert len(payload_filtered["priority_review"]) == 1

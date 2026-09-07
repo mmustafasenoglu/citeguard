@@ -29,6 +29,7 @@ from .models import (
 )
 from .providers.arxiv import ArxivProvider
 from .providers.crossref import CrossrefProvider
+from .providers.openalex import OpenAlexProvider
 from .providers.semantic_scholar import SemanticScholarProvider
 from .report import (
     check_report,
@@ -399,19 +400,30 @@ def inspect_command(
     show_default=True,
 )
 @click.option("--output", type=click.Path(dir_okay=False, path_type=Path))
+@click.option("--offline", is_flag=True, help="Skip all remote provider network calls.")
+@click.option(
+    "--recency-max-age",
+    type=click.IntRange(1, 200),
+    default=25,
+    show_default=True,
+    help="Age in years after which a recency warning is emitted.",
+)
 def verify_command(
     file: Path,
     max_results: int,
     no_cache: bool,
     output_format: str,
     output: Path | None,
+    offline: bool,
+    recency_max_age: int,
 ) -> None:
-    """Verify bibliography metadata with Crossref; document prose is not sent."""
+    """Verify bibliography metadata with Crossref/OpenAlex; document prose is not sent."""
     parsed = parse_document(file)
     _validate_parsed(parsed)
     settings = Settings.from_env()
+    providers = [] if offline else [CrossrefProvider(), OpenAlexProvider()]
     engine = RetrievalEngine(
-        [CrossrefProvider()],
+        providers,
         cache=FileCache(settings.cache_dir),
         use_cache=not no_cache,
     )
@@ -419,6 +431,7 @@ def verify_command(
         parsed.bibliography_entries,
         engine,
         max_results=max_results,
+        recency_max_age=recency_max_age,
     )
     if output_format == "json":
         _write_json(verification_report(parsed, results), output)
@@ -434,7 +447,7 @@ def verify_command(
         _write_text(report_text, md_path)
         return
 
-    table = Table(title="citeguard Crossref verification")
+    table = Table(title="citeguard Crossref/OpenAlex verification")
     table.add_column("#", justify="right")
     table.add_column("Bibliography entry")
     table.add_column("Status")
@@ -453,7 +466,8 @@ def verify_command(
         )
     console.print(table)
     console.print(
-        "[dim]Only bibliography DOI/title/author/year metadata was sent to Crossref. "
+        "[dim]Only bibliography DOI/title/author/year metadata was sent to "
+        "Crossref/OpenAlex. "
         "Document prose was not sent. Verification does not establish claim support.[/dim]"
     )
     warnings = [warning for result in results for warning in result.warnings]
@@ -479,6 +493,7 @@ def verify_command(
 )
 @click.option("--output", type=click.Path(dir_okay=False, path_type=Path))
 @click.option("--verbose", is_flag=True, help="Show detailed progress information.")
+@click.option("--offline", is_flag=True, help="Skip all remote provider network calls.")
 def suggest_command(
     file: Path,
     max_results: int,
@@ -489,6 +504,7 @@ def suggest_command(
     output_format: str,
     output: Path | None,
     verbose: bool,
+    offline: bool,
 ) -> None:
     """Suggest academic sources for uncited claims."""
     parsed = parse_document(file)
@@ -504,8 +520,18 @@ def suggest_command(
     if verbose:
         console.print(f"[dim]Detected {len(claims)} claims, {len(uncited_claims)} uncited.[/dim]")
 
+    providers = (
+        []
+        if offline
+        else [
+            SemanticScholarProvider(),
+            CrossrefProvider(),
+            OpenAlexProvider(),
+            ArxivProvider(),
+        ]
+    )
     engine = RetrievalEngine(
-        [SemanticScholarProvider(), CrossrefProvider(), ArxivProvider()],
+        providers,
         cache=cache,
         use_cache=not no_cache,
     )
@@ -632,6 +658,14 @@ def suggest_command(
 @click.option("--show-similarity", is_flag=True, help="Run similarity engine (CTAC v1).")
 @click.option("--corpus", type=click.Path(exists=True, path_type=Path), help="Similarity corpus.")
 @click.option("--corpus-license", default=None, help="Explicit corpus license (CC0, CC-BY).")
+@click.option("--offline", is_flag=True, help="Skip all remote provider network calls.")
+@click.option(
+    "--recency-max-age",
+    type=click.IntRange(1, 200),
+    default=25,
+    show_default=True,
+    help="Age in years after which a recency warning is emitted.",
+)
 def check_command(
     file: Path,
     max_results: int,
@@ -647,6 +681,8 @@ def check_command(
     show_similarity: bool,
     corpus: Path | None,
     corpus_license: str | None,
+    offline: bool,
+    recency_max_age: int,
 ) -> None:
     from .extractor import parse_enriched_document
     from .similarity.engine import SimilarityEngine
@@ -679,8 +715,9 @@ def check_command(
         console.print(f"[dim]Extracted {len(claims)} claims from document.[/dim]")
 
     # Verify bibliography
+    bib_providers = [] if offline else [CrossrefProvider(), OpenAlexProvider()]
     bib_engine = RetrievalEngine(
-        [CrossrefProvider()],
+        bib_providers,
         cache=cache,
         use_cache=not no_cache,
     )
@@ -688,6 +725,7 @@ def check_command(
         parsed.bibliography_entries,
         bib_engine,
         max_results=max_results,
+        recency_max_age=recency_max_age,
     )
 
     # Search for uncited claims
@@ -696,8 +734,18 @@ def check_command(
     provider_failed = False
 
     if uncited_claims:
+        search_providers = (
+            []
+            if offline
+            else [
+                SemanticScholarProvider(),
+                CrossrefProvider(),
+                OpenAlexProvider(),
+                ArxivProvider(),
+            ]
+        )
         search_engine = RetrievalEngine(
-            [SemanticScholarProvider(), CrossrefProvider(), ArxivProvider()],
+            search_providers,
             cache=cache,
             use_cache=not no_cache,
         )

@@ -14,6 +14,32 @@ from .models import (
 )
 from .retrieval import normalize_doi
 
+MAX_BIBLIOGRAPHY_NUMBER = 999
+
+
+def resolve_numbered_citations(
+    citations: list[ExistingCitation],
+    bibliography: list[BibliographyEntry],
+) -> dict[int, BibliographyEntry | None]:
+    bib_by_number: dict[int, BibliographyEntry] = {}
+    for entry in bibliography:
+        if entry.numbered_ref is not None:
+            bib_by_number[entry.numbered_ref] = entry
+    seen_numbers: set[int] = set()
+    resolved: dict[int, BibliographyEntry | None] = {}
+    for citation in citations:
+        if citation.numbered_ref is None:
+            continue
+        num = citation.numbered_ref
+        if num in seen_numbers:
+            continue
+        seen_numbers.add(num)
+        if num < 1 or num > MAX_BIBLIOGRAPHY_NUMBER:
+            resolved[num] = None
+        else:
+            resolved[num] = bib_by_number.get(num)
+    return resolved
+
 BIBLIOGRAPHY_HEADINGS = {
     "references",
     "bibliography",
@@ -186,6 +212,8 @@ def bibliography_issues(
 
 
 def citation_matches_entry(citation: ExistingCitation, entry: BibliographyEntry) -> bool:
+    if citation.numbered_ref is not None and entry.numbered_ref is not None:
+        return citation.numbered_ref == entry.numbered_ref
     if citation.doi and entry.doi:
         return citation.doi == entry.doi
     if not citation.authors or not entry.authors:
