@@ -21,16 +21,34 @@ logger = logging.getLogger(__name__)
 
 
 def _is_model_cached(model_name: str) -> bool:
-    """Return True if the model is already in the local HuggingFace cache."""
-    try:
-        from sentence_transformers import SentenceTransformer
+    """Return True if the model is already in the local HuggingFace cache.
 
-        cache_dir = SentenceTransformer._model_card_variables.get(
-            "cache_dir", None,
-        )
-        # Quick heuristic: try to load from cache without downloading
-        SentenceTransformer(model_name, cache_folder=cache_dir)
-        return True
+    This checks the filesystem only — no ``SentenceTransformer()``
+    call, no HTTP, no download trigger.  The contract is:
+    ``allow_model_download=False`` → zero network attempts.
+    """
+    from pathlib import Path
+
+    try:
+        # Default HF cache: ~/.cache/huggingface/hub
+        cache_home = Path.home() / ".cache" / "huggingface" / "hub"
+        if not cache_home.exists():
+            return False
+        # HF cache structure: models--{org}--{model_name}/snapshots/
+        sanitized = model_name.replace("/", "--")
+        repo_path = cache_home / f"models--{sanitized}"
+        if not repo_path.exists():
+            return False
+        snapshots = repo_path / "snapshots"
+        if not snapshots.exists():
+            return False
+        # At least one snapshot dir with weight files
+        for snap in snapshots.iterdir():
+            if snap.is_dir():
+                for f in snap.iterdir():
+                    if f.suffix in (".bin", ".safetensors", ".pt"):
+                        return True
+        return False
     except Exception:
         return False
 

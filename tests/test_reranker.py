@@ -1,4 +1,4 @@
-"""Tests for Checkpoint 5: production matching, SEMANTIC_OVERLAP, reranker."""
+"""Tests for checkpoint hardening: SEMANTIC_OVERLAP, reranker, candidates."""
 
 from __future__ import annotations
 
@@ -6,13 +6,14 @@ from citeguard.corpus.models import CorpusEntry, CorpusLanguage, CorpusMetadata
 from citeguard.models import Sentence, TextSpan
 from citeguard.similarity.engine import SimilarityEngine
 from citeguard.similarity.fingerprint import generate_shingles, winnow
+from citeguard.similarity.index import SimilarityIndex
 from citeguard.similarity.lexical import classify_match_type
 from citeguard.similarity.models import (
     Fingerprint,
     MatchType,
     SimilarityConfig,
 )
-from citeguard.similarity.reranker import compute_rerank_score
+from citeguard.similarity.reranker import compute_ranking_score
 
 
 def _sentence(text: str) -> Sentence:
@@ -103,7 +104,6 @@ def test_semantic_overlap_empty_spans_invariant() -> None:
         semantic_threshold=0.5,
     )
     assert mt == MatchType.SEMANTIC_OVERLAP
-    # By contract: spans would be [] for SEMANTIC_OVERLAP
 
 
 def test_semantic_overlap_excluded_from_textual_similarity() -> None:
@@ -156,47 +156,72 @@ def test_candidate_indices_none_fallback() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Reranker
+# compute_ranking_score (renamed from compute_rerank_score)
 # ---------------------------------------------------------------------------
 
 
-def test_reranker_weighted_score() -> None:
-    """Reranker combines exact, lexical, and semantic weights."""
+def test_ranking_score_weighted() -> None:
+    """Ranking score combines exact, lexical, and semantic weights."""
     config = SimilarityConfig(
         weight_fingerprint=0.3,
         weight_tfidf=0.3,
         weight_semantic=0.4,
     )
-    score = compute_rerank_score(
+    sem_component, ranking = compute_ranking_score(
         exact_overlap=0.9,
         lexical_similarity=0.7,
         semantic_raw=0.85,
         config=config,
     )
-    assert 0 < score <= 1.0
+    assert sem_component == 0.85
+    assert 0 < ranking <= 1.0
 
 
-def test_reranker_semantic_normalization() -> None:
-    """Raw cosine [-1,1] -> internal [0,1] for ranking."""
+def test_ranking_score_semantic_normalization() -> None:
+    """Raw cosine uses max(0, cosine) — no 0.5 base for negative."""
     config = SimilarityConfig(
         weight_fingerprint=0.0,
         weight_tfidf=0.0,
         weight_semantic=1.0,
     )
-    score_neg = compute_rerank_score(0.0, 0.0, -1.0, config)
-    score_zero = compute_rerank_score(0.0, 0.0, 0.0, config)
-    score_pos = compute_rerank_score(0.0, 0.0, 1.0, config)
+    _, score_neg = compute_ranking_score(0.0, 0.0, -1.0, config)
+    _, score_zero = compute_ranking_score(0.0, 0.0, 0.0, config)
+    _, score_pos = compute_ranking_score(0.0, 0.0, 1.0, config)
     assert score_neg == 0.0
-    assert score_zero == 0.5
+    assert score_zero == 0.0
     assert score_pos == 1.0
 
 
-def test_reranker_single_signal() -> None:
-    """Reranker works with only one signal."""
+def test_ranking_score_single_signal() -> None:
+    """Ranking score works with only one signal."""
     config = SimilarityConfig(
         weight_fingerprint=1.0,
         weight_tfidf=0.0,
         weight_semantic=0.0,
     )
-    score = compute_rerank_score(0.8, 0.5, 0.3, config)
+    _, score = compute_ranking_score(0.8, 0.5, 0.3, config)
     assert score == 0.8
+
+
+# ---------------------------------------------------------------------------
+# CandidateSet via index
+# ---------------------------------------------------------------------------
+
+
+def test_retrieve_candidates_returns_candidate_set() -> None:
+    """retrieve_candidates returns CandidateSet with indices + scores."""
+    text = "the transformer architecture changed nlp research"
+    entries = [_make_entry(text, doc_id=f"doc-{i}") for i in range(3)]
+    idx = SimilarityIndex.build(entries)
+
+    from citeguard.similarity.fingerprint import Fingerprint as Fp
+    fp = Fp(
+        points=winnow(generate_shingles(text.lower(), k=5), window=4),
+        doc_id="query",
+    )
+
+    cs = idx.retrieve_candidates(query_text=text.lower(), query_fp=fp, top_k=3)
+    assert hasattr(cs, "indices")
+    assert hasattr(cs, "semantic_scores")
+    assert hasattr(cs, "rrf_scores")
+    assert len(cs.indices) <= 3

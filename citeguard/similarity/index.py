@@ -1,33 +1,74 @@
 """Corpus index for similarity retrieval.
 
-Holds corpus entries, fingerprints, and TF-IDF state in a single
-object that the engine can consume.  Semantic fields are placeholders
-for a future commit; they are present but not wired up yet.
+Holds corpus entries, fingerprints, TF-IDF state, and optional
+semantic embeddings in a single object that the engine can consume.
 
-``SimilarityIndex.build()`` creates an index from the same
-``CorpusEntryTuple`` list the engine already uses, so this commit
-is a pure refactoring — no algorithmic changes, no score changes.
+``SimilarityIndex.build()`` supports optional passage segmentation:
+when ``max_passage_chars`` is provided, each corpus entry is split
+into passages, normalized with offset mapping, and fingerprinted
+individually.
 """
 
 from __future__ import annotations
+
+import logging
+from typing import Any
+
+import numpy as np
 
 from citeguard.similarity.fingerprint import exact_overlap
 from citeguard.similarity.lexical import (
     build_tfidf_index,
     compute_cosine_similarity,
 )
-from citeguard.similarity.models import CorpusEntryTuple, Fingerprint
+from citeguard.similarity.models import (
+    CandidateSet,
+    CorpusEntryTuple,
+    Fingerprint,
+    IndexedPassage,
+)
+
+logger = logging.getLogger(__name__)
+
+
+def _segment_passages(
+    text: str,
+    max_chars: int,
+) -> list[str]:
+    """Split *text* into passages of at most *max_chars* characters.
+
+    Splits on paragraph boundaries first, then sentence boundaries,
+    then hard-breaks at *max_chars* as a last resort.
+    """
+    if len(text) <= max_chars:
+        return [text]
+
+    passages: list[str] = []
+    # Split on double newline (paragraphs)
+    paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+    current = ""
+    for para in paragraphs:
+        if len(current) + len(para) + 2 <= max_chars:
+            current = (current + "\n\n" + para).strip() if current else para
+        else:
+            if current:
+                passages.append(current)
+            if len(para) > max_chars:
+                # Hard split at max_chars
+                for i in range(0, len(para), max_chars):
+                    passages.append(para[i:i + max_chars])
+                current = ""
+            else:
+                current = para
+    if current:
+        passages.append(current)
+    return passages if passages else [text]
 
 
 class SimilarityIndex:
     """Pre-built corpus index for similarity retrieval.
 
     Created via ``SimilarityIndex.build(corpus_entries)``.
-
-    Properties are read-only.  Retrieval methods expose ranked candidate
-    lists but the engine does **not** use ``retrieve_candidates()`` to
-    prune the corpus in v0.4.0 — every entry is still evaluated.
-    Candidate pruning will be introduced with the semantic / RRF work.
     """
 
     __slots__ = (
@@ -82,17 +123,17 @@ class SimilarityIndex:
 
     @property
     def embeddings(self) -> object | None:
-        """Placeholder for dense vector embeddings (not yet implemented)."""
+        """Dense vector embeddings matrix, or *None*."""
         return self._embeddings
 
     @property
     def embedding_model(self) -> str | None:
-        """Placeholder for the model name used to compute *embeddings*."""
+        """Model name used to compute *embeddings*."""
         return self._embedding_model
 
     @property
     def embedding_dim(self) -> int | None:
-        """Placeholder for the embedding dimensionality."""
+        """Embedding dimensionality."""
         return self._embedding_dim
 
     @property
@@ -100,24 +141,111 @@ class SimilarityIndex:
         """Number of corpus entries in the index."""
         return len(self._entries)
 
+    @property
+    def has_embeddings(self) -> bool:
+        """True when embeddings are loaded and non-empty."""
+        return (
+            self._embeddings is not None
+            and hasattr(self._embeddings, "shape")
+            and self._embeddings.shape[0] > 0
+        )
+
     # -- Construction --------------------------------------------------------
 
     @classmethod
-    def build(cls, corpus_entries: list[CorpusEntryTuple]) -> SimilarityIndex:
+    def build(
+        cls,
+        corpus_entries: list[CorpusEntryTuple],
+        max_passage_chars: int = 0,
+    ) -> SimilarityIndex:
         """Build an index from pre-built corpus entry tuples.
 
-        Constructs the fingerprints list and TF-IDF index from the entries.
-        Semantic embeddings are **not** built (placeholder only).
+        Parameters
+        ----------
+        corpus_entries:
+            List of (doc_id, text, Fingerprint, metadata, entry_index, obj).
+        max_passage_chars:
+            When > 0, segment each entry into passages of at most this
+            many characters before fingerprinting.  Each passage
+            normalizes independently and carries its own offset_map.
         """
         if not corpus_entries:
             return cls()
 
-        fingerprints = [entry[2] for entry in corpus_entries]
-        corpus_texts = [entry[1] for entry in corpus_entries]
+        from citeguard.corpus.models import CorpusMetadata
+        from citeguard.similarity.fingerprint import generate_shingles, winnow
+        from citeguard.similarity.normalize import normalize_with_map
+
+        entries_to_index: list[CorpusEntryTuple] = []
+
+        for (
+            doc_id, _norm_text, _fp, metadata, entry_idx, corpus_entry_obj
+        ) in corpus_entries:
+            # Get original text from the corpus entry object
+            original_text = ""
+            if corpus_entry_obj is not None:
+                if hasattr(corpus_entry_obj, "text"):
+                    original_text = corpus_entry_obj.text
+                elif isinstance(corpus_entry_obj, str):
+                    original_text = corpus_entry_obj
+
+            if not original_text:
+                # Fallback: use normalized text directly
+                original_text = _norm_text
+
+            if max_passage_chars > 0 and len(original_text) > max_passage_chars:
+                # Passage segmentation
+                passages = _segment_passages(original_text, max_passage_chars)
+                for p_idx, passage_text in enumerate(passages):
+                    norm_text, offset_map = normalize_with_map(passage_text)
+                    fp = Fingerprint(
+                        points=winnow(
+                            generate_shingles(norm_text, k=5), window=4
+                        ),
+                        doc_id=f"{doc_id}#p{p_idx}",
+                    )
+                    # Build passage-level metadata (shallow copy)
+                    passage_meta = metadata
+                    if isinstance(metadata, CorpusMetadata):
+                        passage_meta = metadata
+
+                    entries_to_index.append((
+                        f"{doc_id}#p{p_idx}",
+                        norm_text,
+                        fp,
+                        passage_meta,
+                        entry_idx,
+                        IndexedPassage(
+                            passage_id=f"{doc_id}#p{p_idx}",
+                            parent_entry_id=doc_id,
+                            original_text=passage_text,
+                            normalized_text=norm_text,
+                            offset_map=offset_map,
+                            offset_in_parent=_find_offset(
+                                original_text, passage_text
+                            ),
+                            fingerprint=fp,
+                            metadata=passage_meta,
+                            source_entry_index=entry_idx,
+                            corpus_entry=corpus_entry_obj,
+                        ),
+                    ))
+            else:
+                # Whole entry (no segmentation)
+                entries_to_index.append((
+                    doc_id, _norm_text, _fp, metadata, entry_idx,
+                    corpus_entry_obj,
+                ))
+
+        # Build fingerprints list
+        fingerprints = [entry[2] for entry in entries_to_index]
+
+        # Build TF-IDF
+        corpus_texts = [entry[1] for entry in entries_to_index]
         vectorizer, matrix = build_tfidf_index(corpus_texts)
 
         return cls(
-            entries=list(corpus_entries),
+            entries=entries_to_index,
             fingerprints=fingerprints,
             tfidf_vectorizer=vectorizer,
             tfidf_matrix=matrix,
@@ -148,65 +276,89 @@ class SimilarityIndex:
         scores.sort(key=lambda x: -x[1])
         return scores[:top_k]
 
-    def retrieve_candidates(
-        self, query_text: str, query_fp: Fingerprint, top_k: int = 50,
-    ) -> list[int]:
-        """Union of fingerprint + TF-IDF retrieval, deduped, top *top_k*.
-
-        .. note::
-
-           In v0.4.0 this method is exposed for future use and testing.
-           The engine does **NOT** use it to prune the corpus yet — it
-           still evaluates every entry.  Candidate pruning will be
-           introduced with the semantic / RRF implementation.
-        """
-        fp_hits = self.retrieve_fingerprint(query_fp, top_k=top_k)
-        tfidf_hits = self.retrieve_tfidf(query_text, top_k=top_k)
-
-        seen: set[int] = set()
-        candidates: list[int] = []
-        for idx, _score in fp_hits + tfidf_hits:
-            if idx not in seen:
-                seen.add(idx)
-                candidates.append(idx)
-        return candidates[:top_k]
-
     def retrieve_semantic(
-        self, query_embedding: object, top_k: int = 50,
+        self, query_embedding: Any, top_k: int = 50,
     ) -> list[tuple[int, float]]:
-        """Return ``(entry_index, raw_cosine)`` sorted descending by semantic similarity.
+        """Return ``(entry_index, raw_cosine)`` sorted descending.
 
-        Parameters
-        ----------
-        query_embedding:
-            1-D numpy array (query vector).  Must have the same
-            dimensionality as the stored embeddings.
-        top_k:
-            Maximum results to return.
-
-        Returns
-        -------
-        list[tuple[int, float]]
-            Pairs of ``(entry_index, raw_cosine_score)``.  Raw cosine
-            is in ``[-1, 1]`` — no normalization is applied here.
-
-        .. note::
-
-           Requires ``self._embeddings`` to be set (e.g. via
-           ``SimilarityIndex.build()`` with semantic enabled).
-           Returns empty list when embeddings are not available.
+        L2-normalizes the query, then computes dot product (cosine)
+        against stored embeddings.  Raises ``ValueError`` on dimension
+        mismatch instead of silently returning empty.
         """
-        import numpy as np
-
         if self._embeddings is None or len(self._embeddings) == 0:
             return []
 
         query = np.asarray(query_embedding, dtype=np.float32).ravel()
         if query.shape[0] != self._embeddings.shape[1]:
-            return []
+            raise ValueError(
+                f"Query dimension {query.shape[0]} != "
+                f"embedding dimension {self._embeddings.shape[1]}"
+            )
 
-        # Compute cosine similarity (embeddings are L2-normalized)
+        # L2-normalize query to guarantee cosine = dot product
+        norm = np.linalg.norm(query)
+        if norm < 1e-8:
+            raise ValueError("Query embedding has near-zero norm")
+        query = query / norm
+
+        # Corpus embeddings are L2-normalized at build time (by backend)
         scores = self._embeddings @ query
         indexed = list(enumerate(scores.tolist()))
         indexed.sort(key=lambda x: (-x[1], x[0]))
         return indexed[:top_k]
+
+    def retrieve_candidates(
+        self,
+        query_text: str,
+        query_fp: Fingerprint,
+        query_embedding: Any | None = None,
+        top_k: int = 50,
+    ) -> CandidateSet:
+        """RRF-based candidate retrieval combining fingerprint + TF-IDF + semantic.
+
+        Returns a ``CandidateSet`` carrying ranked indices and per-entry
+        semantic scores so the engine does not recompute dot products.
+        """
+        from citeguard.similarity.fusion import reciprocal_rank_fusion
+
+        fp_hits = self.retrieve_fingerprint(query_fp, top_k=top_k)
+        tfidf_hits = self.retrieve_tfidf(query_text, top_k=top_k)
+        semantic_hits: list[tuple[int, float]] = []
+        if query_embedding is not None and self.has_embeddings:
+            semantic_hits = self.retrieve_semantic(query_embedding, top_k=top_k)
+
+        ranked_lists = [
+            [idx for idx, _ in fp_hits],
+            [idx for idx, _ in tfidf_hits],
+        ]
+        if semantic_hits:
+            ranked_lists.append([idx for idx, _ in semantic_hits])
+
+        fused = reciprocal_rank_fusion(ranked_lists, k=60)
+
+        semantic_map = dict(semantic_hits)
+        rrf_map = dict(fused)
+
+        return CandidateSet(
+            indices=[idx for idx, _score in fused[:top_k]],
+            semantic_scores=semantic_map,
+            rrf_scores=rrf_map,
+        )
+
+    def encode_query(self, text: str) -> Any | None:
+        """Encode a query text using the loaded embeddings.
+
+        Returns None when no embeddings are available (fallback to
+        lexical-only path).
+        """
+        if not self.has_embeddings:
+            return None
+        # The query encoding requires the backend, which lives outside the index.
+        # For now, return None — the engine will encode externally.
+        return None
+
+
+def _find_offset(haystack: str, needle: str) -> int:
+    """Find the character offset of *needle* within *haystack*."""
+    idx = haystack.find(needle)
+    return idx if idx >= 0 else 0

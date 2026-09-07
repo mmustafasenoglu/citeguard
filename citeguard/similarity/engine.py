@@ -1,16 +1,16 @@
-"""Similarity engine orchestration for Citeguard v0.4.
+"""Similarity engine orchestration for Citeguard v0.5.
 
 Responsibilities:
 - Compare sentences to corpus fingerprints
-- Classify match types
-- Compute attribution risk (citation-aware)
+- Classify match types (exact, near-duplicate, lexical, semantic)
+- Compute attribution risk (citation-aware, semantic-aware)
 - Aggregate overall similarity metrics
 - Merge character-spans for percentage calculation
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from citeguard.models import TextSpan
 from citeguard.similarity.fingerprint import (
@@ -36,6 +36,7 @@ from citeguard.similarity.models import (
     SimilarityResult,
 )
 from citeguard.similarity.normalize import build_offset_map, remap_span
+from citeguard.similarity.reranker import compute_ranking_score
 
 if TYPE_CHECKING:
     from citeguard.models import (
@@ -48,6 +49,7 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 # Helper: merge overlapping/adjacent spans (paragraph-relative)
 # ---------------------------------------------------------------------------
+
 
 def _merge_spans(spans: list[TextSpan]) -> list[TextSpan]:
     """Merge overlapping or touching TextSpan objects.
@@ -136,18 +138,18 @@ def _citation_matches_source_metadata(
 
 def _has_quotation_markers(text: str) -> bool:
     """Return True when the sentence contains quotation punctuation."""
-    return any(marker in text for marker in ('"', "“", "”", "«", "»"))
+    return any(marker in text for marker in ('"', "\u201c", "\u201d", "\u00ab", "\u00bb"))
 
 
 def _find_quote_pairs(text: str) -> list[tuple[int, int]]:
     """Find all quotation mark pairs in text, returning (start, end) indices.
 
-    Supports standard quotes ("), curly quotes (""), and guillemets («»).
+    Supports standard quotes ("), curly quotes ("").and guillemets (<<>>).
     Returns list of (start, end) tuples where start is the opening quote index
     and end is the closing quote index (exclusive).
     """
     quote_pairs: list[tuple[int, int]] = []
-    stack: list[tuple[str, int]] = []  # (quote_char, position)
+    stack: list[tuple[str, int]] = []
 
     matching = {'"': '"', "\u201c": "\u201d", "\u00ab": "\u00bb"}
     curly_opening = {'\u201c', '\u00ab'}
@@ -171,16 +173,7 @@ def _find_quote_pairs(text: str) -> list[tuple[int, int]]:
 
 
 def _span_within_quotes(text: str, span_start: int, span_end: int) -> bool:
-    """Check if a span is fully contained within quotation marks.
-
-    Args:
-        text: The original sentence text.
-        span_start: Start index of span (inclusive) in text coordinates.
-        span_end: End index of span (exclusive) in text coordinates.
-
-    Returns:
-        True if the span is fully contained within any quote pair.
-    """
+    """Check if a span is fully contained within quotation marks."""
     quote_pairs = _find_quote_pairs(text)
     return any(
         q_start <= span_start and span_end <= q_end
@@ -193,15 +186,7 @@ def _compute_quote_coverage(
     matched_spans: list[TextSpan],
     sentence_start_offset: int,
 ) -> float:
-    """Compute the fraction of matched chars that lie inside quotation marks.
-
-    Matched spans are merged to avoid double-counting overlaps before
-    computing the intersection with quote ranges.  Overlapping or nested
-    quote pairs are also merged so that shared characters are never
-    counted more than once.
-
-    Returns a float in [0.0, 1.0].  Returns 0.0 when spans are empty.
-    """
+    """Compute the fraction of matched chars that lie inside quotation marks."""
     if not matched_spans:
         return 0.0
 
@@ -209,9 +194,6 @@ def _compute_quote_coverage(
     if not quote_pairs:
         return 0.0
 
-    # Merge overlapping/nested quote pairs to prevent double-counting.
-    # Pairs are sorted by start, then end-adjacent or overlapping pairs
-    # are merged into a single range.
     sorted_quotes = sorted(quote_pairs, key=lambda q: (q[0], q[1]))
     merged_quotes: list[tuple[int, int]] = [sorted_quotes[0]]
     for q_start, q_end in sorted_quotes[1:]:
@@ -221,7 +203,6 @@ def _compute_quote_coverage(
         else:
             merged_quotes.append((q_start, q_end))
 
-    # Merge overlapping matched spans to avoid double-counting
     merged = _merge_spans(matched_spans)
 
     total_chars = 0
@@ -234,7 +215,6 @@ def _compute_quote_coverage(
             continue
         total_chars += span_len
 
-        # Accumulate intersection with every merged quote range
         for q_start, q_end in merged_quotes:
             inter_start = max(sent_start, q_start)
             inter_end = min(sent_end, q_end)
@@ -250,6 +230,7 @@ def _compute_quote_coverage(
 # SimilarityEngine class
 # ---------------------------------------------------------------------------
 
+
 class SimilarityEngine:
     """Orchestrate sentence-against-corpus similarity analysis."""
 
@@ -261,17 +242,7 @@ class SimilarityEngine:
     # ------------------------------------------------------------------
 
     def build_fingerprint(self, text: str) -> Fingerprint:
-        """Create a BLAKE2b fingerprint for *text*.
-
-        Parameters
-        ----------
-        text:
-            Document paragraph or sentence text.
-
-        Returns
-        -------
-        Fingerprint
-        """
+        """Create a BLAKE2b fingerprint for *text*."""
         shingles = generate_shingles(text, k=self.config.shingle_size)
         points = winnow(shingles, window=self.config.winnow_window)
         return Fingerprint(points=points)
@@ -291,6 +262,7 @@ class SimilarityEngine:
         tfidf_info: tuple | None = None,
         index: SimilarityIndex | None = None,
         candidate_indices: list[int] | None = None,
+        semantic_scores: dict[int, float] | None = None,
     ) -> list[SimilarityMatch]:
         """Return similarity matches for one sentence against a corpus.
 
@@ -308,12 +280,10 @@ class SimilarityEngine:
             Pre-built ``SimilarityIndex``.
         candidate_indices:
             When provided, only evaluate entries at these indices.
-            When *None*, evaluate all entries (backward-compatible
-            full scan).
-
-        Returns
-        -------
-        list[SimilarityMatch]
+            When *None*, evaluate all entries (backward-compatible full scan).
+        semantic_scores:
+            Pre-computed semantic cosine per entry_index.  When provided
+            the engine reuses these values instead of recomputing.
         """
         # -- Resolve data source ------------------------------------------------
         if index is not None:
@@ -328,6 +298,11 @@ class SimilarityEngine:
             resolved_tfidf = tfidf_info
         else:
             return []
+
+        semantic_enabled = (
+            semantic_scores is not None
+            or (index is not None and index.has_embeddings)
+        )
 
         matches: list[SimilarityMatch] = []
 
@@ -364,25 +339,36 @@ class SimilarityEngine:
             if resolved_tfidf is not None:
                 ls = tfidf_scores.get(entry_index, 0.0)
             else:
-                # Fallback to char n-gram Jaccard
                 ls = char_ngram_jaccard(sentence.normalized_text, doc_text)
 
-            # 3) Classify match type
+            # 3) Semantic score (reuse from CandidateSet, don't recompute)
+            sem_raw = 0.0
+            if semantic_scores and entry_index in semantic_scores:
+                sem_raw = semantic_scores[entry_index]
+
+            # 4) Classify match type
             mt = classify_match_type(
                 exact_overlap=eo,
                 lexical_similarity=ls,
                 exact_threshold=self.config.exact_threshold,
                 near_duplicate_threshold=self.config.near_duplicate_threshold,
                 lexical_overlap_threshold=self.config.lexical_overlap_threshold,
+                semantic_score=sem_raw if semantic_enabled else None,
+                semantic_threshold=self.config.semantic_threshold,
             )
 
-            # 4) Combined score (weighted)
+            # 5) Ranking score (hybrid)
+            semantic_component, ranking_score = compute_ranking_score(
+                eo, ls, sem_raw, self.config,
+            )
+
+            # 6) Combined score (legacy, kept for backward compat)
             combined = (
                 self.config.combined_weight_exact * eo
                 + self.config.combined_weight_lexical * ls
             )
 
-            # 5) SEMANTIC_OVERLAP invariant: no fake spans from cosine similarity
+            # 7) SEMANTIC_OVERLAP invariant: no fake spans from cosine similarity
             if mt == MatchType.SEMANTIC_OVERLAP:
                 matched_doc_spans = []
                 matched_src_spans = []
@@ -391,7 +377,7 @@ class SimilarityEngine:
                 segments = find_matching_segments_pair(
                     sentence_fp, doc_fp, k=self.config.shingle_size
                 )
-                # Remap document spans: normalized sentence coords → original paragraph coords
+                # Remap document spans
                 matched_doc_spans = [
                     TextSpan(
                         paragraph_index=sentence.paragraph_index,
@@ -404,11 +390,11 @@ class SimilarityEngine:
                     )
                     for start, end in segments.document_spans
                 ]
-                # Remap source spans: normalized corpus coords → original corpus coords
+                # Remap source spans: use passage-level offset_map
                 corpus_offset_map = None
                 if (
                     corpus_entry_obj
-                    and hasattr(corpus_entry_obj, 'offset_map')
+                    and hasattr(corpus_entry_obj, "offset_map")
                     and corpus_entry_obj.offset_map
                 ):
                     corpus_offset_map = corpus_entry_obj.offset_map
@@ -433,9 +419,13 @@ class SimilarityEngine:
             title = metadata.title if metadata is not None else doc_id
             url = metadata.url if metadata is not None else None
 
-            # 6) Build match — source_text is always the original corpus text
+            # 8) Build match
             match = SimilarityMatch(
-                source_text=corpus_entry_obj.text if corpus_entry_obj else doc_text,
+                source_text=(
+                    corpus_entry_obj.text
+                    if corpus_entry_obj and hasattr(corpus_entry_obj, "text")
+                    else doc_text
+                ),
                 source_title=title,
                 source_id=doc_id,
                 exact_overlap=eo,
@@ -448,19 +438,22 @@ class SimilarityEngine:
                 match_type=mt,
                 matched_document_spans=matched_doc_spans,
                 matched_source_spans=matched_src_spans,
+                semantic_similarity_raw=sem_raw,
+                semantic_rerank_score=semantic_component,
+                ranking_score=ranking_score,
             )
             matches.append(match)
 
-        # Filter out UNMATCHED, sort by combined score descending, then
+        # Filter out UNMATCHED, sort by ranking_score descending, then
         # cap results per sentence when max_results_per_sentence > 0.
         matches = [m for m in matches if m.match_type != MatchType.UNMATCHED]
-        matches.sort(key=lambda m: -m.combined_score)
+        matches.sort(key=lambda m: -m.ranking_score)
         if self.config.max_results_per_sentence > 0:
             matches = matches[:self.config.max_results_per_sentence]
         return matches
 
     # ------------------------------------------------------------------
-    # Attribution risk (citation-aware)
+    # Attribution risk (citation-aware, semantic-aware)
     # ------------------------------------------------------------------
 
     def compute_attribution_risk(
@@ -474,6 +467,10 @@ class SimilarityEngine:
         """Determine attribution risk for a match given the sentence's citations.
 
         Risk logic:
+        - semantic overlap + no citation → MEDIUM
+        - semantic overlap + matching citation → LOW
+        - semantic overlap + mismatched citation → MEDIUM
+        - semantic overlap never → HIGH
         - high overlap + no citation → HIGH
         - high overlap + wrong citation → HIGH
         - high overlap + matching citation + no quotation → MEDIUM
@@ -486,13 +483,29 @@ class SimilarityEngine:
         source_year = match.source_year
         source_doi = (match.source_doi or "").lower()
 
-        # Check if sentence has citations
+        # SEMANTIC_OVERLAP-specific branch: risk capped at MEDIUM
+        if match.match_type == MatchType.SEMANTIC_OVERLAP:
+            if not sentence_citations:
+                return RiskLevel.MEDIUM, "semantic overlap without citation"
+            for cit in sentence_citations:
+                citation_matches = _citation_matches_source_metadata(
+                    cit,
+                    source_authors=source_authors,
+                    source_year=source_year,
+                    source_doi=source_doi,
+                    bibliography_entries=bibliography_entries,
+                )
+                if citation_matches:
+                    return RiskLevel.LOW, "semantic overlap with matching citation"
+            return RiskLevel.MEDIUM, "semantic overlap without matching citation"
+
+        # Standard path (exact/lexical/near-duplicate)
         if not sentence_citations:
             if match.exact_overlap >= 0.95:
                 return RiskLevel.HIGH, "high exact overlap without citation"
             return RiskLevel.MEDIUM, "similar text without citation"
 
-        # Sentence has citations — check if ANY citation matches the detected source
+        # Sentence has citations — check if ANY citation matches
         at_least_one_matches = False
         citation_issues: list[str] = []
 
@@ -509,20 +522,16 @@ class SimilarityEngine:
                 at_least_one_matches = True
             else:
                 citation_issues.append(
-                    f"citation from {cit.authors or 'unknown'} ({cit.year or 'n.d.'}) "
+                    f"citation from {cit.authors or 'unknown'} "
+                    f"({cit.year or 'n.d.'}) "
                     f"does not match detected source"
                 )
 
-        # Decision: if at least one citation matches, attribution is not "wrong source"
         if not at_least_one_matches:
             return RiskLevel.HIGH, "; ".join(citation_issues)
-        
-        # At least one citation matches the detected source
+
+        # At least one citation matches
         if match.exact_overlap >= 0.95:
-            # Coverage-based quote detection: compute what fraction of
-            # matched chars lie inside quotation marks.  Fallback to
-            # sentence-level check when matched_document_spans are not
-            # populated.
             quoted = False
             if match.matched_document_spans:
                 coverage = _compute_quote_coverage(
@@ -558,19 +567,8 @@ class SimilarityEngine:
     ) -> float:
         """Compute overall document similarity as character-span percentage.
 
-        Uses paragraph-relative TextSpan objects so spans from different
-        paragraphs do not incorrectly collide or merge.
-
-        Parameters
-        ----------
-        results:
-            SimilarityResult list from full-document analysis.
-        doc_sentences:
-            All sentences in the document (for eligible-char count).
-
-        Returns
-        -------
-        float
+        SEMANTIC_OVERLAP matches are excluded because they have no
+        character-level span evidence.
         """
         eligible_chars = sum(
             s.length for s in doc_sentences if not s.is_bibliography
@@ -579,7 +577,6 @@ class SimilarityEngine:
         if eligible_chars == 0:
             return 0.0
 
-        # Collect all matched document spans from all results + matches
         all_spans: list[TextSpan] = []
         for result in results:
             for match in result.matches:
@@ -592,9 +589,6 @@ class SimilarityEngine:
                         )
                     )
 
-        # Also add spans from best matches only for a lighter metric
-        # (current implementation uses all matches)
-
         merged = _merge_spans(all_spans)
         unique_matched = sum(span.length() for span in merged)
 
@@ -606,41 +600,36 @@ class SimilarityEngine:
         corpus_entries: list[CorpusEntryTuple] | None = None,
         bibliography_entries: list[BibliographyEntry] | None = None,
         index: SimilarityIndex | None = None,
+        embedding_backend: Any | None = None,
     ) -> SimilarityEngineResult:
         """Run full similarity analysis over a document's sentences.
 
-        Parameters
-        ----------
-        sentences:
-            Document sentences (EnrichedDocument output).
-        corpus_entries:
-            Corpus entries as (doc_id, text, Fingerprint, metadata, entry_index).
-            Ignored when *index* is provided.
-        bibliography_entries:
-            Bibliography entries used for citation-to-source matching.
-        index:
-            Pre-built ``SimilarityIndex``.  When *None* and *corpus_entries*
-            is provided the engine builds one internally so that the old
-            positional calling convention keeps working.
-
-        Returns
-        -------
-        SimilarityEngineResult
+        When *index* has embeddings and *embedding_backend* is provided,
+        the engine computes semantic scores, generates RRF candidates,
+        and passes them to ``compare_sentence_to_corpus()``.  Otherwise
+        the full-scan lexical-only path is used (backward-compatible).
         """
         bibliography_entries = bibliography_entries or []
 
         # Build index if not supplied (backward-compatible path)
         if index is None and corpus_entries:
             from citeguard.similarity.index import SimilarityIndex
+
             index = SimilarityIndex.build(corpus_entries)
+
+        # Determine semantic capability
+        semantic_enabled = (
+            index is not None
+            and index.has_embeddings
+            and self.config.enable_semantic
+            and embedding_backend is not None
+        )
 
         results: list[SimilarityResult] = []
         high_risk = 0
         medium_risk = 0
 
         for sent in sentences:
-            # Bibliography sentences are fully excluded from similarity
-            # eligibility: no matching, no risk counting, no numerator.
             if sent.is_bibliography:
                 results.append(
                     SimilarityResult(
@@ -653,8 +642,38 @@ class SimilarityEngine:
                 )
                 continue
 
+            candidate_indices = None
+            semantic_scores = None
+
+            if semantic_enabled and index is not None:
+                # Encode query sentence
+                try:
+                    query_emb = embedding_backend.encode(
+                        [sent.normalized_text]
+                    )[0]
+                except Exception:
+                    query_emb = None
+
+                if query_emb is not None:
+                    sentence_fp = self.build_fingerprint(sent.normalized_text)
+                    try:
+                        candidates = index.retrieve_candidates(
+                            query_text=sent.normalized_text,
+                            query_fp=sentence_fp,
+                            query_embedding=query_emb,
+                            top_k=self.config.max_candidates,
+                        )
+                        candidate_indices = candidates.indices
+                        semantic_scores = candidates.semantic_scores
+                    except ValueError:
+                        # Dimension mismatch or near-zero norm — skip semantic
+                        pass
+
             sent_matches = self.compare_sentence_to_corpus(
-                sent, index=index,
+                sent,
+                index=index,
+                candidate_indices=candidate_indices,
+                semantic_scores=semantic_scores,
             )
 
             # Compute attribution risk for the best match
@@ -692,7 +711,6 @@ class SimilarityEngine:
         total = len(sentences)
         matched = sum(1 for r in results if r.matches)
 
-        # Count unique matched chars (from document spans)
         eligible = sum(s.length for s in sentences if not s.is_bibliography)
         unique_matched = 0
         all_spans: list[TextSpan] = []

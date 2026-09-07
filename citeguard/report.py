@@ -14,13 +14,18 @@ from .models import (
     VerificationResult,
 )
 from .scoring import AuditMetrics
-from .similarity.models import SimilarityEngineResult
+from .similarity.models import MatchType, SimilarityEngineResult
 
 SCHEMA_VERSION = "2"
 
 
 def similarity_report(result: SimilarityEngineResult) -> dict[str, Any]:
     """Serialize similarity engine results into JSON-safe dictionaries."""
+    semantic_count = sum(
+        1 for r in result.results
+        for m in r.matches
+        if m.match_type == MatchType.SEMANTIC_OVERLAP
+    )
     return {
         "schema_version": SCHEMA_VERSION,
         "summary": {
@@ -31,6 +36,7 @@ def similarity_report(result: SimilarityEngineResult) -> dict[str, Any]:
             "matched_sentences": result.matched_sentences,
             "unique_matched_chars": result.unique_matched_chars,
             "eligible_chars": result.eligible_chars,
+            "semantic_match_count": semantic_count,
         },
         "results": [
             {
@@ -58,6 +64,9 @@ def similarity_report(result: SimilarityEngineResult) -> dict[str, Any]:
                         "lexical_similarity": match.lexical_similarity,
                         "combined_score": match.combined_score,
                         "match_type": match.match_type.value,
+                        "semantic_similarity_raw": match.semantic_similarity_raw,
+                        "semantic_rerank_score": match.semantic_rerank_score,
+                        "ranking_score": match.ranking_score,
                         "matched_document_spans": [
                             {
                                 "paragraph_index": span.paragraph_index,

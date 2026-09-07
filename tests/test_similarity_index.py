@@ -393,7 +393,7 @@ def test_index_retrieve_fingerprint() -> None:
 
 
 def test_index_retrieve_candidates() -> None:
-    """Candidates are union of FP + TF-IDF, deduped."""
+    """Candidates are RRF-fused from FP + TF-IDF, returned as CandidateSet."""
     text1 = "the attention mechanism changed nlp research"
     text2 = "convolutional networks for image classification"
     entry1 = _make_entry(text1, doc_id="doc-0")
@@ -403,9 +403,11 @@ def test_index_retrieve_candidates() -> None:
     query_fp = Fingerprint(
         points=winnow(generate_shingles(text1.lower(), k=5), window=4),
     )
-    candidates = index.retrieve_candidates(text1.lower(), query_fp, top_k=10)
-    # Should have at least 1 candidate, no duplicates
-    assert len(candidates) == len(set(candidates))
+    cs = index.retrieve_candidates(text1.lower(), query_fp, top_k=10)
+    # CandidateSet with indices, semantic_scores, rrf_scores
+    assert hasattr(cs, "indices")
+    assert hasattr(cs, "rrf_scores")
+    assert len(cs.indices) == len(set(cs.indices))
 
 
 # ---------------------------------------------------------------------------

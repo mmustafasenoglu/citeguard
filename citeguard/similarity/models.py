@@ -88,7 +88,8 @@ class SimilarityMatch:
     matched_document_spans: list[TextSpan] = field(default_factory=list)
     match_type: MatchType = MatchType.UNMATCHED
     semantic_similarity_raw: float = 0.0
-    semantic_rerank_score: float = 0.0
+    semantic_rerank_score: float = 0.0  # semantic component only
+    ranking_score: float = 0.0          # final hybrid score
 
 
 @dataclass(slots=True)
@@ -163,6 +164,7 @@ class SimilarityConfig:
     weight_fingerprint: float = 0.3
     weight_tfidf: float = 0.3
     weight_semantic: float = 0.4
+    max_candidates: int = 50
 
 
 @dataclass(frozen=True, slots=True)
@@ -177,6 +179,19 @@ class SimilarityMetrics:
     avg_overlap: float
     unique_matched_chars: int
     eligible_chars: int
+
+
+@dataclass(frozen=True, slots=True)
+class CandidateSet:
+    """Output of RRF-based candidate retrieval.
+
+    Carries both the ranked index list and per-entry semantic scores
+    so that the engine does not recompute dot products.
+    """
+
+    indices: list[int]
+    semantic_scores: dict[int, float]
+    rrf_scores: dict[int, float]
 
 
 # ---------------------------------------------------------------------------
@@ -236,4 +251,4 @@ class IndexedPassage:
     fingerprint: Fingerprint
     metadata: object             # CorpusMetadata | None
     source_entry_index: int      # parent'ın entry_index'i
-    corpus_entry: object         # orijinal CorpusEntry referansı
+    corpus_entry: object         # passage-level source object (not parent CorpusEntry)
