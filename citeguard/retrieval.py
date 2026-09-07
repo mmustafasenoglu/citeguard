@@ -303,6 +303,9 @@ def candidate_relevance(query: str, candidate: SourceCandidate) -> int:
     query_doi = normalize_doi(query)
     if query_doi and query_doi == normalize_doi(candidate.doi):
         return 100
+    query_arxiv = normalize_arxiv_id(query)
+    if query_arxiv and query_arxiv == normalize_arxiv_id(candidate.arxiv_id):
+        return 100
     normalized_query = normalize_title(query)
     normalized_candidate = normalize_title(candidate.title)
     if not normalized_query or not normalized_candidate:
@@ -343,7 +346,7 @@ def rank_candidates(query: str, candidates: list[SourceCandidate]) -> list[Sourc
 def _merge_candidates(first: SourceCandidate, second: SourceCandidate) -> SourceCandidate:
     values: dict[str, Any] = {}
     for fld in fields(SourceCandidate):
-        if fld.name == "source_apis":
+        if fld.name in ("source_apis", "provider_records"):
             continue
         first_value = getattr(first, fld.name)
         second_value = getattr(second, fld.name)
@@ -358,4 +361,23 @@ def _merge_candidates(first: SourceCandidate, second: SourceCandidate) -> Source
         merged_apis.append(second_api)
     values["source_apis"] = merged_apis
     values["source_api"] = first.source_api
+    merged_records: dict[str, dict[str, object]] = dict(first.provider_records)
+    merged_records[second.source_api] = {
+        "title": second.title,
+        "authors": list(second.authors),
+        "year": second.year,
+        "doi": second.doi,
+        "work_type": second.work_type,
+        "venue": second.venue,
+    }
+    if first.source_api not in merged_records:
+        merged_records[first.source_api] = {
+            "title": first.title,
+            "authors": list(first.authors),
+            "year": first.year,
+            "doi": first.doi,
+            "work_type": first.work_type,
+            "venue": first.venue,
+        }
+    values["provider_records"] = merged_records
     return SourceCandidate(**values)

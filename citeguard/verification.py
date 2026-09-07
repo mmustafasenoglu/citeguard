@@ -22,11 +22,11 @@ _DEFAULT_MAX_AGE_YEARS = 25
 _TOKEN_RE = re.compile(r"[a-z0-9]+")
 
 _PRIMARY_WORK_TYPES = frozenset({
-    "journal-article",
-    "proceedings-article",
-    "book-chapter",
-    "book",
-    "dataset",
+    "research-article",
+    "original-research",
+    "clinical-trial",
+    "randomized-controlled-trial",
+    "research-output",
 })
 _SECONDARY_WORK_TYPES = frozenset({
     "review",
@@ -37,6 +37,8 @@ _SECONDARY_WORK_TYPES = frozenset({
     "retraction",
     "book-review",
     "supplementary-materials",
+    "meta-analysis",
+    "systematic-review",
 })
 
 
@@ -181,35 +183,64 @@ def _classify_source_type(candidate: SourceCandidate) -> SourceType:
 def _detect_provider_conflicts(
     ranked: list[tuple[MetadataScores, SourceCandidate]],
 ) -> list[str]:
-    if len(ranked) < 2:
-        return []
     conflicts: list[str] = []
-    top_scores, top_candidate = ranked[0]
-    for second_scores, second_candidate in ranked[1:]:
-        dois_differ = normalize_doi(top_candidate.doi) != normalize_doi(second_candidate.doi)
-        same_doi = (
-            normalize_doi(top_candidate.doi) is not None
-            and normalize_doi(top_candidate.doi) == normalize_doi(second_candidate.doi)
-        )
-        titles_differ = normalize_title(top_candidate.title) != normalize_title(
-            second_candidate.title
-        )
-        years_differ = top_candidate.year != second_candidate.year
-        both_strong = (
-            top_scores.overall >= VERIFIED_METADATA_THRESHOLD
-            and second_scores.overall >= VERIFIED_METADATA_THRESHOLD
-        )
-        if same_doi and (titles_differ or years_differ):
-            conflicts.append(
-                f"Metadata conflict for DOI {normalize_doi(top_candidate.doi)}: "
-                f"'{top_candidate.title}' ({top_candidate.source_api}) "
-                f"vs '{second_candidate.title}' ({second_candidate.source_api})"
-            )
-        elif dois_differ and both_strong and titles_differ:
-            conflicts.append(
-                f"Provider conflict: '{top_candidate.title}' ({top_candidate.source_api}) "
-                f"vs '{second_candidate.title}' ({second_candidate.source_api})"
-            )
+    for _scores, candidate in ranked:
+        records = candidate.provider_records
+        if len(records) < 2:
+            continue
+        providers = list(records.keys())
+        for i in range(len(providers)):
+            for j in range(i + 1, len(providers)):
+                rec_a = records[providers[i]]
+                rec_b = records[providers[j]]
+                norm_title_a = normalize_title(str(rec_a.get("title", "")))
+                norm_title_b = normalize_title(str(rec_b.get("title", "")))
+                year_a = rec_a.get("year")
+                year_b = rec_b.get("year")
+                doi_a = rec_a.get("doi")
+                doi_b = rec_b.get("doi")
+                title_conflict = bool(
+                    norm_title_a and norm_title_b
+                    and norm_title_a != norm_title_b
+                )
+                year_conflict = bool(
+                    year_a is not None and year_b is not None
+                    and year_a != year_b
+                )
+                doi_both = normalize_doi(str(doi_a)) if doi_a else None
+                doi_other = normalize_doi(str(doi_b)) if doi_b else None
+                if doi_both and doi_other and doi_both == doi_other and title_conflict:
+                    conflicts.append(
+                        f"Metadata conflict for DOI {doi_both}: "
+                        f"'{rec_a.get('title', '?')}' ({providers[i]}) "
+                        f"vs '{rec_b.get('title', '?')}' ({providers[j]})"
+                    )
+                elif doi_both and doi_other and doi_both == doi_other and year_conflict:
+                    conflicts.append(
+                        f"Year conflict for DOI {doi_both}: "
+                        f"{year_a} ({providers[i]}) vs {year_b} ({providers[j]})"
+                    )
+    if not conflicts:
+        top_candidate = ranked[0][1] if ranked else None
+        if top_candidate:
+            top_scores = ranked[0][0]
+            for second_scores, second_candidate in ranked[1:]:
+                dois_differ = (
+                    normalize_doi(top_candidate.doi)
+                    != normalize_doi(second_candidate.doi)
+                )
+                titles_differ = normalize_title(top_candidate.title) != normalize_title(
+                    second_candidate.title
+                )
+                both_strong = (
+                    top_scores.overall >= VERIFIED_METADATA_THRESHOLD
+                    and second_scores.overall >= VERIFIED_METADATA_THRESHOLD
+                )
+                if dois_differ and both_strong and titles_differ:
+                    conflicts.append(
+                        f"Provider conflict: '{top_candidate.title}' ({top_candidate.source_api}) "
+                        f"vs '{second_candidate.title}' ({second_candidate.source_api})"
+                    )
     return conflicts
 
 

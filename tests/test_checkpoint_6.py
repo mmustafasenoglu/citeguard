@@ -618,8 +618,12 @@ class TestPrimarySourcePreference:
         candidate = _make_candidate(venue="Springer")
         assert _classify_source_type(candidate) == SourceType.UNKNOWN
 
-    def test_explicit_journal_article_is_primary(self) -> None:
+    def test_explicit_journal_article_is_unknown(self) -> None:
         candidate = _make_candidate(work_type="journal-article")
+        assert _classify_source_type(candidate) == SourceType.UNKNOWN
+
+    def test_explicit_research_article_is_primary(self) -> None:
+        candidate = _make_candidate(work_type="research-article")
         assert _classify_source_type(candidate) == SourceType.PRIMARY
 
     def test_explicit_review_is_secondary(self) -> None:
@@ -648,7 +652,7 @@ class TestPrimarySourcePreference:
             authors=["Smith"],
             year=2020,
             venue="Nature",
-            work_type="journal-article",
+            work_type="research-article",
         )
         with patch(
             "citeguard.verification.RetrievalEngine.search_with_result"
@@ -698,13 +702,20 @@ class TestProviderFusion:
             doi="10.1000/test", title="Title A", authors=["Smith"],
             year=2020, source_api="crossref",
         )
-        c2 = _make_candidate(
-            doi="10.1000/test", title="Title B", authors=["Smith"],
-            year=2020, source_api="openalex",
-        )
+        c1.provider_records = {
+            "crossref": {
+                "title": "Title A", "authors": ["Smith"],
+                "year": 2020, "doi": "10.1000/test",
+                "work_type": None, "venue": None,
+            },
+            "openalex": {
+                "title": "Title B", "authors": ["Smith"],
+                "year": 2020, "doi": "10.1000/test",
+                "work_type": None, "venue": None,
+            },
+        }
         s1 = metadata_scores(entry, c1)
-        s2 = metadata_scores(entry, c2)
-        conflicts = _detect_provider_conflicts([(s1, c1), (s2, c2)])
+        conflicts = _detect_provider_conflicts([(s1, c1)])
         assert len(conflicts) == 1
         assert "Metadata conflict" in conflicts[0]
 
@@ -714,15 +725,22 @@ class TestProviderFusion:
             doi="10.1000/test", title="Same Title", authors=["Smith"],
             year=2020, source_api="crossref",
         )
-        c2 = _make_candidate(
-            doi="10.1000/test", title="Same Title", authors=["Smith"],
-            year=2021, source_api="openalex",
-        )
+        c1.provider_records = {
+            "crossref": {
+                "title": "Same Title", "authors": ["Smith"],
+                "year": 2020, "doi": "10.1000/test",
+                "work_type": None, "venue": None,
+            },
+            "openalex": {
+                "title": "Same Title", "authors": ["Smith"],
+                "year": 2021, "doi": "10.1000/test",
+                "work_type": None, "venue": None,
+            },
+        }
         s1 = metadata_scores(entry, c1)
-        s2 = metadata_scores(entry, c2)
-        conflicts = _detect_provider_conflicts([(s1, c1), (s2, c2)])
+        conflicts = _detect_provider_conflicts([(s1, c1)])
         assert len(conflicts) == 1
-        assert "Metadata conflict" in conflicts[0]
+        assert "Year conflict" in conflicts[0]
 
     def test_different_doi_high_scores_conflict(self) -> None:
         entry = _make_entry(
@@ -1098,3 +1116,324 @@ class TestRetrievalResultDiagnostics:
         engine = RetrievalEngine([good_provider], use_cache=False, rate_limit=False)
         result = engine.search_with_result("test query")
         assert result.provider_errors == []
+
+
+# ---------------------------------------------------------------------------
+# End-to-end provenance regression (P0)
+# ---------------------------------------------------------------------------
+
+
+class TestEndToEndProvenance:
+    def _make_candidate(self, *, title, year, doi, source_api, work_type="journal-article"):
+        return SourceCandidate(
+            title=title,
+            authors=["Author A"],
+            year=year,
+            venue="Journal",
+            doi=doi,
+            url=None,
+            abstract=None,
+            source_api=source_api,
+            work_type=work_type,
+        )
+
+    def test_same_doi_same_metadata_single_candidate(self) -> None:
+        from citeguard.retrieval import deduplicate_candidates
+        c1 = self._make_candidate(
+            title="Same Title", year=2020, doi="10.1000/test",
+            source_api="crossref",
+        )
+        c2 = self._make_candidate(
+            title="Same Title", year=2020, doi="10.1000/test",
+            source_api="openalex",
+        )
+        result = deduplicate_candidates([c1, c2])
+        assert len(result) == 1
+        c = result[0]
+        assert "crossref" in c.source_apis
+        assert "openalex" in c.source_apis
+        assert c.provider_records["crossref"]["title"] == "Same Title"
+        assert c.provider_records["openalex"]["title"] == "Same Title"
+
+    def test_same_doi_same_metadata_no_conflict(self) -> None:
+        from citeguard.retrieval import deduplicate_candidates
+        c1 = self._make_candidate(
+            title="Same Title", year=2020, doi="10.1000/test",
+            source_api="crossref",
+        )
+        c2 = self._make_candidate(
+            title="Same Title", year=2020, doi="10.1000/test",
+            source_api="openalex",
+        )
+        candidates = deduplicate_candidates([c1, c2])
+        entry = BibliographyEntry(
+            raw_text="Test. 2020.", authors=None, year=2020,
+            title="Same Title", doi="10.1000/test",
+        )
+        with patch(
+            "citeguard.verification.RetrievalEngine.search_with_result"
+        ) as mock_search:
+            mock_search.return_value = MagicMock(
+                candidates=candidates, warnings=[], queried_providers=["crossref", "openalex"],
+                provider_errors=[],
+            )
+            engine_v = RetrievalEngine([MagicMock()])
+            results = verify_bibliography([entry], engine_v, max_results=5)
+        assert results[0].provider_conflicts == []
+
+    def test_same_doi_conflicting_title_survives_dedup(self) -> None:
+        from citeguard.retrieval import deduplicate_candidates
+        c1 = self._make_candidate(
+            title="Title A", year=2020, doi="10.1000/test",
+            source_api="crossref",
+        )
+        c2 = self._make_candidate(
+            title="Title B", year=2020, doi="10.1000/test",
+            source_api="openalex",
+        )
+        candidates = deduplicate_candidates([c1, c2])
+        assert len(candidates) == 1
+        c = candidates[0]
+        assert "crossref" in c.provider_records
+        assert "openalex" in c.provider_records
+        assert c.provider_records["crossref"]["title"] == "Title A"
+        assert c.provider_records["openalex"]["title"] == "Title B"
+        entry = BibliographyEntry(
+            raw_text="Test. 2020.", authors=None, year=2020,
+            title="Title A", doi="10.1000/test",
+        )
+        with patch(
+            "citeguard.verification.RetrievalEngine.search_with_result"
+        ) as mock_search:
+            mock_search.return_value = MagicMock(
+                candidates=candidates, warnings=[], queried_providers=["crossref", "openalex"],
+                provider_errors=[],
+            )
+            engine_v = RetrievalEngine([MagicMock()])
+            results = verify_bibliography([entry], engine_v, max_results=5)
+        assert len(results[0].provider_conflicts) == 1
+        assert "Metadata conflict" in results[0].provider_conflicts[0]
+
+    def test_same_doi_conflicting_year_survives_dedup(self) -> None:
+        from citeguard.retrieval import deduplicate_candidates
+        c1 = self._make_candidate(
+            title="Same Title", year=2020, doi="10.1000/test",
+            source_api="crossref",
+        )
+        c2 = self._make_candidate(
+            title="Same Title", year=2022, doi="10.1000/test",
+            source_api="openalex",
+        )
+        candidates = deduplicate_candidates([c1, c2])
+        assert len(candidates) == 1
+        c = candidates[0]
+        assert c.provider_records["crossref"]["year"] == 2020
+        assert c.provider_records["openalex"]["year"] == 2022
+        entry = BibliographyEntry(
+            raw_text="Test. 2020.", authors=None, year=2020,
+            title="Same Title", doi="10.1000/test",
+        )
+        with patch(
+            "citeguard.verification.RetrievalEngine.search_with_result"
+        ) as mock_search:
+            mock_search.return_value = MagicMock(
+                candidates=candidates, warnings=[], queried_providers=["crossref", "openalex"],
+                provider_errors=[],
+            )
+            engine_v = RetrievalEngine([MagicMock()])
+            results = verify_bibliography([entry], engine_v, max_results=5)
+        assert len(results[0].provider_conflicts) == 1
+        assert "Year conflict" in results[0].provider_conflicts[0]
+
+    def test_same_doi_formatting_only_no_conflict(self) -> None:
+        from citeguard.retrieval import deduplicate_candidates, normalize_title
+        c1 = self._make_candidate(
+            title="Deep Learning: A Study", year=2020,
+            doi="10.1000/test", source_api="crossref",
+        )
+        c2 = self._make_candidate(
+            title="Deep learning - a study", year=2020,
+            doi="10.1000/test", source_api="openalex",
+        )
+        candidates = deduplicate_candidates([c1, c2])
+        assert len(candidates) == 1
+        c = candidates[0]
+        assert normalize_title(c.provider_records["crossref"]["title"]) == normalize_title(
+            c.provider_records["openalex"]["title"]
+        )
+
+    def test_exact_doi_verified_despite_metadata_disagreement(self) -> None:
+        from citeguard.retrieval import deduplicate_candidates
+        c1 = self._make_candidate(
+            title="Title A", year=2020, doi="10.1000/test",
+            source_api="crossref",
+        )
+        c2 = self._make_candidate(
+            title="Title B", year=2022, doi="10.1000/test",
+            source_api="openalex",
+        )
+        candidates = deduplicate_candidates([c1, c2])
+        entry = BibliographyEntry(
+            raw_text="Test. 2020.", authors=None, year=2020,
+            title="Title A", doi="10.1000/test",
+        )
+        with patch(
+            "citeguard.verification.RetrievalEngine.search_with_result"
+        ) as mock_search:
+            mock_search.return_value = MagicMock(
+                candidates=candidates, warnings=[], queried_providers=["crossref", "openalex"],
+                provider_errors=[],
+            )
+            engine_v = RetrievalEngine([MagicMock()])
+            results = verify_bibliography([entry], engine_v, max_results=5)
+        assert results[0].status == VerificationStatus.VERIFIED
+        assert len(results[0].provider_conflicts) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Exact arXiv identity ranking (P1)
+# ---------------------------------------------------------------------------
+
+
+class TestArxivRanking:
+    def test_exact_arxiv_outranks_fuzzy_s2(self) -> None:
+        from citeguard.retrieval import rank_candidates
+
+        c_arxiv = _make_candidate(
+            doi=None, arxiv_id="1706.03762", title="Completely Different",
+            authors=["Jones"], year=2017, source_api="arxiv",
+        )
+        c_fuzzy = _make_candidate(
+            doi=None, arxiv_id=None, title="Attention Is All You Need",
+            authors=["Vaswani"], year=2017, source_api="semantic_scholar",
+        )
+        ranked = rank_candidates("1706.03762", [c_fuzzy, c_arxiv])
+        assert ranked[0].arxiv_id == "1706.03762"
+
+    def test_exact_arxiv_outranks_newer_year(self) -> None:
+        from citeguard.retrieval import rank_candidates
+
+        c_arxiv = _make_candidate(
+            doi=None, arxiv_id="1706.03762", title="Old Title",
+            authors=["Jones"], year=2017, source_api="arxiv",
+        )
+        c_newer = _make_candidate(
+            doi=None, arxiv_id=None, title="1706.03762 Related Work",
+            authors=["Smith"], year=2023, source_api="openalex",
+        )
+        ranked = rank_candidates("1706.03762", [c_newer, c_arxiv])
+        assert ranked[0].arxiv_id == "1706.03762"
+
+    def test_exact_doi_still_top_evidence(self) -> None:
+        from citeguard.retrieval import rank_candidates
+
+        c_doi = _make_candidate(
+            doi="10.1000/test", title="Something Else",
+            authors=["Jones"], year=2019, source_api="openalex",
+        )
+        c_fuzzy = _make_candidate(
+            doi=None, title="10.1000/test Something",
+            authors=["Smith"], year=2020, source_api="semantic_scholar",
+        )
+        ranked = rank_candidates("10.1000/test", [c_fuzzy, c_doi])
+        assert ranked[0].doi == "10.1000/test"
+
+    def test_equal_candidates_deterministic_order(self) -> None:
+        from citeguard.retrieval import rank_candidates
+
+        c1 = _make_candidate(
+            doi=None, title="Alpha Paper", authors=["Smith"],
+            year=2020, source_api="crossref",
+        )
+        c2 = _make_candidate(
+            doi=None, title="Alpha Paper", authors=["Smith"],
+            year=2020, source_api="openalex",
+        )
+        r1 = rank_candidates("alpha paper", [c1, c2])
+        r2 = rank_candidates("alpha paper", [c2, c1])
+        assert [c.source_api for c in r1] == [c.source_api for c in r2]
+
+    def test_ranking_deterministic_repeated(self) -> None:
+        from citeguard.retrieval import rank_candidates
+
+        candidates = [
+            _make_candidate(
+                doi=None, title=f"Paper {i}", authors=["Smith"],
+                year=2020, source_api=f"provider_{i}",
+            )
+            for i in range(5)
+        ]
+        r1 = rank_candidates("paper", candidates)
+        r2 = rank_candidates("paper", list(reversed(candidates)))
+        assert [c.title for c in r1] == [c.title for c in r2]
+
+
+# ---------------------------------------------------------------------------
+# Conservative primary-source classification (P1)
+# ---------------------------------------------------------------------------
+
+
+class TestConservativeSourceType:
+    def test_venue_only_unknown(self) -> None:
+        candidate = _make_candidate(venue="Nature", work_type=None)
+        assert _classify_source_type(candidate) == SourceType.UNKNOWN
+
+    def test_venue_springer_unknown(self) -> None:
+        candidate = _make_candidate(venue="Springer", work_type=None)
+        assert _classify_source_type(candidate) == SourceType.UNKNOWN
+
+    def test_journal_article_unknown(self) -> None:
+        candidate = _make_candidate(work_type="journal-article")
+        assert _classify_source_type(candidate) == SourceType.UNKNOWN
+
+    def test_book_unknown(self) -> None:
+        candidate = _make_candidate(work_type="book")
+        assert _classify_source_type(candidate) == SourceType.UNKNOWN
+
+    def test_book_chapter_unknown(self) -> None:
+        candidate = _make_candidate(work_type="book-chapter")
+        assert _classify_source_type(candidate) == SourceType.UNKNOWN
+
+    def test_proceedings_article_unknown(self) -> None:
+        candidate = _make_candidate(work_type="proceedings-article")
+        assert _classify_source_type(candidate) == SourceType.UNKNOWN
+
+    def test_dataset_unknown(self) -> None:
+        candidate = _make_candidate(work_type="dataset")
+        assert _classify_source_type(candidate) == SourceType.UNKNOWN
+
+    def test_review_secondary(self) -> None:
+        candidate = _make_candidate(work_type="review")
+        assert _classify_source_type(candidate) == SourceType.SECONDARY
+
+    def test_editorial_secondary(self) -> None:
+        candidate = _make_candidate(work_type="editorial")
+        assert _classify_source_type(candidate) == SourceType.SECONDARY
+
+    def test_meta_analysis_secondary(self) -> None:
+        candidate = _make_candidate(work_type="meta-analysis")
+        assert _classify_source_type(candidate) == SourceType.SECONDARY
+
+    def test_systematic_review_secondary(self) -> None:
+        candidate = _make_candidate(work_type="systematic-review")
+        assert _classify_source_type(candidate) == SourceType.SECONDARY
+
+    def test_research_article_primary(self) -> None:
+        candidate = _make_candidate(work_type="research-article")
+        assert _classify_source_type(candidate) == SourceType.PRIMARY
+
+    def test_original_research_primary(self) -> None:
+        candidate = _make_candidate(work_type="original-research")
+        assert _classify_source_type(candidate) == SourceType.PRIMARY
+
+    def test_clinical_trial_primary(self) -> None:
+        candidate = _make_candidate(work_type="clinical-trial")
+        assert _classify_source_type(candidate) == SourceType.PRIMARY
+
+    def test_unknown_type_unknown(self) -> None:
+        candidate = _make_candidate(work_type="patent")
+        assert _classify_source_type(candidate) == SourceType.UNKNOWN
+
+    def test_missing_work_type_unknown(self) -> None:
+        candidate = _make_candidate(work_type=None)
+        assert _classify_source_type(candidate) == SourceType.UNKNOWN

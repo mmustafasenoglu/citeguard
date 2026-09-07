@@ -117,6 +117,7 @@ class SourceCandidate:
     arxiv_id: str | None = None
     work_type: str | None = None
     source_apis: list[str] = field(default_factory=list)
+    provider_records: dict[str, dict[str, object]] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
