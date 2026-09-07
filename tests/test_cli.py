@@ -38,7 +38,7 @@ def test_inspect_json_is_machine_readable(tmp_path) -> None:
     payload = json.loads(result.output)
 
     assert result.exit_code == 0
-    assert payload["schema_version"] == "2"
+    assert payload["schema_version"] == "3"
     assert payload["citations"][0]["sentence"] == "A claim (Smith, 2020)."
     assert payload["citations"][0]["bibliography_entry_indexes"] == [1]
 

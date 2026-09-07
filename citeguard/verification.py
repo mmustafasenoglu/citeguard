@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from collections.abc import Callable
 from difflib import SequenceMatcher
 
 from .models import (
@@ -14,7 +15,12 @@ from .models import (
     SourceType,
     VerificationStatus,
 )
-from .retrieval import RetrievalEngine, normalize_doi, normalize_title
+from .retrieval import (
+    RetrievalEngine,
+    RetrievalResult,
+    normalize_doi,
+    normalize_title,
+)
 
 VERIFIED_METADATA_THRESHOLD = 70
 _PARTIAL_METADATA_THRESHOLD = 50
@@ -48,6 +54,7 @@ def verify_bibliography(
     *,
     max_results: int = 5,
     recency_max_age: int = _DEFAULT_MAX_AGE_YEARS,
+    on_retrieval: Callable[[int, str, RetrievalResult], None] | None = None,
 ) -> list[ReferenceVerification]:
     results: list[ReferenceVerification] = []
     for index, entry in enumerate(entries):
@@ -67,12 +74,16 @@ def verify_bibliography(
             continue
 
         retrieval = engine.search_with_result(query, max_results=max_results)
+        if on_retrieval is not None:
+            on_retrieval(index, query, retrieval)
         warnings = list(retrieval.warnings)
         has_provider_errors = bool(retrieval.provider_errors)
         if not retrieval.candidates and entry.doi:
             fallback_query = bibliography_query(entry, prefer_doi=False)
             if fallback_query:
                 retrieval = engine.search_with_result(fallback_query, max_results=max_results)
+                if on_retrieval is not None:
+                    on_retrieval(index, fallback_query, retrieval)
                 warnings.extend(retrieval.warnings)
                 has_provider_errors = has_provider_errors or bool(retrieval.provider_errors)
                 warnings.append(

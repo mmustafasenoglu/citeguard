@@ -16,7 +16,7 @@ from .models import (
 from .scoring import AuditMetrics
 from .similarity.models import MatchType, SimilarityEngineResult
 
-SCHEMA_VERSION = "2"
+SCHEMA_VERSION = "3"
 
 
 def similarity_report(result: SimilarityEngineResult) -> dict[str, Any]:
@@ -373,6 +373,346 @@ def _verification_result_item(result: VerificationResult) -> dict[str, Any]:
         "suggestions_count": len(result.suggestions),
         "warnings": result.warnings,
     }
+
+
+def _verification_result_item(result: VerificationResult) -> dict[str, Any]:
+    matched = result.matched
+    return {
+        "claim_text": result.claim.text,
+        "claim_type": result.claim.claim_type.value,
+        "severity": result.claim.severity.value,
+        "paragraph": result.claim.paragraph_index + 1,
+        "status": result.status.value,
+        "matched": (
+            {
+                "title": matched.candidate.title,
+                "authors": matched.candidate.authors,
+                "year": matched.candidate.year,
+                "doi": matched.candidate.doi,
+                "overall_confidence": matched.overall_confidence,
+                "verdict": matched.verdict.value,
+                "evidence": [_evidence_item(e) for e in matched.evidence],
+            }
+            if matched
+            else None
+        ),
+        "suggestions_count": len(result.suggestions),
+        "warnings": result.warnings,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Product audit report (Checkpoint 7)
+# ---------------------------------------------------------------------------
+
+
+def audit_report(result: Any) -> dict[str, Any]:
+    """Serialize an AuditResult; all sections share one product model.
+
+    Citation presence, bibliographic resolution, claim support, source
+    suggestion, and similarity stay separate keys with distinct meanings.
+    """
+    from .audit import privacy_notice
+
+    metrics = result.metrics
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "document": result.document,
+        "execution": {
+            "offline": result.execution.offline,
+            "network_allowed": result.execution.network_allowed,
+            "network_used": result.execution.network_used,
+            "providers_queried": result.execution.providers_queried,
+            "providers_from_cache": result.execution.providers_from_cache,
+            "llm_used": result.execution.llm_used,
+            "llm_tasks": result.execution.llm_tasks,
+            "semantic_backend_used": result.execution.semantic_backend_used,
+        },
+        "privacy": privacy_notice(result.execution),
+        "summary": {
+            "health_score": metrics.health_score,
+            "health_score_complete": metrics.health_score_complete,
+            "unavailable_metrics": list(metrics.unavailable_metrics),
+            "total_claims": metrics.total_claims,
+            "claims_requiring_citations": metrics.claims_requiring_citations,
+            "cited_claims": metrics.cited_claims,
+            "verified_citations": metrics.verified_citations,
+            "partially_verified": metrics.partially_verified,
+            "weak_matches": (
+                metrics.weak_cited_source_matches + metrics.weak_suggestions
+            ),
+            "weak_cited_source_matches": metrics.weak_cited_source_matches,
+            "weak_suggestions": metrics.weak_suggestions,
+            "unresolved_citations": metrics.unresolved_citations,
+            "uncited_high_severity_claims": metrics.uncited_high_severity_claims,
+            "contradictions": metrics.contradictions,
+            "bibliography_issues": metrics.bibliography_issues,
+            "citation_coverage": metrics.citation_coverage,
+            "verification_ratio": metrics.verification_ratio,
+            "support_ratio": metrics.support_ratio,
+            "bibliography_consistency": metrics.bibliography_consistency,
+            "evidence_coverage": metrics.evidence_coverage,
+        },
+        "metrics": {
+            "health_score": metrics.health_score,
+            "health_score_complete": metrics.health_score_complete,
+            "unavailable_metrics": list(metrics.unavailable_metrics),
+            "total_claims": metrics.total_claims,
+            "claims_requiring_citations": metrics.claims_requiring_citations,
+            "cited_claims": metrics.cited_claims,
+            "verified_citations": metrics.verified_citations,
+            "partially_verified": metrics.partially_verified,
+            "weak_cited_source_matches": metrics.weak_cited_source_matches,
+            "weak_suggestions": metrics.weak_suggestions,
+            "unresolved_citations": metrics.unresolved_citations,
+            "uncited_high_severity_claims": metrics.uncited_high_severity_claims,
+            "contradictions": metrics.contradictions,
+            "bibliography_issues": metrics.bibliography_issues,
+            "citation_coverage": metrics.citation_coverage,
+            "verification_ratio": metrics.verification_ratio,
+            "support_ratio": metrics.support_ratio,
+            "bibliography_consistency": metrics.bibliography_consistency,
+            "evidence_coverage": metrics.evidence_coverage,
+        },
+        "claims": [_claim_item(c) for c in result.claims],
+        "bibliography_verification": [
+            _verification_item(r) for r in result.bibliography_verification
+        ],
+        "verification_results": [
+            _verification_item(r) for r in result.bibliography_verification
+        ],
+        "claim_support": [_claim_assessment_item(a) for a in result.claim_assessments],
+        "source_suggestions": [
+            _suggestion_assessment_item(s) for s in result.suggestions
+        ],
+        "bibliography_issues": [
+            {
+                "kind": issue.kind.value,
+                "detail": issue.detail,
+                "paragraph": (
+                    issue.paragraph_index + 1 if issue.paragraph_index is not None else None
+                ),
+            }
+            for issue in result.bibliography_issues
+        ],
+        "similarity": (
+            similarity_report(result.similarity) if result.similarity else None
+        ),
+        "priority_review": result.review_queue,
+        "diagnostics": [
+            {
+                "provider": d.provider,
+                "phase": d.phase,
+                "kind": d.kind,
+                "message": d.message,
+                "query": d.query,
+                "has_usable_result": d.has_usable_result,
+            }
+            for d in result.diagnostics
+        ],
+        "provider_phase_failed": result.provider_phase_failed,
+    }
+
+
+def _claim_assessment_item(assessment: Any) -> dict[str, Any]:
+    return {
+        "claim_text": assessment.claim.text,
+        "claim_type": assessment.claim.claim_type.value,
+        "severity": assessment.claim.severity.value,
+        "paragraph": assessment.claim.paragraph_index + 1,
+        "cited": assessment.claim.has_existing_citation,
+        "summary": assessment.summary,
+        "sources": [
+            {
+                "citation": s.citation_raw,
+                "bibliography_entry_index": (
+                    s.entry_index + 1 if s.entry_index is not None else None
+                ),
+                "bibliography_status": (
+                    s.bib_status.value if s.bib_status is not None else None
+                ),
+                "evaluated": s.evaluated,
+                "reason": s.reason,
+                "verdict": s.verdict.value if s.verdict is not None else None,
+                "metadata_score": s.metadata_score,
+                "support_score": s.support_score,
+                "confidence": s.confidence,
+                "candidate": (
+                    {
+                        "title": s.candidate.title,
+                        "authors": s.candidate.authors,
+                        "year": s.candidate.year,
+                        "doi": s.candidate.doi,
+                        "url": s.candidate.url,
+                        "source_api": s.candidate.source_api,
+                    }
+                    if s.candidate is not None
+                    else None
+                ),
+                "evidence": [_evidence_item(e) for e in s.evidence],
+            }
+            for s in assessment.sources
+        ],
+    }
+
+
+def _suggestion_assessment_item(suggestion: Any) -> dict[str, Any]:
+    return {
+        "claim_text": suggestion.claim.text,
+        "claim_type": suggestion.claim.claim_type.value,
+        "severity": suggestion.claim.severity.value,
+        "paragraph": suggestion.claim.paragraph_index + 1,
+        "status": suggestion.status.value,
+        "matched": (
+            {
+                "title": suggestion.matched.candidate.title,
+                "authors": suggestion.matched.candidate.authors,
+                "year": suggestion.matched.candidate.year,
+                "doi": suggestion.matched.candidate.doi,
+                "url": suggestion.matched.candidate.url,
+                "source_api": suggestion.matched.candidate.source_api,
+                "metadata_match_score": suggestion.matched.metadata_match_score,
+                "claim_support_score": suggestion.matched.claim_support_score,
+                "overall_confidence": suggestion.matched.overall_confidence,
+                "verdict": suggestion.matched.verdict.value,
+                "evidence": [_evidence_item(e) for e in suggestion.matched.evidence],
+            }
+            if suggestion.matched is not None
+            else None
+        ),
+        "suggestions": [
+            {
+                "title": m.candidate.title,
+                "authors": m.candidate.authors,
+                "year": m.candidate.year,
+                "doi": m.candidate.doi,
+                "url": m.candidate.url,
+                "source_api": m.candidate.source_api,
+                "metadata_match_score": m.metadata_match_score,
+                "claim_support_score": m.claim_support_score,
+                "overall_confidence": m.overall_confidence,
+                "verdict": m.verdict.value,
+                "evidence": [_evidence_item(e) for e in m.evidence],
+            }
+            for m in suggestion.suggestions
+        ],
+    }
+
+
+def markdown_audit_report(result: Any) -> str:
+    """Markdown rendering of an AuditResult (same model as JSON)."""
+    from .audit import privacy_notice
+
+    metrics = result.metrics
+    lines: list[str] = []
+    _md = lines.append
+
+    _md("# citeguard Check Report\n")
+    _md(f"**Document:** `{result.document}`\n")
+    _md(f"_{privacy_notice(result.execution)}_\n")
+
+    _md("## Citation Health Score\n")
+    if metrics.health_score is None:
+        missing = ", ".join(metrics.unavailable_metrics) or "unknown"
+        _md("**n/a (incomplete)**\n")
+        _md(f"Unavailable metrics: {missing}. The score is withheld rather than ")
+        _md("substituted with 100%.\n")
+    else:
+        _md(f"**{metrics.health_score}/100**\n")
+    _md("")
+    _md("> The Citation Health Score is a review-prioritization heuristic. It does **not**")
+    _md("> measure scientific or academic correctness.\n")
+
+    _md("## Summary\n")
+    _md(f"- Total claims detected: **{metrics.total_claims}**")
+    _md(f"- Claims requiring citations: **{metrics.claims_requiring_citations}**")
+    _md(f"- Cited claims: **{metrics.cited_claims}**")
+    _md(f"- Verified citations: **{metrics.verified_citations}**")
+    _md(f"- Partially verified: **{metrics.partially_verified}**")
+    _md(f"- Unresolved citations: **{metrics.unresolved_citations}**")
+    _md(f"- Weak cited-source matches: **{metrics.weak_cited_source_matches}**")
+    _md(f"- Weak suggestions: **{metrics.weak_suggestions}**")
+    _md(f"- Uncited high-severity claims: **{metrics.uncited_high_severity_claims}**")
+    _md(f"- Contradictions: **{metrics.contradictions}**")
+    _md(f"- Bibliography issues: **{metrics.bibliography_issues}**")
+    _md("")
+
+    _md("## Ratios\n")
+    _md(f"- Citation coverage: **{_fmt_ratio(metrics.citation_coverage)}**")
+    _md(f"- Verification ratio: **{_fmt_ratio(metrics.verification_ratio)}**")
+    _md(f"- Support ratio: **{_fmt_ratio(metrics.support_ratio)}**")
+    _md(f"- Evidence coverage: **{_fmt_ratio(metrics.evidence_coverage)}**")
+    _md(f"- Bibliography consistency: **{_fmt_ratio(metrics.bibliography_consistency)}**")
+    _md("")
+
+    if result.claims:
+        _md("## Detected Claims\n")
+        _md("| # | Claim | Type | Severity | Cited |")
+        _md("|---|-------|------|----------|-------|")
+        for i, claim in enumerate(result.claims, 1):
+            cited = "Yes" if claim.has_existing_citation else "No"
+            _md(
+                f"| {i} | {claim.text} | {claim.claim_type.value} "
+                f"| {claim.severity.value} | {cited} |"
+            )
+        _md("")
+
+    if result.bibliography_verification:
+        _md("## Bibliography Verification\n")
+        _md("| # | Entry | Status | Score | Candidate |")
+        _md("|---|-------|--------|-------|-----------|")
+        for item in result.bibliography_verification:
+            entry_label = (
+                item.entry.title or item.entry.authors or item.entry.raw_text[:50]
+            )
+            score = str(item.scores.overall) if item.scores else "-"
+            cand_title = item.candidate.title[:40] if item.candidate else "-"
+            _md(
+                f"| {item.entry_index + 1} | {entry_label} | {item.status.value} "
+                f"| {score} | {cand_title} |"
+            )
+        _md("")
+
+    if result.claim_assessments:
+        _md("## Cited-Claim Support\n")
+        _md("Bibliographic resolution and claim support are separate signals.\n")
+        for assessment in result.claim_assessments:
+            _md(f"### Claim: {assessment.claim.text}\n")
+            _md(f"- Support summary: **{assessment.summary}**\n")
+            for src in assessment.sources:
+                status = src.bib_status.value if src.bib_status else "unresolved"
+                verdict = src.verdict.value if src.verdict else "n/a"
+                _md(f"- Cited `{src.citation_raw}` → bibliography status `{status}`, "
+                    f"support verdict `{verdict}`")
+            _md("")
+
+    if result.review_queue:
+        _md("## Priority Review List\n")
+        _md("Items below are sorted by risk priority (highest first).\n")
+        for item in result.review_queue:
+            sev = str(item.get("severity", "")).upper()
+            kind = item.get("kind", "")
+            txt = item.get("claim_text", "")
+            _md(f"- **{sev}** [{kind}] - {txt}")
+        _md("")
+
+    if result.diagnostics:
+        _md("## Provider Diagnostics\n")
+        for d in result.diagnostics:
+            _md(f"- **{d.provider}** ({d.phase}, {d.kind}): {d.message}")
+        _md("")
+
+    _md("---\n")
+    _md("*Generated by citeguard. This report is a review-prioritization aid, "
+        "not an academic judgment.*")
+
+    return "\n".join(lines)
+
+
+def _fmt_ratio(value: float | None) -> str:
+    if value is None:
+        return "n/a (not evaluated)"
+    return f"{value:.1%}"
 
 
 # ---------------------------------------------------------------------------

@@ -24,6 +24,8 @@ _TOKEN_RE = re.compile(r"[a-z0-9]+")
 def match_claim_to_source(
     claim: Claim,
     candidate: SourceCandidate,
+    *,
+    offline: bool = False,
 ) -> tuple[int, int, Verdict, str, list[Evidence]]:
     """Full evidence-aware matching pipeline.
 
@@ -32,6 +34,9 @@ def match_claim_to_source(
     ``support_score`` is a standalone signal (evidence + entailment) that
     does NOT include metadata.  ``overall_confidence`` in ``scoring.py``
     combines ``metadata_score`` and ``support_score`` exactly once.
+
+    When ``offline`` is True, remote LLM entailment is never attempted and
+    only the deterministic local contradiction heuristic is used.
     """
     metadata_score = _metadata_similarity(claim, candidate)
 
@@ -39,7 +44,7 @@ def match_claim_to_source(
 
     evidence_list = extract_evidence(claim, candidate)
 
-    entailment = _evaluate_evidence(claim, candidate, evidence_list)
+    entailment = _evaluate_evidence(claim, candidate, evidence_list, offline=offline)
 
     _propagate_entailment(evidence_list, entailment)
 
@@ -70,13 +75,16 @@ def _evaluate_evidence(
     claim: Claim,
     candidate: SourceCandidate,
     evidence_list: list[Evidence],
+    *,
+    offline: bool = False,
 ) -> EntailmentResult | None:
     """Run entailment evaluation: try LLM first, fall back to offline."""
     from .entailment import contradiction_risk, evaluate_evidence_with_llm
 
-    llm_result = evaluate_evidence_with_llm(claim, evidence_list, candidate)
-    if llm_result is not None:
-        return llm_result
+    if not offline:
+        llm_result = evaluate_evidence_with_llm(claim, evidence_list, candidate)
+        if llm_result is not None:
+            return llm_result
 
     if evidence_list:
         return contradiction_risk(claim, evidence_list[0].text)

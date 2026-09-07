@@ -51,7 +51,7 @@ def test_similarity_json_and_show_sentences(tmp_path) -> None:
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
-    assert payload["schema_version"] == "2"
+    assert payload["schema_version"] == "3"
     assert "summary" in payload
     assert "results" in payload
     assert "attribution_risk" in payload["results"][0]

@@ -208,6 +208,152 @@ def priority_list(results: list[VerificationResult]) -> list[VerificationResult]
     return sorted(results, key=lambda r: priority_score(r), reverse=True)
 
 
+@dataclass(frozen=True, slots=True)
+class ProductMetrics:
+    """Product-level audit metrics with explicit availability semantics.
+
+    Ratio fields are ``None`` when the underlying evaluation could not be
+    performed (e.g. offline cache miss, total provider failure), which is
+    distinct from a measured perfect score.  JSON consumers must treat
+    ``None`` as "unavailable", never as 100%.
+    """
+
+    total_claims: int
+    claims_requiring_citations: int
+    cited_claims: int
+    verified_citations: int
+    partially_verified: int
+    weak_cited_source_matches: int
+    weak_suggestions: int
+    unresolved_citations: int
+    uncited_high_severity_claims: int
+    contradictions: int
+    bibliography_issues: int
+    citation_coverage: float
+    verification_ratio: float | None
+    support_ratio: float | None
+    bibliography_consistency: float
+    evidence_coverage: float | None
+    health_score: int | None
+    health_score_complete: bool
+    unavailable_metrics: tuple[str, ...]
+
+
+def compute_product_metrics(
+    *,
+    total_claims: int,
+    cited_claims: int,
+    verified_citations: int,
+    partially_verified: int,
+    bib_evaluated: int,
+    bib_total: int,
+    supported_cited_claims: int,
+    contradicted_assessments: int,
+    cited_evaluated: int,
+    cited_with_evidence: int,
+    weak_cited_source_matches: int,
+    weak_suggestions: int,
+    uncited_high: int,
+    unresolved_high: int,
+    bibliography_issues: int,
+    bibliography_entries: int,
+    distinct_citations: int,
+) -> ProductMetrics:
+    """Compute product metrics from already-separated audit signals.
+
+    Definitions:
+    - ``citation_coverage`` = cited / total (1.0 when there are no claims).
+    - ``verification_ratio`` = VERIFIED bib entries / evaluated bib entries;
+      1.0 when there are no bibliography entries; None when entries exist
+      but none could be evaluated.  PARTIALLY_VERIFIED never counts.
+    - ``support_ratio`` = cited claims with >= 1 supported resolved source /
+      cited claims evaluated for support; None when none were evaluated.
+      Uncited suggestions are excluded.
+    - ``evidence_coverage`` = evaluated cited claims with usable evidence /
+      evaluated cited claims; None when none were evaluated.
+    - ``bibliography_consistency`` = 1 - issues /
+      max(entries + distinct in-text citations, 1), clamped to 0..1.
+    - ``health_score`` uses the established SPEC weights; None (with
+      ``health_score_complete`` False) when any required component is
+      unavailable instead of substituting 100%.
+    """
+    claims_requiring = total_claims - cited_claims
+    citation_coverage = cited_claims / total_claims if total_claims > 0 else 1.0
+
+    if bib_total <= 0:
+        verification_ratio: float | None = 1.0
+    elif bib_evaluated <= 0:
+        verification_ratio = None
+    else:
+        verification_ratio = verified_citations / bib_evaluated
+
+    if cited_evaluated <= 0:
+        support_ratio: float | None = None
+        evidence_coverage: float | None = None
+    else:
+        support_ratio = supported_cited_claims / cited_evaluated
+        evidence_coverage = cited_with_evidence / cited_evaluated
+
+    denom = max(bibliography_entries + distinct_citations, 1)
+    bibliography_consistency = max(
+        0.0, min(1.0, 1.0 - (bibliography_issues / denom))
+    )
+
+    unavailable = [
+        name
+        for name, value in (
+            ("verification_ratio", verification_ratio),
+            ("support_ratio", support_ratio),
+            ("evidence_coverage", evidence_coverage),
+        )
+        if value is None
+    ]
+    if unavailable:
+        health: int | None = None
+        complete = False
+    else:
+        assert verification_ratio is not None
+        assert support_ratio is not None
+        assert evidence_coverage is not None
+        health = compute_health_score(
+            citation_coverage=citation_coverage,
+            verification_ratio=verification_ratio,
+            support_ratio=support_ratio,
+            bibliography_consistency=bibliography_consistency,
+            evidence_coverage=evidence_coverage,
+            uncited_high=uncited_high,
+            contradictions=contradicted_assessments,
+            unresolved_high=unresolved_high,
+        )
+        complete = True
+
+    return ProductMetrics(
+        total_claims=total_claims,
+        claims_requiring_citations=claims_requiring,
+        cited_claims=cited_claims,
+        verified_citations=verified_citations,
+        partially_verified=partially_verified,
+        weak_cited_source_matches=weak_cited_source_matches,
+        weak_suggestions=weak_suggestions,
+        unresolved_citations=cited_claims - supported_cited_claims,
+        uncited_high_severity_claims=uncited_high,
+        contradictions=contradicted_assessments,
+        bibliography_issues=bibliography_issues,
+        citation_coverage=round(citation_coverage, 3),
+        verification_ratio=(
+            round(verification_ratio, 3) if verification_ratio is not None else None
+        ),
+        support_ratio=round(support_ratio, 3) if support_ratio is not None else None,
+        bibliography_consistency=round(bibliography_consistency, 3),
+        evidence_coverage=(
+            round(evidence_coverage, 3) if evidence_coverage is not None else None
+        ),
+        health_score=health,
+        health_score_complete=complete,
+        unavailable_metrics=tuple(unavailable),
+    )
+
+
 def _validate_score(value: int) -> None:
     if not 0 <= value <= 100:
         raise ValueError("Scores must be between 0 and 100.")

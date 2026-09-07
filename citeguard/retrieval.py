@@ -35,6 +35,14 @@ _TRAILING_DOI_PUNCTUATION = ".,;:)]}>"
 _PROVIDER_PRIORITY = {"semantic_scholar": 0, "crossref": 1, "openalex": 2, "arxiv": 3}
 
 
+class _OfflineSkipped(Exception):
+    """Internal signal: offline mode with no cached result for a provider.
+
+    This is a policy skip, not a provider failure: the provider was never
+    called and no error diagnostic should be recorded for it.
+    """
+
+
 @dataclass(frozen=True, slots=True)
 class RetrievalResult:
     candidates: list[SourceCandidate]
@@ -42,6 +50,9 @@ class RetrievalResult:
     queried_providers: list[str]
     early_stopped: bool = False
     provider_errors: list[str] = field(default_factory=list)
+    offline: bool = False
+    skipped_providers: list[str] = field(default_factory=list)
+    cache_hits: list[str] = field(default_factory=list)
 
 
 class _RateLimiter:
@@ -71,6 +82,7 @@ class RetrievalEngine:
         use_cache: bool = True,
         parallel: bool = True,
         rate_limit: bool = True,
+        offline: bool = False,
     ) -> None:
         self.providers = providers if providers is not None else [
             SemanticScholarProvider(),
@@ -82,7 +94,11 @@ class RetrievalEngine:
         self.use_cache = use_cache
         self.parallel = parallel
         self._rate_limiter = _RateLimiter() if rate_limit else None
+        self.offline = offline
         self.last_result: RetrievalResult | None = None
+        self.remote_calls: list[str] = []
+        self._call_skipped: list[str] = []
+        self._call_cache_hits: list[str] = []
 
     def search(self, query: str, max_results: int = DEFAULT_MAX_RESULTS) -> list[SourceCandidate]:
         """Return ranked candidates; provider failures are exposed via ``last_result``."""
@@ -101,13 +117,15 @@ class RetrievalEngine:
         """
         query = " ".join(query.split())
         if not query or max_results <= 0:
-            return RetrievalResult([], [], [])
+            return RetrievalResult([], [], [], offline=self.offline)
 
         gathered: list[SourceCandidate] = []
         warnings: list[str] = []
         queried: list[str] = []
         provider_errors: list[str] = []
         early_stopped = False
+        self._call_skipped: list[str] = []
+        self._call_cache_hits: list[str] = []
 
         if self.parallel and len(self.providers) > 1:
             gathered, warnings, queried, early_stopped, provider_errors = (
@@ -119,7 +137,16 @@ class RetrievalEngine:
             )
 
         candidates = rank_candidates(query, deduplicate_candidates(gathered))[:max_results]
-        return RetrievalResult(candidates, warnings, queried, early_stopped, provider_errors)
+        return RetrievalResult(
+            candidates,
+            warnings,
+            queried,
+            early_stopped,
+            provider_errors,
+            offline=self.offline,
+            skipped_providers=sorted(set(self._call_skipped)),
+            cache_hits=sorted(set(self._call_cache_hits)),
+        )
 
     def _search_sequential(
         self, query: str, max_results: int
@@ -134,6 +161,8 @@ class RetrievalEngine:
                 self._rate_limiter.wait(provider.name)
             try:
                 candidates = self._provider_search(provider, query, max_results)
+            except _OfflineSkipped:
+                continue
             except Exception as exc:
                 provider_errors.append(f"{provider.name}: {exc}")
                 continue
@@ -154,6 +183,9 @@ class RetrievalEngine:
             first_candidates = self._provider_search(
                 first_provider, query, max_results
             )
+        except _OfflineSkipped:
+            first_candidates = []
+            provider_errors_first = []
         except Exception as exc:
             first_candidates = []
             provider_errors_first = [f"{first_provider.name}: {exc}"]
@@ -197,6 +229,8 @@ class RetrievalEngine:
             self._rate_limiter.wait(provider.name)
         try:
             return self._provider_search(provider, query, max_results)
+        except _OfflineSkipped:
+            return []
         except Exception as exc:
             return exc
 
@@ -215,11 +249,22 @@ class RetrievalEngine:
                 try:
                     if not isinstance(cached, list):
                         raise ProviderResponseError("Cached provider result is malformed.")
-                    return [normalize_candidate(candidate_from_dict(item)) for item in cached]
+                    result = [
+                        normalize_candidate(candidate_from_dict(item))
+                        for item in cached
+                    ]
                 except ProviderResponseError:
                     pass
+                else:
+                    self._call_cache_hits.append(provider.name)
+                    return result
+
+        if self.offline:
+            self._call_skipped.append(provider.name)
+            raise _OfflineSkipped(provider.name)
 
         candidates = [normalize_candidate(item) for item in provider.search(query, max_results)]
+        self.remote_calls.append(provider.name)
         if self.cache is not None and self.use_cache and key is not None:
             self.cache.set(key, [candidate_to_dict(item) for item in candidates])
         return candidates
