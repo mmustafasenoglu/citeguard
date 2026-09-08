@@ -36,6 +36,10 @@ dependencies = [
 semantic = [
   "sentence-transformers>=2.2,<4",
 ]
+nli = [
+  "transformers>=4.30,<5",
+  "torch>=2.0",
+]
 dev = [
   "build>=1,<2",
   "pytest>=8,<9",

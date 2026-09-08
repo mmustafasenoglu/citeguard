@@ -18,7 +18,9 @@ from .evaluator import evaluate_candidate
 from .meaning import (
     HeuristicEntailmentBackend,
     MeaningThresholds,
+    SentenceTransformerSemanticBackend,
     SequenceSemanticBackend,
+    TransformerNLIBackend,
     validate_meaning,
 )
 from .metrics import ReductionMetrics, compute_reduction_metrics
@@ -50,7 +52,9 @@ __all__ = [
     "generate_candidates",
     "HeuristicEntailmentBackend",
     "MeaningThresholds",
+    "SentenceTransformerSemanticBackend",
     "SequenceSemanticBackend",
+    "TransformerNLIBackend",
     "validate_meaning",
     "ReductionMetrics",
     "compute_reduction_metrics",
