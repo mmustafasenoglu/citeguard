@@ -2,6 +2,16 @@
 
 All notable changes to citeguard will be documented here.
 
+## [Unreleased] — Attribution reduction MVP
+
+### Added
+
+- Added non-destructive `citeguard improve-attribution` preview analysis.
+- Added passage risk classification, conservative fix planning, rewrite candidate
+  integrity gates, deterministic ranking, and JSON reduction reports.
+- Added local deterministic tests for citation, numeric, support, and preview-only
+  invariants.
+
 ## [1.0.1] - 2026-09-08
 
 ### Fixed

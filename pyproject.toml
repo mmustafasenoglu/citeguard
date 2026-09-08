@@ -52,7 +52,14 @@ Repository = "https://github.com/mmustafasenoglu/citeguard"
 Issues = "https://github.com/mmustafasenoglu/citeguard/issues"
 
 [tool.setuptools]
-packages = ["citeguard", "citeguard.providers", "citeguard.corpus", "citeguard.similarity", "citeguard.similarity.embeddings"]
+packages = [
+  "citeguard",
+  "citeguard.providers",
+  "citeguard.corpus",
+  "citeguard.similarity",
+  "citeguard.similarity.embeddings",
+  "citeguard.reduction",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

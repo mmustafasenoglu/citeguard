@@ -1073,6 +1073,104 @@ def similarity_command(
         _print_similarity_terminal(result, show_sentences)
 
 
+@main.command("improve-attribution")
+@click.argument("file", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option(
+    "--corpus",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Path to a licensed local corpus used for attribution analysis.",
+)
+@click.option("--corpus-license", default=None, help="Explicit corpus license.")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["terminal", "json"]),
+    default="terminal",
+    show_default=True,
+)
+@click.option("--output", type=click.Path(dir_okay=False, path_type=Path))
+@click.option(
+    "--severity",
+    type=click.Choice(["high", "medium", "low"]),
+    default=None,
+    help="Only include passages at or above this risk level.",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Plan and report safe actions without changing the source document.",
+)
+def improve_attribution_command(
+    file: Path,
+    corpus: Path,
+    corpus_license: str | None,
+    output_format: str,
+    output: Path | None,
+    severity: str | None,
+    dry_run: bool,
+) -> None:
+    """Analyze attribution risk and produce a reviewable improvement plan.
+
+    This MVP is non-destructive: it never rewrites or overwrites FILE.
+    Candidate generation and document application require later release stages.
+    """
+    from .extractor import parse_enriched_document
+    from .reduction.analyzer import analyze_passage_risks
+    from .reduction.planner import build_fix_plans
+    from .reduction.report import reduction_report
+    from .similarity.engine import SimilarityEngine
+    from .similarity.models import SimilarityConfig
+
+    if not dry_run:
+        console.print(
+            "[dim]Attribution improvement is preview-only in this release; "
+            "no document changes will be applied.[/dim]"
+        )
+    index = _load_similarity_corpus(corpus, corpus_license)
+    enriched = parse_enriched_document(file)
+    result = SimilarityEngine(
+        config=SimilarityConfig()
+    ).analyze_document(
+        sentences=enriched.sentences,
+        index=index,
+        bibliography_entries=enriched.bibliography_entries,
+    )
+    risks = analyze_passage_risks(result)
+    if severity:
+        order = {"high": 3, "medium": 2, "low": 1}
+        minimum = order[severity]
+        risks = [
+            risk for risk in risks
+            if order.get(risk.attribution_risk.value, 0) >= minimum
+        ]
+    plans = build_fix_plans(risks)
+    payload = reduction_report(risks, plans)
+    payload["source"] = str(file)
+    payload["dry_run"] = True
+    payload["summary"] = {
+        "passages": len(risks),
+        "high_risk": sum(risk.attribution_risk.value == "high" for risk in risks),
+        "medium_risk": sum(risk.attribution_risk.value == "medium" for risk in risks),
+        "rewrite_plans": sum(plan.rewrite_allowed for plan in plans),
+        "manual_review": sum(
+            plan.action.value == "manual_review" for plan in plans
+        ),
+    }
+    if output_format == "json":
+        _write_json(payload, output)
+        return
+    console.print("[bold]citeguard Attribution Improvement Preview[/bold]")
+    console.print(f"Document: {file}")
+    console.print(f"Passages analyzed: {payload['summary']['passages']}")
+    console.print(f"High risk: {payload['summary']['high_risk']}")
+    console.print(f"Medium risk: {payload['summary']['medium_risk']}")
+    console.print(f"Rewrite plans: {payload['summary']['rewrite_plans']}")
+    console.print(f"Manual review: {payload['summary']['manual_review']}")
+    console.print("[dim]No document changes were applied.[/dim]")
+
+
 def _similarity_to_markdown(result: SimilarityEngineResult, show_sentences: bool) -> str:
     """Convert similarity result to markdown format."""
     from citeguard.similarity.models import MatchType

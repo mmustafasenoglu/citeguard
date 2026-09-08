@@ -1,0 +1,72 @@
+"""JSON-safe reduction report serialization."""
+
+from __future__ import annotations
+
+from typing import Any
+
+from .models import FixPlan, PassageRisk, RewriteCandidate
+
+REDUCTION_SCHEMA_VERSION = "1"
+
+
+def reduction_report(
+    risks: list[PassageRisk],
+    plans: list[FixPlan],
+    *,
+    candidates: dict[str, list[RewriteCandidate]] | None = None,
+) -> dict[str, Any]:
+    """Serialize reduction planning and candidate evidence."""
+    candidate_map = candidates or {}
+    return {
+        "schema_version": REDUCTION_SCHEMA_VERSION,
+        "risks": [
+            {
+                "passage_id": risk.passage_id,
+                "text": risk.text,
+                "paragraph_index": risk.paragraph_index,
+                "start_offset": risk.start_offset,
+                "end_offset": risk.end_offset,
+                "exact_overlap": risk.exact_overlap,
+                "lexical_similarity": risk.lexical_similarity,
+                "semantic_similarity_raw": risk.semantic_similarity_raw,
+                "attribution_risk": risk.attribution_risk.value,
+                "has_citation": risk.has_citation,
+                "citation_texts": list(risk.citation_texts),
+                "risk_type": risk.risk_type.value,
+                "recommended_action": risk.recommended_action.value,
+                "confidence": risk.confidence,
+                "source_title": risk.source_title,
+                "source_id": risk.source_id,
+            }
+            for risk in risks
+        ],
+        "plans": [
+            {
+                "passage_id": plan.passage_id,
+                "action": plan.action.value,
+                "reason": plan.reason,
+                "preserve_citations": list(plan.preserve_citations),
+                "must_preserve_numbers": list(plan.must_preserve_numbers),
+                "rewrite_allowed": plan.rewrite_allowed,
+            }
+            for plan in plans
+        ],
+        "candidates": {
+            passage_id: [
+                {
+                    "text": candidate.text,
+                    "generator": candidate.generator,
+                    "score": candidate.score,
+                    "accepted": not candidate.rejection_reasons,
+                    "rejection_reasons": candidate.rejection_reasons,
+                    "meaning_score": candidate.meaning_score,
+                    "source_support_score": candidate.source_support_score,
+                    "citations_preserved": candidate.citations_preserved,
+                    "numeric_integrity": candidate.numeric_integrity,
+                    "factual_integrity": candidate.factual_integrity,
+                }
+                for candidate in values
+            ]
+            for passage_id, values in candidate_map.items()
+        },
+    }
