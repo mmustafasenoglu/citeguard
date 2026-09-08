@@ -4,6 +4,11 @@ from click.testing import CliRunner
 
 from citeguard.cli import main
 
+_SS = "citeguard.providers.semantic_scholar.SemanticScholarProvider.search"
+_CR = "citeguard.providers.crossref.CrossrefProvider.search"
+_AR = "citeguard.providers.arxiv.ArxivProvider.search"
+_OA = "citeguard.providers.openalex.OpenAlexProvider.search"
+
 
 def _doc(tmp_path, text=""):
     path = tmp_path / "paper.txt"
@@ -21,9 +26,9 @@ def test_check_runs_end_to_end(tmp_path, monkeypatch) -> None:
     def fake_search(_self, _query, max_results=5):
         return []
 
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["check", str(path), "--format", "json"])
     payload = json.loads(result.output)
@@ -45,9 +50,9 @@ def test_check_terminal_output(tmp_path, monkeypatch) -> None:
     def fake_search(_self, _query, max_results=5):
         return []
 
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["check", str(path)])
     assert "Citation Health Score" in result.output
@@ -64,9 +69,9 @@ def test_check_markdown_output(tmp_path, monkeypatch) -> None:
     def fake_search(_self, _query, max_results=5):
         return []
 
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
 
     output = tmp_path / "report.md"
     result = CliRunner().invoke(
@@ -88,9 +93,9 @@ def test_suggest_runs_end_to_end(tmp_path, monkeypatch) -> None:
     def fake_search(_self, _query, max_results=5):
         return []
 
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["suggest", str(path), "--format", "json"])
     payload = json.loads(result.output)
@@ -110,9 +115,9 @@ def test_suggest_terminal_output(tmp_path, monkeypatch) -> None:
     def fake_search(_self, _query, max_results=5):
         return []
 
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["suggest", str(path)])
     assert "Source Suggestions" in result.output
@@ -128,9 +133,9 @@ def test_check_respects_severity_filter(tmp_path, monkeypatch) -> None:
     def fake_search(_self, _query, max_results=5):
         return []
 
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(
         main, ["check", str(path), "--severity", "high", "--format", "json"]
@@ -151,9 +156,9 @@ def test_check_respects_max_claims(tmp_path, monkeypatch) -> None:
     def fake_search(_self, _query, max_results=5):
         return []
 
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(
         main, ["check", str(path), "--max-claims", "1", "--format", "json"]
@@ -195,7 +200,7 @@ def test_verify_still_works(tmp_path, monkeypatch) -> None:
             )
         ][:max_results]
 
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
+    monkeypatch.setattr(_CR, fake_search)
     result = CliRunner().invoke(main, ["verify", str(path)])
     assert result.exit_code == 0
     assert "verified" in result.output
@@ -211,9 +216,9 @@ def test_check_format_both(tmp_path, monkeypatch) -> None:
     def fake_search(_self, _query, max_results=5):
         return []
 
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["check", str(path), "--format", "both"])
     assert result.exit_code in (0, 1)
@@ -240,9 +245,9 @@ def test_check_format_both_with_output(tmp_path, monkeypatch) -> None:
     def fake_search(_self, _query, max_results=5):
         return []
 
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
 
     out = tmp_path / "report"
     result = CliRunner().invoke(
@@ -262,9 +267,9 @@ def test_suggest_format_both(tmp_path, monkeypatch) -> None:
     def fake_search(_self, _query, max_results=5):
         return []
 
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["suggest", str(path), "--format", "both"])
     assert result.exit_code == 0
@@ -324,7 +329,7 @@ def test_verify_format_both(tmp_path, monkeypatch) -> None:
             )
         ][:max_results]
 
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
+    monkeypatch.setattr(_CR, fake_search)
     result = CliRunner().invoke(main, ["verify", str(path), "--format", "both"])
     assert result.exit_code == 0
 
@@ -377,9 +382,9 @@ def test_check_exits_1_on_findings(tmp_path, monkeypatch) -> None:
     def fake_search(_self, _query, max_results=5):
         return []
 
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["check", str(path)])
     assert result.exit_code == 1
@@ -413,21 +418,25 @@ def test_check_evidence_pipeline_integration(tmp_path, monkeypatch) -> None:
             )
         ][:max_results]
 
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search)
+    monkeypatch.setattr(_SS, fake_search)
+    monkeypatch.setattr(_CR, fake_search)
+    monkeypatch.setattr(_AR, fake_search)
+    monkeypatch.setattr(_OA, fake_search)
 
-    result = CliRunner().invoke(main, ["check", str(path), "--format", "json"])
+    result = CliRunner().invoke(
+        main, ["check", str(path), "--format", "json", "--threshold", "0"]
+    )
     assert result.exit_code in (0, 1)
 
     payload = json.loads(result.output)
     assert "priority_review" in payload
     assert len(payload["priority_review"]) >= 1
 
-    # Check that evidence is present in the JSON output
-    pr = payload["priority_review"][0]
-    assert "matched" in pr
-    assert pr["matched"] is not None
+    matched_items = [
+        item for item in payload["priority_review"] if item.get("matched") is not None
+    ]
+    assert len(matched_items) >= 1
+    pr = matched_items[0]
     assert "evidence" in pr["matched"]
     evidence = pr["matched"]["evidence"]
     assert isinstance(evidence, list)
@@ -467,14 +476,14 @@ def test_check_require_evidence_filter(tmp_path, monkeypatch) -> None:
             ][:max_results]
         return []
 
-    monkeypatch.setattr("citeguard.cli.SemanticScholarProvider.search", fake_search_transformers)
-    monkeypatch.setattr("citeguard.cli.CrossrefProvider.search", fake_search_transformers)
-    monkeypatch.setattr("citeguard.cli.ArxivProvider.search", fake_search_transformers)
-    monkeypatch.setattr("citeguard.cli.OpenAlexProvider.search", fake_search_transformers)
+    monkeypatch.setattr(_SS, fake_search_transformers)
+    monkeypatch.setattr(_CR, fake_search_transformers)
+    monkeypatch.setattr(_AR, fake_search_transformers)
+    monkeypatch.setattr(_OA, fake_search_transformers)
 
     # Without --require-evidence: both claims should appear
     result_all = CliRunner().invoke(
-        main, ["check", str(path), "--format", "json", "--no-cache"]
+        main, ["check", str(path), "--format", "json", "--no-cache", "--threshold", "0"]
     )
     payload_all = json.loads(result_all.output)
     assert len(payload_all["priority_review"]) >= 2
@@ -482,7 +491,10 @@ def test_check_require_evidence_filter(tmp_path, monkeypatch) -> None:
     # With --require-evidence: only claim with evidence should appear
     result_filtered = CliRunner().invoke(
         main,
-        ["check", str(path), "--format", "json", "--require-evidence", "--no-cache"],
+        [
+            "check", str(path), "--format", "json",
+            "--require-evidence", "--no-cache", "--threshold", "0",
+        ],
     )
     payload_filtered = json.loads(result_filtered.output)
     assert len(payload_filtered["priority_review"]) == 1

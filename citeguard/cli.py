@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 import click
 from dotenv import load_dotenv
@@ -32,10 +33,10 @@ from .providers.crossref import CrossrefProvider
 from .providers.openalex import OpenAlexProvider
 from .providers.semantic_scholar import SemanticScholarProvider
 from .report import (
-    check_report,
+    audit_report,
     inspection_report,
     inspection_report_markdown,
-    markdown_check_report,
+    markdown_audit_report,
     markdown_suggest_report,
     markdown_verification_report,
     similarity_report,
@@ -43,7 +44,7 @@ from .report import (
     verification_report,
 )
 from .retrieval import RetrievalEngine
-from .scoring import AuditMetrics, compute_audit_metrics, overall_confidence, priority_list
+from .scoring import overall_confidence
 from .similarity.index import SimilarityIndex
 from .similarity.models import SimilarityEngineResult
 from .verification import verify_bibliography
@@ -522,16 +523,12 @@ def suggest_command(
     if verbose:
         console.print(f"[dim]Detected {len(claims)} claims, {len(uncited_claims)} uncited.[/dim]")
 
-    providers = (
-        []
-        if offline
-        else [
-            SemanticScholarProvider(),
-            CrossrefProvider(),
-            OpenAlexProvider(),
-            ArxivProvider(),
-        ]
-    )
+    providers = [
+        SemanticScholarProvider(),
+        CrossrefProvider(),
+        OpenAlexProvider(),
+        ArxivProvider(),
+    ]
     engine = RetrievalEngine(
         providers,
         cache=cache,
@@ -687,239 +684,83 @@ def check_command(
     offline: bool,
     recency_max_age: int,
 ) -> None:
-    from .extractor import parse_enriched_document
-    from .similarity.engine import SimilarityEngine
-    from .similarity.models import SimilarityConfig
-
     parsed = parse_document(file)
     _validate_parsed(parsed)
-    settings = Settings.from_env()
-    cache = FileCache(settings.cache_dir)
-    
-    sim_result = None
-    if show_similarity:
-        console.print("[dim]Running similarity analysis...[/dim]")
-        enriched = parse_enriched_document(file)
-        index = _load_similarity_corpus(corpus, corpus_license)
-        sim_engine = SimilarityEngine(config=SimilarityConfig())
-        sim_result = sim_engine.analyze_document(
-            enriched.sentences,
-            index=index,
-            bibliography_entries=enriched.bibliography_entries,
-        )
 
-    bib_issues = bibliography_issues(parsed.citations, parsed.bibliography_entries)
+    from .audit import AuditOptions, audit_document, resolve_exit_code
 
-    claims = _extract_claims_hybrid(
-        parsed, max_claims=max_claims, severity=severity, verbose=verbose,
+    options = AuditOptions(
+        threshold=threshold,
+        max_results=max_results,
+        max_claims=max_claims,
+        severity=severity,
         offline=offline,
+        no_cache=no_cache,
+        recency_max_age=recency_max_age,
+        require_evidence=require_evidence,
+        show_similarity=show_similarity,
+        corpus=corpus,
+        corpus_license=corpus_license,
     )
 
     if verbose:
-        console.print(f"[dim]Extracted {len(claims)} claims from document.[/dim]")
+        def _progress(done: int, total: int, msg: str) -> None:
+            console.print(f"[dim]{msg}[/dim]")
+        options.on_progress = _progress
 
-    # Verify bibliography
-    bib_engine = RetrievalEngine(
-        [CrossrefProvider(), OpenAlexProvider()],
-        cache=cache,
-        use_cache=not no_cache,
-        offline=offline,
-    )
-    bib_results = verify_bibliography(
-        parsed.bibliography_entries,
-        bib_engine,
-        max_results=max_results,
-        recency_max_age=recency_max_age,
-    )
-
-    # Search for uncited claims
-    uncited_claims = [c for c in claims if not c.has_existing_citation]
-    claim_verification: list[VerificationResult] = []
-    provider_failed = False
-
-    if uncited_claims:
-        search_providers = (
-            []
-            if offline
-            else [
-                SemanticScholarProvider(),
-                CrossrefProvider(),
-                OpenAlexProvider(),
-                ArxivProvider(),
-            ]
-        )
-        search_engine = RetrievalEngine(
-            search_providers,
-            cache=cache,
-            use_cache=not no_cache,
-        )
-
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-            transient=not verbose,
-        ) as progress:
-            task = progress.add_task(
-                "Searching providers...",
-                total=len(uncited_claims),
-            )
-            for claim in uncited_claims:
-                progress.update(
-                    task,
-                    description=f"[dim]Searching: {claim.text[:50]}...[/dim]",
-                )
-                try:
-                    candidates = search_engine.search(
-                        claim.search_query, max_results=max_results
-                    )
-                except Exception as exc:
-                    provider_failed = True
-                    claim_verification.append(
-                        VerificationResult(
-                            claim=claim,
-                            status=VerificationStatus.NOT_FOUND,
-                            citation=None,
-                            matched=None,
-                            warnings=[str(exc)],
-                        )
-                    )
-                    progress.advance(task)
-                    continue
-
-                best_match: MatchResult | None = None
-                all_matches: list[MatchResult] = []
-                for candidate in candidates:
-                    metadata_score, support_score, verdict, reasoning, evidence = (
-                        match_claim_to_source(claim, candidate)
-                    )
-                    has_entailment = any(e.entailment_score is not None for e in evidence)
-                    confidence = overall_confidence(
-                        metadata_score, support_score, has_entailment=has_entailment
-                    )
-                    ent_score = evidence[0].entailment_score if evidence else None
-                    ent_verdict = (
-                        evidence[0].verdict
-                        if evidence and ent_score is not None
-                        else None
-                    )
-                    match_result = MatchResult(
-                        candidate=candidate,
-                        source_exists=True,
-                        metadata_match_score=metadata_score,
-                        claim_support_score=support_score,
-                        overall_confidence=confidence,
-                        verdict=verdict,
-                        reasoning=reasoning,
-                        evidence=evidence,
-                        entailment_score=ent_score,
-                        entailment_verdict=ent_verdict,
-                    )
-                    all_matches.append(match_result)
-                    if best_match is None or confidence > best_match.overall_confidence:
-                        best_match = match_result
-
-                claim_verification.append(
-                    VerificationResult(
-                        claim=claim,
-                        status=(
-                            VerificationStatus.SUGGESTED
-                            if best_match
-                            else VerificationStatus.NOT_FOUND
-                        ),
-                        citation=None,
-                        matched=best_match,
-                        suggestions=[
-                            m
-                            for m in all_matches
-                            if m.overall_confidence >= threshold
-                        ],
-                    )
-                )
-                progress.advance(task)
-
-    metrics = compute_audit_metrics(
-        claims=claims,
-        verification_results=claim_verification,
-        bibliography_issues=bib_issues,
-    )
-
-    # When offline, metrics are unavailable (no provider phase executed)
-    if offline:
-        metrics.health_score = None
-        metrics.health_score_complete = False
-        metrics.unavailable_metrics = ("offline mode",)
-
-    sorted_claims = priority_list(claim_verification)
+    result = audit_document(parsed, options)
 
     if require_evidence:
-        sorted_claims = [
-            r for r in sorted_claims
-            if r.matched and r.matched.evidence
+        result.review_queue = [
+            item for item in result.review_queue
+            if item.get("matched") is not None
+            and item["matched"].get("evidence")
         ]
 
-    report = check_report(
-        parsed,
-        bib_results,
-        claims,
-        sorted_claims,
-        metrics,
-        bib_issues,
-        sim_result,
-    )
-
     if output_format == "json":
-        _write_json(report, output)
-        exit_code = EXIT_FINDINGS if metrics.health_score < 80 else EXIT_SUCCESS
-        raise SystemExit(exit_code)
+        _write_json(audit_report(result), output)
+        raise SystemExit(resolve_exit_code(result, command="check"))
     if output_format == "md":
-        report_text = markdown_check_report(
-            parsed, bib_results, claims, sorted_claims, metrics, bib_issues, sim_result
-        )
-        _write_text(report_text, output)
-        exit_code = EXIT_FINDINGS if metrics.health_score < 80 else EXIT_SUCCESS
-        raise SystemExit(exit_code)
+        _write_text(markdown_audit_report(result), output)
+        raise SystemExit(resolve_exit_code(result, command="check"))
     if output_format == "both":
         json_path, md_path = _both_paths(output, file)
-        _write_json(report, json_path)
-        report_text = markdown_check_report(
-            parsed, bib_results, claims, sorted_claims, metrics, bib_issues, sim_result
-        )
-        _write_text(report_text, md_path)
-        exit_code = EXIT_FINDINGS if metrics.health_score < 80 else EXIT_SUCCESS
-        raise SystemExit(exit_code)
+        _write_json(audit_report(result), json_path)
+        _write_text(markdown_audit_report(result), md_path)
+        raise SystemExit(resolve_exit_code(result, command="check"))
 
     show_ev = show_evidence or verbose
-    _print_check_terminal(metrics, claims, sorted_claims, bib_issues, verbose, show_ev, sim_result)
+    _print_audit_terminal(result, verbose, show_ev)
 
-    if provider_failed:
-        console.print(
-            "\n[yellow]Some providers failed. Results may be incomplete.[/yellow]"
-        )
-
-    exit_code = EXIT_FINDINGS if metrics.health_score < 80 else EXIT_SUCCESS
-    raise SystemExit(exit_code)
+    raise SystemExit(resolve_exit_code(result, command="check"))
 
 
-def _print_check_terminal(
-    metrics: AuditMetrics,
-    claims: list[Claim],
-    sorted_claims: list[VerificationResult],
-    bib_issues: list,
+def _print_audit_terminal(
+    result: Any,
     verbose: bool,
     show_evidence: bool,
-    sim_result: SimilarityEngineResult | None = None,
 ) -> None:
-    if metrics.health_score >= 80:
-        health_color = "green"
-    elif metrics.health_score >= 60:
-        health_color = "yellow"
+    from .audit import privacy_notice
+
+    metrics = result.metrics
+    review_queue = result.review_queue
+    if metrics.health_score is not None:
+        if metrics.health_score >= 80:
+            health_color = "green"
+        elif metrics.health_score >= 60:
+            health_color = "yellow"
+        else:
+            health_color = "red"
+        console.print(
+            f"\n[{health_color}]Citation Health Score: "
+            f"{metrics.health_score}/100[/{health_color}]"
+        )
     else:
-        health_color = "red"
-    console.print(
-        f"\n[{health_color}]Citation Health Score: "
-        f"{metrics.health_score}/100[/{health_color}]"
-    )
+        missing = ", ".join(metrics.unavailable_metrics) or "unknown"
+        console.print(
+            "\n[yellow]Citation Health Score: n/a (incomplete)[/yellow]"
+        )
+        console.print(f"[dim]Unavailable metrics: {missing}[/dim]")
     console.print(
         "[dim]The health score is a review-prioritization heuristic, "
         "not a measure of scientific correctness.[/dim]\n"
@@ -932,58 +773,81 @@ def _print_check_terminal(
     table.add_row("Claims requiring citations", str(metrics.claims_requiring_citations))
     table.add_row("Cited claims", str(metrics.cited_claims))
     table.add_row("Verified citations", str(metrics.verified_citations))
-    table.add_row("Weak matches", str(metrics.weak_matches))
+    table.add_row("Partially verified", str(metrics.partially_verified))
+    table.add_row(
+        "Weak cited-source matches", str(metrics.weak_cited_source_matches)
+    )
+    table.add_row("Weak suggestions", str(metrics.weak_suggestions))
     table.add_row("Unresolved citations", str(metrics.unresolved_citations))
     table.add_row("Uncited high-severity claims", str(metrics.uncited_high_severity_claims))
     table.add_row("Contradictions", str(metrics.contradictions))
     table.add_row("Bibliography issues", str(metrics.bibliography_issues))
     table.add_row("Citation coverage", f"{metrics.citation_coverage:.1%}")
-    table.add_row("Verification ratio", f"{metrics.verification_ratio:.1%}")
-    table.add_row("Support ratio", f"{metrics.support_ratio:.1%}")
+    vr = f"{metrics.verification_ratio:.1%}" if metrics.verification_ratio is not None else "n/a"
+    table.add_row("Verification ratio", vr)
+    sr = f"{metrics.support_ratio:.1%}" if metrics.support_ratio is not None else "n/a"
+    table.add_row("Support ratio", sr)
     table.add_row("Bibliography consistency", f"{metrics.bibliography_consistency:.1%}")
-    
-    if sim_result:
-        table.add_row("Overall similarity", f"{sim_result.overall_similarity_pct:.1f}%")
-        table.add_row("High risk similarity", str(sim_result.high_risk_count))
-        
+    ec = f"{metrics.evidence_coverage:.1%}" if metrics.evidence_coverage is not None else "n/a"
+    table.add_row("Evidence coverage", ec)
+
+    if result.similarity is not None:
+        sim = result.similarity
+        table.add_row("Overall similarity", f"{sim.overall_similarity_pct:.1f}%")
+        table.add_row("High risk similarity", str(sim.high_risk_count))
+
     console.print(table)
 
-    if sorted_claims:
+    console.print(f"\n[dim]{privacy_notice(result.execution)}[/dim]")
+
+    if review_queue:
         console.print("\n[yellow]Priority review list[/yellow]")
-        for result in sorted_claims[:10]:
-            verdict = result.matched.verdict.value if result.matched else "n/a"
-            confidence = result.matched.overall_confidence if result.matched else 0
-            sev = result.claim.severity.value
-            color = _severity_color(sev)
+        for item in review_queue[:10]:
+            sev = str(item.get("severity", "")).upper()
+            conf = item.get("confidence", 0) or 0
+            txt = item.get("claim_text", "")
+            verdict = item.get("verdict", "n/a") or "n/a"
+            color = _severity_color(sev.lower())
             console.print(
-                f"  [{color}]{sev.upper()}[/{color}]"
-                f" (confidence: {confidence})"
-                f" - {result.claim.text[:70]}"
+                f"  [{color}]{sev}[/{color}]"
+                f" (confidence: {conf})"
+                f" - {txt[:70]}"
                 f" [verdict: {verdict}]"
             )
 
-    if show_evidence and sorted_claims:
+    if show_evidence and review_queue:
         console.print("\n[cyan]Evidence[/cyan]")
-        for result in sorted_claims[:5]:
-            matched = result.matched
-            if matched and matched.evidence:
-                sev = result.claim.severity.value
-                color = _severity_color(sev)
-                console.print(
-                    f"  [{color}]{sev.upper()}[/{color}]"
-                    f" [verdict: {matched.verdict.value}]"
-                    f" (confidence: {matched.overall_confidence})"
-                )
-                console.print(f"    Claim: {result.claim.text[:80]}")
-                for i, ev in enumerate(matched.evidence[:2], 1):
-                    console.print(f"    Evidence {i} (relevance: {ev.lexical_score}/100):")
-                    console.print(f"      {ev.text[:120]}")
-                    console.print(f"      [dim]Source: {ev.source_title}[/dim]")
+        for item in review_queue[:5]:
+            matched = item.get("matched")
+            if matched is None:
+                continue
+            evidence = matched.get("evidence", [])
+            if not evidence:
+                continue
+            sev = str(item.get("severity", "")).upper()
+            verdict = matched.get("verdict", "n/a") or "n/a"
+            conf = matched.get("overall_confidence", 0) or 0
+            color = _severity_color(sev.lower())
+            console.print(
+                f"  [{color}]{sev}[/{color}]"
+                f" [verdict: {verdict}]"
+                f" (confidence: {conf})"
+            )
+            console.print(f"    Claim: {item.get('claim_text', '')[:80]}")
+            for i, ev in enumerate(evidence[:2], 1):
+                console.print(f"    Evidence {i} (relevance: {ev.get('relevance_score', 0)}/100):")
+                console.print(f"      {ev.get('text', '')[:120]}")
+                console.print(f"      [dim]Source: {ev.get('source_title', '')}[/dim]")
 
-    if bib_issues:
+    if result.bibliography_issues:
         console.print("\n[yellow]Bibliography issues[/yellow]")
-        for issue in bib_issues:
+        for issue in result.bibliography_issues:
             console.print(f"  - {issue.kind.value}: {issue.detail}")
+
+    if result.provider_phase_failed:
+        console.print(
+            "\n[yellow]Some providers failed. Results may be incomplete.[/yellow]"
+        )
 
 
 def _print_suggest_terminal(
