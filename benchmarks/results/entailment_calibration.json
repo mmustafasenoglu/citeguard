@@ -1,0 +1,109 @@
+{
+  "name": "entailment",
+  "suite": "calibration",
+  "cases": 10,
+  "accuracy": 1.0,
+  "all_passed": true,
+  "details": [
+    {
+      "id": "ent_cal_01",
+      "expected_verdict": "supported",
+      "confidence": 89,
+      "expected_range": [
+        85,
+        93
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_cal_02",
+      "expected_verdict": "partially_supported",
+      "confidence": 58,
+      "expected_range": [
+        50,
+        65
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_cal_03",
+      "expected_verdict": "contradicted",
+      "confidence": 39,
+      "expected_range": [
+        25,
+        45
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_cal_04",
+      "expected_verdict": "unrelated",
+      "confidence": 28,
+      "expected_range": [
+        15,
+        35
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_cal_05",
+      "expected_verdict": "insufficient_information",
+      "confidence": 31,
+      "expected_range": [
+        20,
+        40
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_cal_06",
+      "expected_verdict": "insufficient_information",
+      "confidence": 36,
+      "expected_range": [
+        30,
+        42
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_cal_07",
+      "expected_verdict": "partially_supported",
+      "confidence": 53,
+      "expected_range": [
+        45,
+        60
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_cal_08",
+      "expected_verdict": "contradicted",
+      "confidence": 39,
+      "expected_range": [
+        30,
+        45
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_cal_09",
+      "expected_verdict": "contradicted",
+      "confidence": 43,
+      "expected_range": [
+        35,
+        50
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_cal_10",
+      "expected_verdict": "supported",
+      "confidence": 77,
+      "expected_range": [
+        70,
+        85
+      ],
+      "passed": true
+    }
+  ]
+}

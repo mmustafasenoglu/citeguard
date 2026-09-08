@@ -1,0 +1,74 @@
+[
+  {
+    "id": "hs_ho_01",
+    "description": "CLEAN",
+    "metrics_input": {
+      "citation_coverage": 0.90,
+      "verification_ratio": 0.88,
+      "support_ratio": 0.85,
+      "bibliography_consistency": 0.92,
+      "evidence_coverage": 0.88,
+      "uncited_high": 0,
+      "contradictions": 0,
+      "unresolved_high": 0
+    },
+    "expected_health_score": 88,
+    "expected_health_score_complete": true,
+    "expected_exit_code": 0,
+    "notes": "Strong metrics, no penalties; comfortably above the 80 threshold"
+  },
+  {
+    "id": "hs_ho_02",
+    "description": "MINOR_REVIEW",
+    "metrics_input": {
+      "citation_coverage": 0.75,
+      "verification_ratio": 0.70,
+      "support_ratio": 0.68,
+      "bibliography_consistency": 0.80,
+      "evidence_coverage": 0.72,
+      "uncited_high": 2,
+      "contradictions": 0,
+      "unresolved_high": 1
+    },
+    "expected_health_score": 66,
+    "expected_health_score_complete": true,
+    "expected_exit_code": 1,
+    "notes": "Decent base metrics dragged down by 2 uncited_high and 1 unresolved_high penalty"
+  },
+  {
+    "id": "hs_ho_03",
+    "description": "SEVERE",
+    "metrics_input": {
+      "citation_coverage": 0.20,
+      "verification_ratio": 0.15,
+      "support_ratio": 0.10,
+      "bibliography_consistency": 0.30,
+      "evidence_coverage": 0.15,
+      "uncited_high": 5,
+      "contradictions": 3,
+      "unresolved_high": 4
+    },
+    "expected_health_score": 0,
+    "expected_health_score_complete": true,
+    "expected_exit_code": 1,
+    "notes": "Catastrophic metrics; penalties exceed raw score, clamped to 0"
+  },
+  {
+    "id": "hs_ho_04",
+    "description": "INCOMPLETE",
+    "metrics_input": {
+      "citation_coverage": 0.60,
+      "verification_ratio": null,
+      "support_ratio": 0.40,
+      "bibliography_consistency": 0.50,
+      "evidence_coverage": null,
+      "uncited_high": 1,
+      "contradictions": 0,
+      "unresolved_high": 0
+    },
+    "expected_health_score": null,
+    "expected_health_score_complete": false,
+    "expected_exit_code": 1,
+    "notes": "Incomplete: verification_ratio and evidence_coverage unavailable"
+  }
+]

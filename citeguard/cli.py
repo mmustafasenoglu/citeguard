@@ -17,7 +17,13 @@ from . import __version__
 from .bibliography import bibliography_issues, citation_matches_entry
 from .cache import FileCache
 from .claims import extract_claims
-from .config import _PROVIDER_DEFAULT_MODELS, DEFAULT_MAX_RESULTS, DEFAULT_THRESHOLD, Settings
+from .config import (
+    _PROVIDER_DEFAULT_MODELS,
+    DEFAULT_MAX_RESULTS,
+    DEFAULT_THRESHOLD,
+    HEALTH_PASS_THRESHOLD,
+    Settings,
+)
 from .extractor import parse_document
 from .llm import extract_claims_with_llm
 from .matcher import match_claim_to_source
@@ -745,7 +751,7 @@ def _print_audit_terminal(
     metrics = result.metrics
     review_queue = result.review_queue
     if metrics.health_score is not None:
-        if metrics.health_score >= 80:
+        if metrics.health_score >= HEALTH_PASS_THRESHOLD:
             health_color = "green"
         elif metrics.health_score >= 60:
             health_color = "yellow"
@@ -981,41 +987,12 @@ def _load_similarity_corpus(
 ) -> SimilarityIndex:
     """Load and fingerprint a similarity corpus.
 
-    Returns a ``SimilarityIndex`` holding corpus entries, fingerprints,
-    and TF-IDF state.
+    Thin wrapper kept for CLI callers; the canonical implementation lives
+    in ``citeguard.corpus.loader.load_similarity_corpus``.
     """
-    if not corpus_path:
-        return SimilarityIndex()
-        
-    import sys
+    from .corpus.loader import load_similarity_corpus
 
-    from .corpus import deduplicate_entries, ingest_directory, ingest_file
-    from .similarity.fingerprint import generate_shingles, winnow
-    from .similarity.models import Fingerprint as _Fingerprint
-    
-    print(f"Loading corpus from {corpus_path}...", file=sys.stderr)
-    if corpus_path.is_dir():
-        docs = ingest_directory(corpus_path, recursive=True, license_str=license_str)
-    else:
-        docs = [ingest_file(corpus_path, license_str=license_str)]
-        
-    all_entries = []
-    for doc in docs:
-        all_entries.extend(doc.entries)
-        
-    deduped = deduplicate_entries(all_entries)
-    
-    corpus_entries = []
-    for entry in deduped:
-        shingles = generate_shingles(entry.normalized_text)
-        points = winnow(shingles)
-        fp = _Fingerprint(points=points, doc_id=entry.doc_id)
-        corpus_entries.append(
-            (entry.doc_id, entry.normalized_text, fp, entry.metadata, entry.entry_index, entry)
-        )
-        
-    print(f"Corpus loaded: {len(docs)} docs, {len(deduped)} unique segments", file=sys.stderr)
-    return SimilarityIndex.build(corpus_entries)
+    return load_similarity_corpus(corpus_path, license_str)
 
 
 @main.command("similarity")
@@ -1083,16 +1060,12 @@ def similarity_command(
 
     # Output results
     if output_format == "json":
-        from .cli import _write_json
         _write_json(similarity_report(result), output)
     elif output_format == "md":
-        from .cli import _write_text
         report_text = _similarity_to_markdown(result, show_sentences)
         _write_text(report_text, output)
     elif output_format == "both":
-        from .cli import _both_paths
         json_path, md_path = _both_paths(output, file)
-        from .cli import _write_json, _write_text
         _write_json(similarity_report(result), json_path)
         report_text = _similarity_to_markdown(result, show_sentences)
         _write_text(report_text, md_path)

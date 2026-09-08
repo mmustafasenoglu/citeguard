@@ -1,0 +1,396 @@
+[
+  {
+    "id": "doiswap",
+    "bibliography_entry": {
+      "raw_text": "Sato, K., & Yamamoto, T. (2021). CRISPR diagnostics for infectious diseases. Science Translational Medicine, 13(589), eabd1234.",
+      "authors": "Sato, K. & Yamamoto, T.",
+      "year": 2021,
+      "title": "CRISPR Diagnostics for Infectious Diseases",
+      "doi": "10.1126/scitranslmed.abd1234",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "CRISPR diagnostics for infectious diseases",
+        "authors": [
+          "Kenji Sato",
+          "Takeshi Yamamoto"
+        ],
+        "year": 2021,
+        "venue": "Science Translational Medicine",
+        "doi": "10.1126/scitranslmed.abd4321",
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "Development of CRISPR-based point-of-care diagnostics.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "metadata_mismatch",
+    "expected_metadata_overall_min": 0,
+    "expected_metadata_overall_max": 49,
+    "notes": "Same work but DOI fields are different digits. DOI mismatch forces capped score."
+  },
+  {
+    "id": "translated_title",
+    "bibliography_entry": {
+      "raw_text": "Kowalski, A., & Nowak, B. (2019). Wplyw zmian klimatycznych na roslinnosc tundry. Global Change Biology, 25(6), 2000-2012.",
+      "authors": "Kowalski, A. & Nowak, B.",
+      "year": 2019,
+      "title": "Wplyw zmian klimatycznych na roslinnosc tundry",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Impact of climate change on tundra vegetation",
+        "authors": [
+          "Anna Kowalski",
+          "Bartosz Nowak"
+        ],
+        "year": 2019,
+        "venue": "Global Change Biology",
+        "doi": "10.1111/gcb.14567",
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "We study climate-driven vegetation shifts in Arctic tundra.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "partially_verified",
+    "expected_metadata_overall_min": 35,
+    "expected_metadata_overall_max": 60,
+    "notes": "Polish title is a translation of the English candidate. Author surnames match but title text similarity is moderate."
+  },
+  {
+    "id": "initials_vs_full",
+    "bibliography_entry": {
+      "raw_text": "J. Smith, M. Johnson, & R. Lee (2020). Large-scale biodiversity monitoring with eDNA. Ecology Letters, 23(8), 1234-1245.",
+      "authors": "J. Smith, M. Johnson & R. Lee",
+      "year": 2020,
+      "title": "Large-Scale Biodiversity Monitoring with eDNA",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Large-scale biodiversity monitoring with environmental DNA",
+        "authors": [
+          "James Smith",
+          "Michael Johnson",
+          "Robert Lee"
+        ],
+        "year": 2020,
+        "venue": "Ecology Letters",
+        "doi": "10.1111/ele.13456",
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "Using eDNA metabarcoding for biodiversity assessment.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 70,
+    "expected_metadata_overall_max": 95,
+    "notes": "Initials vs full first names. First author surname match gives author_score=100; title overlap strong."
+  },
+  {
+    "id": "conference_vs_journal",
+    "bibliography_entry": {
+      "raw_text": "Alvarez, R., & Torres, D. (2018). Distributed consensus in multi-agent systems. Proceedings of the American Control Conference, pp. 4100-4105.",
+      "authors": "Alvarez, R. & Torres, D.",
+      "year": 2018,
+      "title": "Distributed Consensus in Multi-Agent Systems",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Distributed Consensus Algorithms for Multi-Agent Systems",
+        "authors": [
+          "Ricardo Alvarez",
+          "Diego Torres"
+        ],
+        "year": 2018,
+        "venue": "IEEE Transactions on Automatic Control",
+        "doi": "10.1109/TAC.2018.2856789",
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "Extended version of a conference paper on distributed consensus.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "unresolved",
+    "expected_metadata_overall_min": 40,
+    "expected_metadata_overall_max": 65,
+    "notes": "Conference paper vs extended journal version. Same authors and year, title partially overlaps. System treats as uncertain match."
+  },
+  {
+    "id": "preprint_vs_published",
+    "bibliography_entry": {
+      "raw_text": "Williams, E. (2021). Attention mechanisms in visual transformers. arXiv:2104.08765.",
+      "authors": "Williams, E.",
+      "year": 2021,
+      "title": "Attention Mechanisms in Visual Transformers",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Attention Mechanisms in Visual Transformers",
+        "authors": [
+          "Emily Williams"
+        ],
+        "year": 2022,
+        "venue": "Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition",
+        "doi": "10.1109/CVPR.2022.00123",
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "Published version with additional experiments.",
+        "work_type": "conference-paper"
+      }
+    ],
+    "expected_status": "partially_verified",
+    "expected_metadata_overall_min": 55,
+    "expected_metadata_overall_max": 70,
+    "notes": "arXiv preprint vs published conference version. Same title and author, different year (2021 vs 2022) and venue."
+  },
+  {
+    "id": "volume_page_mismatch",
+    "bibliography_entry": {
+      "raw_text": "Nguyen, D. (2020). Antibiotic resistance in hospital-acquired infections. The Lancet Infectious Diseases, 20(3), 310-325.",
+      "authors": "Nguyen, D.",
+      "year": 2020,
+      "title": "Antibiotic Resistance in Hospital-Acquired Infections",
+      "doi": "10.1016/S1473-3099(20)30001-2",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Antibiotic resistance in hospital-acquired infections",
+        "authors": [
+          "Diana Nguyen"
+        ],
+        "year": 2020,
+        "venue": "The Lancet Infectious Diseases",
+        "doi": "10.1016/S1473-3099(20)30001-2",
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "Analysis of resistance patterns in hospital settings.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 95,
+    "expected_metadata_overall_max": 100,
+    "notes": "Exact DOI match. Volume/page details in the bibliography entry text are extraneous; DOI wins."
+  },
+  {
+    "id": "multiple_authors_partial",
+    "bibliography_entry": {
+      "raw_text": "Anderson, S., Chen, W., Davis, P., Evans, T., & Foster, G. (2019). Global supply chain resilience after COVID-19. Journal of Operations Management, 65(7), 620-640.",
+      "authors": "Anderson, S., Chen, W., Davis, P., Evans, T. & Foster, G.",
+      "year": 2019,
+      "title": "Global Supply Chain Resilience After COVID-19",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Global supply chain resilience after COVID-19",
+        "authors": [
+          "Sarah Anderson",
+          "Wei Chen",
+          "Paul Davis"
+        ],
+        "year": 2019,
+        "venue": "Journal of Operations Management",
+        "doi": null,
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "Supply chain disruption analysis post-pandemic.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "partially_verified",
+    "expected_metadata_overall_min": 40,
+    "expected_metadata_overall_max": 60,
+    "notes": "Only 3 of 5 authors match. First author match gives partial author score. Title strong, but author incompleteness reduces overall."
+  },
+  {
+    "id": "old_paper_new_doi",
+    "bibliography_entry": {
+      "raw_text": "Thompson, R. (1995). Long-term effects of pesticide exposure on aquatic invertebrates. Environmental Toxicology and Chemistry, 14(5), 801-810.",
+      "authors": "Thompson, R.",
+      "year": 1995,
+      "title": "Long-Term Effects of Pesticide Exposure on Aquatic Invertebrates",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Long-term effects of pesticide exposure on aquatic invertebrates",
+        "authors": [
+          "Robert Thompson"
+        ],
+        "year": 1995,
+        "venue": "Environmental Toxicology and Chemistry",
+        "doi": "10.1002/etc.5620140505",
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "A study of chronic pesticide exposure in freshwater ecosystems.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 80,
+    "expected_metadata_overall_max": 100,
+    "notes": "Old paper from 1995 with re-assigned DOI. Strong title and author match. Recency warning may apply (>25 years)."
+  },
+  {
+    "id": "no_candidate_at_threshold",
+    "bibliography_entry": {
+      "raw_text": "Popov, I. (2016). Neutron scattering in high-temperature superconductors. Physical Review B, 93(14), 144501.",
+      "authors": "Popov, I.",
+      "year": 2016,
+      "title": "Neutron Scattering in High-Temperature Superconductors",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Neutron scattering studies of cuprate superconductors",
+        "authors": [
+          "Igor Popov",
+          "Viktor Petrov"
+        ],
+        "year": 2016,
+        "venue": "Physical Review B",
+        "doi": null,
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "Neutron scattering measurements on cuprate samples.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "unresolved",
+    "expected_metadata_overall_min": 55,
+    "expected_metadata_overall_max": 69,
+    "notes": "Best candidate scores just below 70 threshold. Title partially matches, extra author introduces noise."
+  },
+  {
+    "id": "perfect_metadata_no_doi",
+    "bibliography_entry": {
+      "raw_text": "Larsson, E., & Johansson, M. (2022). Machine learning for drug discovery: A comprehensive review. Chemical Reviews, 122(5), 4800-4845.",
+      "authors": "Larsson, E. & Johansson, M.",
+      "year": 2022,
+      "title": "Machine Learning for Drug Discovery: A Comprehensive Review",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Machine Learning for Drug Discovery: A Comprehensive Review",
+        "authors": [
+          "Erik Larsson",
+          "Maria Johansson"
+        ],
+        "year": 2022,
+        "venue": "Chemical Reviews",
+        "doi": null,
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "Comprehensive review of ML methods applied to drug discovery.",
+        "work_type": "review"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 90,
+    "expected_metadata_overall_max": 100,
+    "notes": "Perfect title, author, and year match without DOI. Score is high due to strong signal on all available fields."
+  },
+  {
+    "id": "conflicting_providers",
+    "bibliography_entry": {
+      "raw_text": "Martin, A. (2020). Gut microbiome composition and metabolic health. Nature Medicine, 26(7), 1010-1020.",
+      "authors": "Martin, A.",
+      "year": 2020,
+      "title": "Gut Microbiome Composition and Metabolic Health",
+      "doi": "10.1038/s41591-020-0980-3",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Gut microbiome composition and metabolic health in adults",
+        "authors": [
+          "Adrian Martin"
+        ],
+        "year": 2020,
+        "venue": "Nature Medicine",
+        "doi": "10.1038/s41591-020-0980-3",
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "Metagenomic analysis of gut microbiome.",
+        "work_type": "journal-article"
+      },
+      {
+        "title": "Gut microbiome and metabolic health in obese individuals",
+        "authors": [
+          "A. Martin"
+        ],
+        "year": 2020,
+        "venue": "Nature Medicine",
+        "doi": "10.1038/s41591-020-0981-2",
+        "url": null,
+        "source_api": "openalex",
+        "abstract": "Microbiome-metabolic axis in obesity.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 70,
+    "expected_metadata_overall_max": 100,
+    "notes": "Crossref candidate has matching DOI and is verified. OpenAlex returns a different record with a different DOI. Provider conflict recorded."
+  },
+  {
+    "id": "recency_boundary",
+    "bibliography_entry": {
+      "raw_text": "Harrison, G. (1997). Evolution of the mammalian auditory bulla. Journal of Mammalogy, 78(2), 400-415.",
+      "authors": "Harrison, G.",
+      "year": 1997,
+      "title": "Evolution of the Mammalian Auditory Bulla",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Evolution of the mammalian auditory bulla",
+        "authors": [
+          "Graham Harrison"
+        ],
+        "year": 1997,
+        "venue": "Journal of Mammalogy",
+        "doi": "10.2307/1382292",
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "Comparative anatomy of the mammalian middle ear.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 80,
+    "expected_metadata_overall_max": 100,
+    "notes": "Paper is >25 years old (1997). Metadata is strong, but recency warning applies. Score may be reduced by recency penalty in full pipeline."
+  }
+]

@@ -1,0 +1,131 @@
+{
+  "name": "retrieval_ranking",
+  "suite": "holdout",
+  "cases": 10,
+  "mrr": 1.0,
+  "recall_at_1": 1.0,
+  "recall_at_5": 1.0,
+  "all_passed": true,
+  "details": [
+    {
+      "id": "hold_very_similar_titles",
+      "expected_best": "Reinforcement Learning from Human Feedback: Progress and Challenges",
+      "actual_order": [
+        "Reinforcement Learning from Human Feedback: Progress and Challenges",
+        "Reinforcement Learning from Human Feedback: A Survey"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "hold_same_author_different_paper",
+      "expected_best": "Attention Is All You Need",
+      "actual_order": [
+        "Attention Is All You Need",
+        "Attention Modalities for Multimodal Learning"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "hold_multi_word_exact",
+      "expected_best": "ImageNet Large Scale Visual Recognition Challenge",
+      "actual_order": [
+        "ImageNet Large Scale Visual Recognition Challenge",
+        "ImageNet: A Large-Scale Hierarchical Image Database",
+        "The Fruits of ImageNet: Visual Recognition Challenges in the Wild"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "hold_abbreviation_vs_full",
+      "expected_best": "Fine-Tuning Machine Learning Models for Domain Adaptation",
+      "actual_order": [
+        "Fine-Tuning Machine Learning Models for Domain Adaptation",
+        "Multi-Level Feature Learning for Image Classification"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "hold_reversed_author_order",
+      "expected_best": "Deep Learning Approaches for Medical Image Analysis",
+      "actual_order": [
+        "Deep Learning Approaches for Medical Image Analysis"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "hold_proceedings_vs_journal",
+      "expected_best": "Deep Residual Learning for Image Recognition",
+      "actual_order": [
+        "Deep Residual Learning for Image Recognition",
+        "Deep Residual Learning for Image Recognition"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "hold_preprint_and_published",
+      "expected_best": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+      "actual_order": [
+        "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "hold_empty_abstract",
+      "expected_best": "Auto-Encoding Variational Bayes",
+      "actual_order": [
+        "Auto-Encoding Variational Bayes",
+        "Variational Inference for Deep Generative Models"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "hold_long_title_short_query",
+      "expected_best": "Generative Adversarial Networks",
+      "actual_order": [
+        "Generative Adversarial Networks",
+        "Conditional Generative Adversarial Nets for Convolutional Face Generation",
+        "A Study on the Application of Generative Adversarial Networks in Style Transfer for Digital Art"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "hold_numeric_doi_variant",
+      "expected_best": "ImageNet Classification with Deep Convolutional Neural Networks",
+      "actual_order": [
+        "ImageNet Classification with Deep Convolutional Neural Networks",
+        "ImageNet Classification with Deep Convolutional Neural Networks"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    }
+  ]
+}

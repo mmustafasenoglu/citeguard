@@ -1,0 +1,110 @@
+[
+  {
+    "id": "hs_cal_01",
+    "description": "CLEAN",
+    "metrics_input": {
+      "citation_coverage": 0.95,
+      "verification_ratio": 0.90,
+      "support_ratio": 0.90,
+      "bibliography_consistency": 0.95,
+      "evidence_coverage": 0.95,
+      "uncited_high": 0,
+      "contradictions": 0,
+      "unresolved_high": 0
+    },
+    "expected_health_score": 93,
+    "expected_health_score_complete": true,
+    "expected_exit_code": 0,
+    "notes": "Excellent metrics across the board; no penalties; health_score >= 80 yields exit 0"
+  },
+  {
+    "id": "hs_cal_02",
+    "description": "MINOR_REVIEW",
+    "metrics_input": {
+      "citation_coverage": 0.80,
+      "verification_ratio": 0.75,
+      "support_ratio": 0.70,
+      "bibliography_consistency": 0.85,
+      "evidence_coverage": 0.75,
+      "uncited_high": 1,
+      "contradictions": 0,
+      "unresolved_high": 0
+    },
+    "expected_health_score": 74,
+    "expected_health_score_complete": true,
+    "expected_exit_code": 1,
+    "notes": "Mostly good with minor issues; 1 uncited high-severity penalty; health < 80 yields exit 1"
+  },
+  {
+    "id": "hs_cal_03",
+    "description": "NEEDS_REVIEW",
+    "metrics_input": {
+      "citation_coverage": 0.60,
+      "verification_ratio": 0.50,
+      "support_ratio": 0.50,
+      "bibliography_consistency": 0.70,
+      "evidence_coverage": 0.55,
+      "uncited_high": 2,
+      "contradictions": 1,
+      "unresolved_high": 1
+    },
+    "expected_health_score": 46,
+    "expected_health_score_complete": true,
+    "expected_exit_code": 1,
+    "notes": "Moderate issues across metrics; penalties from uncited_high, contradiction, unresolved_high"
+  },
+  {
+    "id": "hs_cal_04",
+    "description": "SEVERE",
+    "metrics_input": {
+      "citation_coverage": 0.30,
+      "verification_ratio": 0.20,
+      "support_ratio": 0.25,
+      "bibliography_consistency": 0.40,
+      "evidence_coverage": 0.20,
+      "uncited_high": 3,
+      "contradictions": 2,
+      "unresolved_high": 3
+    },
+    "expected_health_score": 6,
+    "expected_health_score_complete": true,
+    "expected_exit_code": 1,
+    "notes": "Severe deficiencies; heavy penalties bring near-zero score"
+  },
+  {
+    "id": "hs_cal_05",
+    "description": "INCOMPLETE",
+    "metrics_input": {
+      "citation_coverage": 0.50,
+      "verification_ratio": null,
+      "support_ratio": null,
+      "bibliography_consistency": 0.50,
+      "evidence_coverage": null,
+      "uncited_high": 0,
+      "contradictions": 0,
+      "unresolved_high": 0
+    },
+    "expected_health_score": null,
+    "expected_health_score_complete": false,
+    "expected_exit_code": 1,
+    "notes": "Missing required ratios (verification, support, evidence) render health score unavailable"
+  },
+  {
+    "id": "hs_cal_06",
+    "description": "CLEAN",
+    "metrics_input": {
+      "citation_coverage": 0.82,
+      "verification_ratio": 0.80,
+      "support_ratio": 0.80,
+      "bibliography_consistency": 0.90,
+      "evidence_coverage": 0.80,
+      "uncited_high": 0,
+      "contradictions": 0,
+      "unresolved_high": 0
+    },
+    "expected_health_score": 82,
+    "expected_health_score_complete": true,
+    "expected_exit_code": 0,
+    "notes": "Boundary case: minimal CLEAN score; exactly at the 80 threshold for exit 0"
+  }
+]

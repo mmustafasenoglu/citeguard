@@ -1,0 +1,180 @@
+{
+  "name": "bibliography_resolution",
+  "suite": "calibration",
+  "cases": 16,
+  "accuracy": 0.6875,
+  "verified_precision": 1.0,
+  "verified_recall": 0.9,
+  "verified_cases": 10,
+  "predicted_verified": 9,
+  "verified_correct": 9,
+  "all_passed": false,
+  "details": [
+    {
+      "id": "exact_doi_match",
+      "expected": "verified",
+      "actual": "verified",
+      "score": 100,
+      "score_range": [
+        98,
+        100
+      ],
+      "passed": true
+    },
+    {
+      "id": "normalized_doi",
+      "expected": "verified",
+      "actual": "verified",
+      "score": 100,
+      "score_range": [
+        98,
+        100
+      ],
+      "passed": true
+    },
+    {
+      "id": "exact_arxiv",
+      "expected": "verified",
+      "actual": "partially_verified",
+      "score": 100,
+      "score_range": [
+        90,
+        100
+      ],
+      "passed": false
+    },
+    {
+      "id": "title_author_year_match",
+      "expected": "verified",
+      "actual": "verified",
+      "score": 100,
+      "score_range": [
+        70,
+        100
+      ],
+      "passed": true
+    },
+    {
+      "id": "partial_metadata",
+      "expected": "partially_verified",
+      "actual": "unresolved",
+      "score": 5,
+      "score_range": [
+        50,
+        70
+      ],
+      "passed": false
+    },
+    {
+      "id": "metadata_mismatch",
+      "expected": "metadata_mismatch",
+      "actual": "metadata_mismatch",
+      "score": 33,
+      "score_range": [
+        0,
+        49
+      ],
+      "passed": true
+    },
+    {
+      "id": "same_doi_conflict",
+      "expected": "verified",
+      "actual": "verified",
+      "score": 91,
+      "score_range": [
+        70,
+        100
+      ],
+      "passed": true
+    },
+    {
+      "id": "different_doi_same_work",
+      "expected": "metadata_mismatch",
+      "actual": "metadata_mismatch",
+      "score": 40,
+      "score_range": [
+        0,
+        49
+      ],
+      "passed": true
+    },
+    {
+      "id": "missing_doi_no_match",
+      "expected": "unresolved",
+      "actual": "unresolved",
+      "score": 7,
+      "score_range": [
+        0,
+        30
+      ],
+      "passed": true
+    },
+    {
+      "id": "not_found",
+      "expected": "not_found",
+      "actual": "NOT_FOUND",
+      "passed": false
+    },
+    {
+      "id": "provider_error",
+      "expected": "provider_error",
+      "actual": "NOT_FOUND",
+      "passed": false
+    },
+    {
+      "id": "formatting_differences",
+      "expected": "verified",
+      "actual": "verified",
+      "score": 95,
+      "score_range": [
+        95,
+        100
+      ],
+      "passed": true
+    },
+    {
+      "id": "generic_venue",
+      "expected": "verified",
+      "actual": "verified",
+      "score": 91,
+      "score_range": [
+        85,
+        100
+      ],
+      "passed": true
+    },
+    {
+      "id": "explicit_review",
+      "expected": "verified",
+      "actual": "verified",
+      "score": 96,
+      "score_range": [
+        90,
+        100
+      ],
+      "passed": true
+    },
+    {
+      "id": "explicit_research",
+      "expected": "verified",
+      "actual": "verified",
+      "score": 100,
+      "score_range": [
+        95,
+        100
+      ],
+      "passed": true
+    },
+    {
+      "id": "threshold_boundary",
+      "expected": "verified",
+      "actual": "verified",
+      "score": 85,
+      "score_range": [
+        70,
+        75
+      ],
+      "passed": false
+    }
+  ]
+}

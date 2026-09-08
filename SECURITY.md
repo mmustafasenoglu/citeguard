@@ -4,7 +4,8 @@
 
 | Version | Supported |
 |---------|-----------|
-| 0.1.x   | Yes       |
+| 1.0.x   | Yes       |
+| <1.0    | No        |
 
 ## Reporting a vulnerability
 
@@ -16,15 +17,18 @@ We aim to acknowledge reports within 48 hours and provide a resolution timeline 
 
 - Never include API keys, access tokens, or credentials in issues, logs, screenshots, fixtures, or example repositories
 - citeguard must not print environment-variable values or request authorization headers
+- Custom base URLs containing credentials are sanitized before printing in CLI output, logs, and reports
 - Reports and cache files must contain only data required for citation analysis
 - API keys are never written to generated reports or cache metadata
 
 ## Document privacy
 
-citeguard is a local CLI, but the analysis pipeline sends limited document-derived content to configured third-party APIs:
+citeguard is a local CLI, but the analysis pipeline may send limited document-derived content to configured third-party APIs depending on which features are enabled:
 
 - **Academic metadata providers**: search queries derived from citation text and bibliography entries; never full document prose
-- **LLM providers** (when configured): paragraph text for claim extraction and source matching
+- **LLM providers** (when configured and enabled): paragraph text for claim extraction, entailment classification, and source matching
+- Network usage is reported per-run via `ExecutionContext` fields (`academic_network_used`, `llm_network_used`) so you can verify whether any remote calls were made
+- When running in offline/cache-only mode, no data leaves the local machine
 
 Review the Privacy section in `README.md` before processing confidential or unpublished documents.
 

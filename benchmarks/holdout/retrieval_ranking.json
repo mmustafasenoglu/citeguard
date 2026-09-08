@@ -1,0 +1,298 @@
+[
+  {
+    "id": "hold_very_similar_titles",
+    "query": "Reinforcement Learning from Human Feedback: Progress and Challenges",
+    "candidates": [
+      {
+        "title": "Reinforcement Learning from Human Feedback: Progress and Challenges",
+        "authors": ["Paul Christiano", "Jan Leike", "Tom Brown"],
+        "year": 2023,
+        "doi": "10.48550/arXiv.2301.00001",
+        "arxiv_id": "2301.00001",
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "Reinforcement Learning from Human Feedback: A Survey",
+        "authors": ["Yuntao Bai", "Andy Jones", "Kamal Ndousse"],
+        "year": 2023,
+        "doi": "10.48550/arXiv.2301.00002",
+        "arxiv_id": "2301.00002",
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "fuzzy_title",
+    "notes": "90% title overlap between two survey papers; exact author-year disambiguation needed"
+  },
+  {
+    "id": "hold_same_author_different_paper",
+    "query": "Attention Is All You Need",
+    "candidates": [
+      {
+        "title": "Attention Is All You Need",
+        "authors": ["Ashish Vaswani", "Noam Shazeer", "Niki Parmar"],
+        "year": 2017,
+        "doi": "10.48550/arXiv.1706.03762",
+        "arxiv_id": "1706.03762",
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "Attention Modalities for Multimodal Learning",
+        "authors": ["Ashish Vaswani", "Yi Tay"],
+        "year": 2021,
+        "doi": "10.48550/arXiv.2101.00000",
+        "arxiv_id": "2101.00000",
+        "source_api": "arxiv"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_title",
+    "notes": "Same first author (Vaswani) but completely different papers; title match disambiguates"
+  },
+  {
+    "id": "hold_multi_word_exact",
+    "query": "image net large scale visual recognition challenge",
+    "candidates": [
+      {
+        "title": "ImageNet Large Scale Visual Recognition Challenge",
+        "authors": ["Olga Russakovsky", "Jia Deng", "Hao Su"],
+        "year": 2015,
+        "doi": "10.1007/s11263-015-0816-y",
+        "arxiv_id": "1409.0575",
+        "source_api": "crossref"
+      },
+      {
+        "title": "ImageNet: A Large-Scale Hierarchical Image Database",
+        "authors": ["Jia Deng", "Wei Dong", "Richard Socher"],
+        "year": 2009,
+        "doi": "10.1109/CVPR.2009.5206848",
+        "arxiv_id": null,
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "The Fruits of ImageNet: Visual Recognition Challenges in the Wild",
+        "authors": ["Kari Laitinen", "Mikko Heikkila"],
+        "year": 2018,
+        "doi": "10.1000/example-fruits",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_title",
+    "notes": "Exact multi-word title match (ILSVRC paper) should beat the original ImageNet database paper"
+  },
+  {
+    "id": "hold_abbreviation_vs_full",
+    "query": "ML fine-tuning techniques for pretrained models",
+    "candidates": [
+      {
+        "title": "Fine-Tuning Machine Learning Models for Domain Adaptation",
+        "authors": ["Emily Mitchell", "David Roberts"],
+        "year": 2022,
+        "doi": "10.1000/example-ml-ft-1",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      },
+      {
+        "title": "Multi-Level Feature Learning for Image Classification",
+        "authors": ["Zhang Li", "Wu Min"],
+        "year": 2020,
+        "doi": "10.1000/example-ml-ft-2",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "fuzzy_title",
+    "notes": "Query uses abbreviation 'ML'; candidate 0 expands to 'Machine Learning' in title and matches the fine-tuning topic"
+  },
+  {
+    "id": "hold_reversed_author_order",
+    "query": "deep learning for medical image analysis",
+    "candidates": [
+      {
+        "title": "Deep Learning Approaches for Medical Image Analysis",
+        "authors": ["Jones Sarah", "Smith Robert"],
+        "year": 2021,
+        "doi": "10.1000/example-rev-auth-1",
+        "arxiv_id": null,
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "Deep Learning Approaches for Medical Image Analysis",
+        "authors": ["Smith Robert", "Jones Sarah"],
+        "year": 2021,
+        "doi": "10.1000/example-rev-auth-1",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_title",
+    "notes": "Same paper with reversed author list from different providers; author order normalization should treat them as equivalent"
+  },
+  {
+    "id": "hold_proceedings_vs_journal",
+    "query": "deep residual learning for image recognition",
+    "candidates": [
+      {
+        "title": "Deep Residual Learning for Image Recognition",
+        "authors": ["Kaiming He", "Xiangyu Zhang", "Shaoqing Ren"],
+        "year": 2016,
+        "doi": "10.1109/CVPR.2016.90",
+        "arxiv_id": "1512.03385",
+        "source_api": "crossref"
+      },
+      {
+        "title": "Deep Residual Learning for Image Recognition",
+        "authors": ["Kaiming He", "Xiangyu Zhang", "Shaoqing Ren"],
+        "year": 2016,
+        "doi": "10.1007/s11263-016-0940-3",
+        "arxiv_id": null,
+        "source_api": "semantic_scholar"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_title",
+    "notes": "Conference proceedings version vs journal version (IJCV); both are valid, crossref proceedings DOI may be preferred"
+  },
+  {
+    "id": "hold_preprint_and_published",
+    "query": "10.18653/v1/N19-1423",
+    "candidates": [
+      {
+        "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+        "authors": ["Jacob Devlin", "Ming-Wei Chang", "Kenton Lee"],
+        "year": 2019,
+        "doi": "10.18653/v1/N19-1423",
+        "arxiv_id": "1810.04805",
+        "source_api": "crossref"
+      },
+      {
+        "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+        "authors": ["Jacob Devlin", "Ming-Wei Chang", "Kenton Lee"],
+        "year": 2019,
+        "doi": null,
+        "arxiv_id": "1810.04805",
+        "source_api": "arxiv"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_doi",
+    "notes": "arXiv preprint vs published ACL version; published DOI version is preferred as best match"
+  },
+  {
+    "id": "hold_empty_abstract",
+    "query": "Auto-Encoding Variational Bayes",
+    "candidates": [
+      {
+        "title": "Auto-Encoding Variational Bayes",
+        "authors": ["Diederik Kingma", "Max Welling"],
+        "year": 2014,
+        "doi": "10.48550/arXiv.1312.6114",
+        "arxiv_id": "1312.6114",
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "Variational Inference for Deep Generative Models",
+        "authors": ["Chen Ming"],
+        "year": 2020,
+        "doi": null,
+        "arxiv_id": null,
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_title",
+    "notes": "Candidate 0 (VAE paper) is the canonical match; candidate 1 has no abstract, scoring may degrade but title match still preferred"
+  },
+  {
+    "id": "hold_long_title_short_query",
+    "query": "GAN",
+    "candidates": [
+      {
+        "title": "Generative Adversarial Networks",
+        "authors": ["Ian Goodfellow", "Jean Pouget-Abadie", "Mehdi Mirza"],
+        "year": 2014,
+        "doi": "10.48550/arXiv.1406.2661",
+        "arxiv_id": "1406.2661",
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "A Study on the Application of Generative Adversarial Networks in Style Transfer for Digital Art",
+        "authors": ["Liu Fang", "Wang Yi"],
+        "year": 2022,
+        "doi": "10.1000/example-gan-style",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      },
+      {
+        "title": "Conditional Generative Adversarial Nets for Convolutional Face Generation",
+        "authors": ["Emily Denton", "Soumith Chintala", "Rob Fergus"],
+        "year": 2015,
+        "doi": "10.48550/arXiv.1411.1784",
+        "arxiv_id": "1411.1784",
+        "source_api": "arxiv"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_title",
+    "notes": "Very short query 'GAN' maps to original GAN paper; candidate 0 has exact title match to the acronym"
+  },
+  {
+    "id": "hold_numeric_doi_variant",
+    "query": "convolutional neural networks for image classification with deep learning",
+    "candidates": [
+      {
+        "title": "ImageNet Classification with Deep Convolutional Neural Networks",
+        "authors": ["Alex Krizhevsky", "Ilya Sutskever", "Geoffrey Hinton"],
+        "year": 2012,
+        "doi": "10.1145/3065386",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      },
+      {
+        "title": "ImageNet Classification with Deep Convolutional Neural Networks",
+        "authors": ["Alex Krizhevsky", "Ilya Sutskever", "Geoffrey Hinton"],
+        "year": 2012,
+        "doi": "10.1145/3065386.3065392",
+        "arxiv_id": null,
+        "source_api": "semantic_scholar"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_title",
+    "notes": "DOI with/without trailing component (3065386 vs 3065386.3065392); both point to AlexNet, normalization should treat as equivalent"
+  }
+]

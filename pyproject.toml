@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "citeguard"
-version = "0.3.0"
+version = "1.0.0"
 description = "Find missing citations, verify existing references, and audit academic writing from your terminal."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,7 +13,7 @@ license-files = ["LICENSE"]
 authors = [{ name = "citeguard contributors" }]
 keywords = ["citations", "academic-writing", "research", "cli", "bibliography"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
@@ -59,6 +59,7 @@ testpaths = ["tests"]
 addopts = "-q"
 markers = [
     "live_llm: marks tests that call real LLM providers (deselect with '-m not live_llm')",
+    "contract: marks release contract tests",
 ]
 
 [tool.ruff]

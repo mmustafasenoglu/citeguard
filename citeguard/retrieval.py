@@ -331,7 +331,7 @@ def deduplicate_candidates(candidates: list[SourceCandidate]) -> list[SourceCand
     identities: dict[tuple[Any, ...], int] = {}
     for raw_candidate in candidates:
         candidate = normalize_candidate(raw_candidate)
-        identity = candidate_identity(candidate)
+        identity = _dedup_identity(candidate)
         existing_index = identities.get(identity)
         if existing_index is None:
             existing_index = len(deduplicated)
@@ -342,6 +342,14 @@ def deduplicate_candidates(candidates: list[SourceCandidate]) -> list[SourceCand
             )
         identities[identity] = existing_index
     return deduplicated
+
+
+def _dedup_identity(candidate: SourceCandidate) -> tuple[Any, ...]:
+    """Prefer arXiv identity when collapsing provider duplicates."""
+    arxiv_id = normalize_arxiv_id(candidate.arxiv_id)
+    if arxiv_id:
+        return ("arxiv", arxiv_id)
+    return candidate_identity(candidate)
 
 
 def candidate_relevance(query: str, candidate: SourceCandidate) -> int:
@@ -382,8 +390,9 @@ def rank_candidates(query: str, candidates: list[SourceCandidate]) -> list[Sourc
             -candidate_relevance(query, candidate),
             -(candidate.year or 0),
             normalize_title(candidate.title),
-            normalize_doi(candidate.doi) or "",
+            -int(bool(candidate.arxiv_id)),
             _PROVIDER_PRIORITY.get(candidate.source_api, len(_PROVIDER_PRIORITY)),
+            normalize_doi(candidate.doi) or "",
         ),
     )
 

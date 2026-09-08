@@ -1,0 +1,410 @@
+[
+  {
+    "id": "cal_doi_vs_fuzzy",
+    "query": "10.48550/arXiv.1706.03762",
+    "candidates": [
+      {
+        "title": "Attention Is All You Need",
+        "authors": ["Ashish Vaswani", "Noam Shazeer", "Niki Parmar"],
+        "year": 2017,
+        "doi": "10.48550/arXiv.1706.03762",
+        "arxiv_id": "1706.03762",
+        "source_api": "crossref"
+      },
+      {
+        "title": "Attention mechanisms for sequence-to-sequence learning",
+        "authors": ["Liu Wei", "Zhang Hao"],
+        "year": 2019,
+        "doi": "10.1000/example-fuzzy-1",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      },
+      {
+        "title": "Neural attention models for NLP tasks",
+        "authors": ["Chen Yuxing", "Patel Riya"],
+        "year": 2020,
+        "doi": null,
+        "arxiv_id": "2005.12345",
+        "source_api": "arxiv"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_doi",
+    "notes": "Exact DOI match on candidate 0 should rank it first regardless of fuzzy title similarities on others"
+  },
+  {
+    "id": "cal_arxiv_vs_fuzzy",
+    "query": "arXiv:2005.14165",
+    "candidates": [
+      {
+        "title": "Language Models are Few-Shot Learners",
+        "authors": ["Tom Brown", "Benjamin Mann", "Nick Ryder"],
+        "year": 2020,
+        "doi": "10.48550/arXiv.2005.14165",
+        "arxiv_id": "2005.14165",
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "Scaling laws for autoregressive generative modeling",
+        "authors": ["Jared Kaplan", "Sam McCandlish"],
+        "year": 2020,
+        "doi": "10.48550/arXiv.2001.08361",
+        "arxiv_id": "2001.08361",
+        "source_api": "arxiv"
+      },
+      {
+        "title": "A study on scaling in deep networks",
+        "authors": ["Park Sungho", "Kim Jiwon"],
+        "year": 2021,
+        "doi": null,
+        "arxiv_id": null,
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_arxiv",
+    "notes": "Exact arXiv ID match on candidate 0 should rank first; candidate 1 is a related but different paper"
+  },
+  {
+    "id": "cal_exact_title",
+    "query": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+    "candidates": [
+      {
+        "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+        "authors": ["Jacob Devlin", "Ming-Wei Chang", "Kenton Lee"],
+        "year": 2019,
+        "doi": "10.18653/v1/N19-1423",
+        "arxiv_id": "1810.04805",
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "RoBERTa: A Robustly Optimized BERT Pretraining Approach",
+        "authors": ["Yinhan Liu", "Myle Ott", "Naman Goyal"],
+        "year": 2019,
+        "doi": "10.48550/arXiv.1907.11692",
+        "arxiv_id": "1907.11692",
+        "source_api": "arxiv"
+      },
+      {
+        "title": "ALBERT: A Lite BERT for Self-supervised Learning",
+        "authors": ["Zhenzhong Lan", "Mingda Chen", "Sebastian Goodman"],
+        "year": 2020,
+        "doi": "10.48550/arXiv.1909.11942",
+        "arxiv_id": "1909.11942",
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_title",
+    "notes": "Exact title string match on candidate 0; candidates 1 and 2 are related BERT variants"
+  },
+  {
+    "id": "cal_identical_multi_provider",
+    "query": "generative adversarial networks",
+    "candidates": [
+      {
+        "title": "Generative Adversarial Nets",
+        "authors": ["Ian Goodfellow", "Jean Pouget-Abadie", "Mehdi Mirza"],
+        "year": 2014,
+        "doi": "10.48550/arXiv.1406.2661",
+        "arxiv_id": "1406.2661",
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "Generative Adversarial Nets",
+        "authors": ["Ian Goodfellow", "Jean Pouget-Abadie", "Mehdi Mirza"],
+        "year": 2014,
+        "doi": "10.48550/arXiv.1406.2661",
+        "arxiv_id": "1406.2661",
+        "source_api": "crossref"
+      },
+      {
+        "title": "Generative Adversarial Nets",
+        "authors": ["Ian Goodfellow", "Jean Pouget-Abadie", "Mehdi Mirza"],
+        "year": 2014,
+        "doi": "10.48550/arXiv.1406.2661",
+        "arxiv_id": "1406.2661",
+        "source_api": "arxiv"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_doi",
+    "notes": "Identical paper from 3 providers; any ranking is acceptable as all are equivalent"
+  },
+  {
+    "id": "cal_provider_priority_tiebreak",
+    "query": "dropout regularization in deep neural networks",
+    "candidates": [
+      {
+        "title": "Dropout: A Simple Way to Prevent Neural Networks from Overfitting",
+        "authors": ["Nitish Srivastava", "Geoffrey Hinton", "Alex Krizhevsky"],
+        "year": 2014,
+        "doi": "10.1214/14-AOAS770",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      },
+      {
+        "title": "Dropout: A Simple Way to Prevent Neural Networks from Overfitting",
+        "authors": ["Nitish Srivastava", "Geoffrey Hinton", "Alex Krizhevsky"],
+        "year": 2014,
+        "doi": "10.1214/14-AOAS770",
+        "arxiv_id": null,
+        "source_api": "semantic_scholar"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_title",
+    "notes": "Same paper, same metadata; tiebreak by provider order, first provider (crossref) should win"
+  },
+  {
+    "id": "cal_newer_fuzzy_vs_older_exact",
+    "query": "deep residual learning for image recognition",
+    "candidates": [
+      {
+        "title": "Deep Residual Learning for Image Recognition",
+        "authors": ["Kaiming He", "Xiangyu Zhang", "Shaoqing Ren"],
+        "year": 2016,
+        "doi": "10.1109/CVPR.2016.90",
+        "arxiv_id": "1512.03385",
+        "source_api": "crossref"
+      },
+      {
+        "title": "Deep Residual Learning: From Image Recognition to Beyond",
+        "authors": ["Lin Tianzhe", "Wang Hai", "Zhao Peng"],
+        "year": 2022,
+        "doi": "10.1000/example-newer-fuzzy",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_title",
+    "notes": "Exact title match on candidate 0 (ResNet) beats newer fuzzy title match on candidate 1"
+  },
+  {
+    "id": "cal_negative_cosine",
+    "query": "quantum error correction codes",
+    "candidates": [
+      {
+        "title": "Floral pollination algorithms for optimization",
+        "authors": ["Xin-She Yang"],
+        "year": 2013,
+        "doi": "10.1000/example-irrelevant-1",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      },
+      {
+        "title": "Swarm intelligence for supply chain management",
+        "authors": ["Li Xiao", "Gao Fei"],
+        "year": 2018,
+        "doi": null,
+        "arxiv_id": null,
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 0.0,
+    "expected_recall_at_1": 0,
+    "expected_recall_at_5": 1,
+    "match_type": "no_match",
+    "notes": "No relevant results; both candidates are completely unrelated to quantum error correction"
+  },
+  {
+    "id": "cal_lexical_only_mode",
+    "query": "transfer learning with transformers",
+    "candidates": [
+      {
+        "title": "Transfer Learning with Transformer-Based Models",
+        "authors": ["Rao D", "Bapat J"],
+        "year": 2021,
+        "doi": "10.1000/example-tfidf-1",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      },
+      {
+        "title": "A Survey of Transfer Learning Techniques",
+        "authors": ["Pan Sinno", "Yang Qiang"],
+        "year": 2010,
+        "doi": "10.1109/TKDE.2009.191",
+        "arxiv_id": null,
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "Deep transfer learning: a survey",
+        "authors": ["Zhuang Fuzhen", "Qi Zhen", "Duan Kaiguang"],
+        "year": 2021,
+        "doi": "10.1000/example-tfidf-3",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "fuzzy_title",
+    "notes": "TF-IDF only mode: candidate 0 shares most lexical overlap with query (transfer + learning + transformer)"
+  },
+  {
+    "id": "cal_rrf_fusion",
+    "query": "Neural Message Passing for Quantum Chemistry",
+    "candidates": [
+      {
+        "title": "Neural Message Passing for Quantum Chemistry",
+        "authors": ["Justin Gilmer", "Samuel Schoenholz", "Patrick Riley"],
+        "year": 2017,
+        "doi": "10.48550/arXiv.1704.01212",
+        "arxiv_id": "1704.01212",
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "SchNet: A continuous-filter convolutional neural network for modeling quantum interactions",
+        "authors": ["Kristof Schütt", "Pieter-Jan Kindermans", "Huziel Sauceda"],
+        "year": 2018,
+        "doi": "10.48550/arXiv.1706.08566",
+        "arxiv_id": "1706.08566",
+        "source_api": "arxiv"
+      },
+      {
+        "title": "Learning Convolutional Neural Networks for Graphs",
+        "authors": ["Mathias Niepert", "Mohamed Ahmed", "Konstantin Kutzkov"],
+        "year": 2016,
+        "doi": "10.1145/2939672.2939766",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "fuzzy_title",
+    "notes": "RRF fusion of TF-IDF and semantic rankings; candidate 0 (MPNN) is most relevant to molecular property prediction"
+  },
+  {
+    "id": "cal_duplicate_candidates",
+    "query": "arXiv:1301.3781",
+    "candidates": [
+      {
+        "title": "Efficient Estimation of Word Representations in Vector Space",
+        "authors": ["Tomas Mikolov", "Kai Chen", "Greg Corrado"],
+        "year": 2013,
+        "doi": "10.48550/arXiv.1301.3781",
+        "arxiv_id": "1301.3781",
+        "source_api": "arxiv"
+      },
+      {
+        "title": "Efficient Estimation of Word Representations in Vector Space",
+        "authors": ["Tomas Mikolov", "Kai Chen", "Greg Corrado"],
+        "year": 2013,
+        "doi": null,
+        "arxiv_id": "1301.3781",
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "Distributed Representations of Words and Phrases and their Compositionality",
+        "authors": ["Tomas Mikolov", "Ilya Sutskever", "Kai Chen"],
+        "year": 2013,
+        "doi": "10.48550/arXiv.1310.4546",
+        "arxiv_id": "1310.4546",
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_doi",
+    "notes": "Candidates 0 and 1 are duplicates (same arXiv ID); dedup should keep one and rank it first"
+  },
+  {
+    "id": "cal_provider_conflict",
+    "query": "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift",
+    "candidates": [
+      {
+        "title": "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift",
+        "authors": ["Sergey Ioffe", "Christian Szegedy"],
+        "year": 2015,
+        "doi": "10.48550/arXiv.1502.03167",
+        "arxiv_id": "1502.03167",
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "Accelerating Deep Network Training by Reducing Internal Covariate Shift",
+        "authors": ["Sergey Ioffe", "Christian Szegedy"],
+        "year": 2015,
+        "doi": "10.48550/arXiv.1502.03167",
+        "arxiv_id": "1502.03167",
+        "source_api": "crossref"
+      },
+      {
+        "title": "Batch Renormalization: Reducing Internal Covariate Shift in Deep Networks",
+        "authors": ["Sergey Ioffe"],
+        "year": 2017,
+        "doi": "10.48550/arXiv.1702.03275",
+        "arxiv_id": "1702.03275",
+        "source_api": "arxiv"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_title",
+    "notes": "Provider metadata conflict: candidates 0 and 1 are same paper with slightly different titles; exact title match should pick candidate 0"
+  },
+  {
+    "id": "cal_strong_match_early_stop",
+    "query": "arXiv:1806.03842",
+    "candidates": [
+      {
+        "title": "Improving Language Understanding by Generative Pre-Training",
+        "authors": ["Alec Radford", "Karthik Narasimhan", "Tim Salimans"],
+        "year": 2018,
+        "doi": "10.48550/arXiv.1806.03842",
+        "arxiv_id": "1806.03842",
+        "source_api": "semantic_scholar"
+      },
+      {
+        "title": "Language Models are Unsupervised Multitask Learners",
+        "authors": ["Alec Radford", "Jeffrey Wu", "Rewon Child"],
+        "year": 2019,
+        "doi": null,
+        "arxiv_id": "1906.02243",
+        "source_api": "arxiv"
+      },
+      {
+        "title": "Fine-Tuning Pre-Trained Transformers for Text Classification",
+        "authors": ["Li Zhuo", "Wang Siheng", "Liu Jia"],
+        "year": 2021,
+        "doi": "10.1000/example-gpt-ft",
+        "arxiv_id": null,
+        "source_api": "crossref"
+      }
+    ],
+    "expected_best_index": 0,
+    "expected_mrr": 1.0,
+    "expected_recall_at_1": 1,
+    "expected_recall_at_5": 1,
+    "match_type": "exact_doi",
+    "notes": "Strong DOI/arXiv match on candidate 0 (GPT-1) should trigger early stop at threshold 80, no need to scan remaining candidates"
+  }
+]

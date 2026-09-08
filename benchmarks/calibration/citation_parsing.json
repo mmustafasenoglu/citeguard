@@ -1,0 +1,686 @@
+[
+  {
+    "id": "apa_author_year",
+    "paragraphs": [
+      "Climate change has accelerated significantly in recent decades (Smith, 2020).",
+      "Rising sea levels threaten coastal communities worldwide.",
+      "Various mitigation strategies have been proposed to address these challenges."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Smith, 2020)",
+        "authors": "Smith",
+        "year": 2020,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 47
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Smith, J. (2020). Climate acceleration patterns. Journal of Environmental Studies, 15(3), 112-130.",
+        "authors": "Smith, J.",
+        "year": 2020,
+        "title": "Climate acceleration patterns",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "narrative",
+    "paragraphs": [
+      "Previous work has demonstrated the efficacy of transformer architectures (Vaswani et al., 2017).",
+      "Smith (2020) showed that attention mechanisms improve translation quality.",
+      "These findings have been replicated across multiple domains."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Vaswani et al., 2017)",
+        "authors": "Vaswani et al.",
+        "year": 2017,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 55
+      },
+      {
+        "raw_text": "Smith (2020)",
+        "authors": "Smith",
+        "year": 2020,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 1,
+        "char_offset": 0
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I. (2017). Attention is all you need. Advances in Neural Information Processing Systems, 30.",
+        "authors": "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I.",
+        "year": 2017,
+        "title": "Attention is all you need",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Smith, J. (2020). Attention mechanisms for translation. Proceedings of ACL, 2020, 45-60.",
+        "authors": "Smith, J.",
+        "year": 2020,
+        "title": "Attention mechanisms for translation",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "multi_source",
+    "paragraphs": [
+      "Deep learning models require large datasets for effective training (Smith, 2020; Jones, 2021).",
+      "Transfer learning can reduce data requirements substantially."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Smith, 2020; Jones, 2021)",
+        "authors": "Smith, 2020; Jones, 2021",
+        "year": null,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 53
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Smith, J. (2020). Data requirements for deep learning. Machine Learning Journal, 109(2), 201-220.",
+        "authors": "Smith, J.",
+        "year": 2020,
+        "title": "Data requirements for deep learning",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Jones, A. (2021). Scaling laws in neural networks. Nature Machine Intelligence, 3(1), 45-58.",
+        "authors": "Jones, A.",
+        "year": 2021,
+        "title": "Scaling laws in neural networks",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "numbered",
+    "paragraphs": [
+      "Quantum computing has advanced rapidly in recent years [1].",
+      "Error correction remains a fundamental challenge for practical implementations [2].",
+      "Topological qubits offer promising pathways to fault tolerance [3].",
+      "References",
+      "1. Nielsen, M. A. and Chuang, I. L. (2010). Quantum Computation and Quantum Information. Cambridge University Press.",
+      "2. Fowler, A. G., Mariantoni, M., Martinis, J. M., and Cleland, A. N. (2012). Surface codes. Physical Review A, 86(3), 032324.",
+      "3. Nayak, C., Simon, S. H., Stern, A., Freedman, M., and Das Sarma, S. (2008). Non-Abelian anyons. Reviews of Modern Physics, 80(3), 1083."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "[1]",
+        "authors": null,
+        "year": null,
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 48
+      },
+      {
+        "raw_text": "[2]",
+        "authors": null,
+        "year": null,
+        "doi": null,
+        "numbered_ref": 2,
+        "no_date": false,
+        "paragraph_index": 1,
+        "char_offset": 50
+      },
+      {
+        "raw_text": "[3]",
+        "authors": null,
+        "year": null,
+        "doi": null,
+        "numbered_ref": 3,
+        "no_date": false,
+        "paragraph_index": 2,
+        "char_offset": 57
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "1. Nielsen, M. A. and Chuang, I. L. (2010). Quantum Computation and Quantum Information. Cambridge University Press.",
+        "authors": "Nielsen, M. A. and Chuang, I. L.",
+        "year": 2010,
+        "title": "Quantum Computation and Quantum Information",
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false
+      },
+      {
+        "raw_text": "2. Fowler, A. G., Mariantoni, M., Martinis, J. M., and Cleland, A. N. (2012). Surface codes. Physical Review A, 86(3), 032324.",
+        "authors": "Fowler, A. G., Mariantoni, M., Martinis, J. M., and Cleland, A. N.",
+        "year": 2012,
+        "title": "Surface codes",
+        "doi": null,
+        "numbered_ref": 2,
+        "no_date": false
+      },
+      {
+        "raw_text": "3. Nayak, C., Simon, S. H., Stern, A., Freedman, M., and Das Sarma, S. (2008). Non-Abelian anyons. Reviews of Modern Physics, 80(3), 1083.",
+        "authors": "Nayak, C., Simon, S. H., Stern, A., Freedman, M., and Das Sarma, S.",
+        "year": 2008,
+        "title": "Non-Abelian anyons",
+        "doi": null,
+        "numbered_ref": 3,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "numbered_range",
+    "paragraphs": [
+      "Several comprehensive reviews have covered this topic in depth [1-3].",
+      "The field continues to evolve rapidly with new discoveries."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "[1-3]",
+        "authors": null,
+        "year": null,
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 51
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "1. Zhang, W. (2018). A review of polymer electrolytes. Nature Energy, 3(1), 25-35.",
+        "authors": "Zhang, W.",
+        "year": 2018,
+        "title": "A review of polymer electrolytes",
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false
+      },
+      {
+        "raw_text": "2. Li, H. (2019). Advances in solid-state batteries. Advanced Materials, 31(10), 1805632.",
+        "authors": "Li, H.",
+        "year": 2019,
+        "title": "Advances in solid-state batteries",
+        "doi": null,
+        "numbered_ref": 2,
+        "no_date": false
+      },
+      {
+        "raw_text": "3. Chen, Y. (2020). Next-generation battery technologies. Joule, 4(7), 1420-1435.",
+        "authors": "Chen, Y.",
+        "year": 2020,
+        "title": "Next-generation battery technologies",
+        "doi": null,
+        "numbered_ref": 3,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "doi_in_text",
+    "paragraphs": [
+      "The dataset is publicly available at doi:10.1000/example.",
+      "All experiments were conducted following ethical guidelines.",
+      "Results show a significant improvement over baseline methods."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "10.1000/example.",
+        "authors": null,
+        "year": null,
+        "doi": "10.1000/example",
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 39
+      }
+    ],
+    "expected_bibliography_entries": []
+  },
+  {
+    "id": "doi_url",
+    "paragraphs": [
+      "Full details are available at https://doi.org/10.1000/example.",
+      "This resource provides standardized methodology protocols.",
+      "Researchers are encouraged to use these established standards."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "10.1000/example.",
+        "authors": null,
+        "year": null,
+        "doi": "10.1000/example",
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 31
+      }
+    ],
+    "expected_bibliography_entries": []
+  },
+  {
+    "id": "organization_author",
+    "paragraphs": [
+      "Global vaccination rates have improved substantially (World Health Organization, 2019).",
+      "However, significant disparities remain between developed and developing nations.",
+      "Targeted interventions are needed to address these inequities."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(World Health Organization, 2019)",
+        "authors": "World Health Organization",
+        "year": 2019,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 46
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "World Health Organization. (2019). Global vaccination coverage report. WHO Press.",
+        "authors": "World Health Organization",
+        "year": 2019,
+        "title": "Global vaccination coverage report",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "page_locator",
+    "paragraphs": [
+      "The original formulation can be found in foundational text (Smith, 2020, p. 42).",
+      "This definition has been widely adopted in subsequent literature.",
+      "Alternative interpretations have also been proposed by various scholars."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Smith, 2020, p. 42)",
+        "authors": "Smith",
+        "year": 2020,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 44
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Smith, J. (2020). Foundations of Theory. Academic Press.",
+        "authors": "Smith, J.",
+        "year": 2020,
+        "title": "Foundations of Theory",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "no_date",
+    "paragraphs": [
+      "The manual provides detailed instructions for the procedure (Smith, n.d.).",
+      "Users should follow the recommended safety precautions at all times.",
+      "Technical support is available through the helpdesk portal."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Smith, n.d.)",
+        "authors": "Smith",
+        "year": null,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": true,
+        "paragraph_index": 0,
+        "char_offset": 46
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Smith, J. (n.d.). User manual for system administration. Internal documentation.",
+        "authors": "Smith, J.",
+        "year": null,
+        "title": "User manual for system administration",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": true
+      }
+    ]
+  },
+  {
+    "id": "turkish_no_date",
+    "paragraphs": [
+      "Bu konuda kapsamali bir calismaya yer verilmistir (Yilmaz, t.y.).",
+      "Calismada kullanilan veriler kamuya acik kaynaklardan elde edilmistir.",
+      "Sonuclar, mevcut literatur ile uyumluluk gostermektedir."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Yilmaz, t.y.)",
+        "authors": "Yilmaz",
+        "year": null,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": true,
+        "paragraph_index": 0,
+        "char_offset": 45
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Yilmaz, A. (t.y.). Turkiye'de cevresel analizler. Istanbul Universitesi Yayinlari.",
+        "authors": "Yilmaz, A.",
+        "year": null,
+        "title": "Turkiye'de cevresel analizler",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": true
+      }
+    ]
+  },
+  {
+    "id": "multiple_claims_one_citation",
+    "paragraphs": [
+      "The proposed method reduces training time by 40% and improves accuracy by 12% (Zhang, 2021).",
+      "These gains are consistent across multiple benchmark datasets."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Zhang, 2021)",
+        "authors": "Zhang",
+        "year": 2021,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 76
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Zhang, L. (2021). Efficient training strategies for large-scale models. Proceedings of ICML, 2021, 890-900.",
+        "authors": "Zhang, L.",
+        "year": 2021,
+        "title": "Efficient training strategies for large-scale models",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "one_claim_multiple_citations",
+    "paragraphs": [
+      "Renewable energy adoption has accelerated globally (Smith, 2020; Jones, 2021).",
+      "Policy incentives have played a crucial role in this transition."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Smith, 2020; Jones, 2021)",
+        "authors": "Smith, 2020; Jones, 2021",
+        "year": null,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 46
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Smith, J. (2020). Renewable energy trends. Energy Policy, 145, 111726.",
+        "authors": "Smith, J.",
+        "year": 2020,
+        "title": "Renewable energy trends",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Jones, A. (2021). Global energy transition review. Annual Review of Energy, 46, 234-256.",
+        "authors": "Jones, A.",
+        "year": 2021,
+        "title": "Global energy transition review",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "malformed",
+    "paragraphs": [
+      "Recent findings suggest a strong correlation between sleep and cognition [Smith et al. 2020].",
+      "Further research is needed to establish causality.",
+      "Longitudinal studies would be particularly valuable in this domain."
+    ],
+    "expected_citations": [],
+    "expected_bibliography_entries": []
+  },
+  {
+    "id": "year_not_citation",
+    "paragraphs": [
+      "In 2020, the study was conducted across multiple institutions.",
+      "The research team comprised 15 investigators from five countries.",
+      "Data collection spanned approximately 18 months."
+    ],
+    "expected_citations": [],
+    "expected_bibliography_entries": []
+  },
+  {
+    "id": "bracketed_not_citation",
+    "paragraphs": [
+      "The complete results are summarized in [see Table 1] below.",
+      "Additional data can be found in the supplementary materials.",
+      "All statistical tests used a significance level of 0.05."
+    ],
+    "expected_citations": [],
+    "expected_bibliography_entries": []
+  },
+  {
+    "id": "bibliography_exclusion",
+    "paragraphs": [
+      "Several studies support this hypothesis (Brown, 2018; Davis, 2019).",
+      "References",
+      "Brown, M. (2018). Hypothesis testing in practice. Statistical Methods, 12(4), 301-320.",
+      "Davis, R. (2019). Applied hypothesis testing. Journal of Statistics, 35(2), 145-160.",
+      "See also",
+      "Additional related work can be found in the online appendix."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Brown, 2018; Davis, 2019)",
+        "authors": "Brown, 2018; Davis, 2019",
+        "year": null,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 34
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Brown, M. (2018). Hypothesis testing in practice. Statistical Methods, 12(4), 301-320.",
+        "authors": "Brown, M.",
+        "year": 2018,
+        "title": "Hypothesis testing in practice",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Davis, R. (2019). Applied hypothesis testing. Journal of Statistics, 35(2), 145-160.",
+        "authors": "Davis, R.",
+        "year": 2019,
+        "title": "Applied hypothesis testing",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "mixed_types",
+    "paragraphs": [
+      "Machine learning has transformed natural language processing (Li, 2019).",
+      "Recent advances in transformer architectures have been remarkable [1].",
+      "Transfer learning remains a key enabler for low-resource languages (Zhang, 2021) [2].",
+      "References",
+      "1. Vaswani, A. et al. (2017). Attention is all you need. NeurIPS, 30.",
+      "2. Devlin, J. et al. (2019). BERT: Pre-training of deep bidirectional transformers. NAACL, 4171-4186."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Li, 2019)",
+        "authors": "Li",
+        "year": 2019,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 46
+      },
+      {
+        "raw_text": "[1]",
+        "authors": null,
+        "year": null,
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false,
+        "paragraph_index": 1,
+        "char_offset": 50
+      },
+      {
+        "raw_text": "(Zhang, 2021)",
+        "authors": "Zhang",
+        "year": 2021,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 2,
+        "char_offset": 51
+      },
+      {
+        "raw_text": "[2]",
+        "authors": null,
+        "year": null,
+        "doi": null,
+        "numbered_ref": 2,
+        "no_date": false,
+        "paragraph_index": 2,
+        "char_offset": 66
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "1. Vaswani, A. et al. (2017). Attention is all you need. NeurIPS, 30.",
+        "authors": "Vaswani, A. et al.",
+        "year": 2017,
+        "title": "Attention is all you need",
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false
+      },
+      {
+        "raw_text": "2. Devlin, J. et al. (2019). BERT: Pre-training of deep bidirectional transformers. NAACL, 4171-4186.",
+        "authors": "Devlin, J. et al.",
+        "year": 2019,
+        "title": "BERT: Pre-training of deep bidirectional transformers",
+        "doi": null,
+        "numbered_ref": 2,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "et_al",
+    "paragraphs": [
+      "The transformer architecture revolutionized sequence modeling (Vaswani et al., 2017).",
+      "Self-attention mechanisms allow parallel computation of representations.",
+      "Subsequent work has extended this paradigm to vision and multimodal tasks."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Vaswani et al., 2017)",
+        "authors": "Vaswani et al.",
+        "year": 2017,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 50
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I. (2017). Attention is all you need. Advances in Neural Information Processing Systems, 30.",
+        "authors": "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I.",
+        "year": 2017,
+        "title": "Attention is all you need",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "double_initial",
+    "paragraphs": [
+      "J. Smith (2020) proposed a novel framework for evaluating peer review systems.",
+      "The framework has been adopted by several major publishers.",
+      "It standardizes quality metrics across disciplines."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "J. Smith (2020)",
+        "authors": "J. Smith",
+        "year": 2020,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 0
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Smith, J. (2020). A framework for peer review evaluation. Scholarly Assessment, 8(2), 78-95.",
+        "authors": "Smith, J.",
+        "year": 2020,
+        "title": "A framework for peer review evaluation",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  }
+]

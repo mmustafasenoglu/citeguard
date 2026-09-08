@@ -1,0 +1,57 @@
+{
+  "name": "health_score",
+  "suite": "calibration",
+  "cases": 6,
+  "all_passed": true,
+  "monotonicity_violations": 0,
+  "details": [
+    {
+      "id": "hs_cal_01",
+      "description": "CLEAN",
+      "expected_score": 93,
+      "actual_score": 93,
+      "complete": true,
+      "passed": true
+    },
+    {
+      "id": "hs_cal_02",
+      "description": "MINOR_REVIEW",
+      "expected_score": 74,
+      "actual_score": 74,
+      "complete": true,
+      "passed": true
+    },
+    {
+      "id": "hs_cal_03",
+      "description": "NEEDS_REVIEW",
+      "expected_score": 46,
+      "actual_score": 46,
+      "complete": true,
+      "passed": true
+    },
+    {
+      "id": "hs_cal_04",
+      "description": "SEVERE",
+      "expected_score": 6,
+      "actual_score": 6,
+      "complete": true,
+      "passed": true
+    },
+    {
+      "id": "hs_cal_05",
+      "description": "INCOMPLETE",
+      "expected_score": null,
+      "actual_score": null,
+      "complete": false,
+      "passed": true
+    },
+    {
+      "id": "hs_cal_06",
+      "description": "CLEAN",
+      "expected_score": 82,
+      "actual_score": 82,
+      "complete": true,
+      "passed": true
+    }
+  ]
+}

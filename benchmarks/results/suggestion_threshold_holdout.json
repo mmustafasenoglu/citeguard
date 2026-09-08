@@ -1,0 +1,96 @@
+{
+  "name": "suggestion_threshold",
+  "suite": "holdout",
+  "cases": 10,
+  "threshold": 60,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "true_positives": 6,
+  "false_positives": 0,
+  "false_negatives": 0,
+  "true_negatives": 4,
+  "all_passed": true,
+  "details": [
+    {
+      "id": "st_ho_01",
+      "confidence": 91,
+      "threshold": 60,
+      "predicted": "ADEQUATE",
+      "actual": "ADEQUATE",
+      "passed": true
+    },
+    {
+      "id": "st_ho_02",
+      "confidence": 61,
+      "threshold": 60,
+      "predicted": "ADEQUATE",
+      "actual": "ADEQUATE",
+      "passed": true
+    },
+    {
+      "id": "st_ho_03",
+      "confidence": 59,
+      "threshold": 60,
+      "predicted": "INADEQUATE",
+      "actual": "INADEQUATE",
+      "passed": true
+    },
+    {
+      "id": "st_ho_04",
+      "confidence": 71,
+      "threshold": 60,
+      "predicted": "ADEQUATE",
+      "actual": "ADEQUATE",
+      "passed": true
+    },
+    {
+      "id": "st_ho_05",
+      "confidence": 33,
+      "threshold": 60,
+      "predicted": "INADEQUATE",
+      "actual": "INADEQUATE",
+      "passed": true
+    },
+    {
+      "id": "st_ho_06",
+      "confidence": 70,
+      "threshold": 60,
+      "predicted": "ADEQUATE",
+      "actual": "ADEQUATE",
+      "passed": true
+    },
+    {
+      "id": "st_ho_07",
+      "confidence": 63,
+      "threshold": 60,
+      "predicted": "ADEQUATE",
+      "actual": "ADEQUATE",
+      "passed": true
+    },
+    {
+      "id": "st_ho_08",
+      "confidence": 57,
+      "threshold": 60,
+      "predicted": "INADEQUATE",
+      "actual": "INADEQUATE",
+      "passed": true
+    },
+    {
+      "id": "st_ho_09",
+      "confidence": 20,
+      "threshold": 60,
+      "predicted": "INADEQUATE",
+      "actual": "INADEQUATE",
+      "passed": true
+    },
+    {
+      "id": "st_ho_10",
+      "confidence": 60,
+      "threshold": 60,
+      "predicted": "ADEQUATE",
+      "actual": "ADEQUATE",
+      "passed": true
+    }
+  ]
+}

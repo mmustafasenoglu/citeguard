@@ -1,0 +1,476 @@
+[
+  {
+    "id": "exact_doi_match",
+    "bibliography_entry": {
+      "raw_text": "Smith, J., & Doe, A. (2021). Neural network optimization in practice. Journal of Machine Learning Research, 22(3), 101-130.",
+      "authors": "Smith, J. & Doe, A.",
+      "year": 2021,
+      "title": "Neural Network Optimization in Practice",
+      "doi": "10.1000/example",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Neural Network Optimization in Practice",
+        "authors": [
+          "Jane Smith",
+          "Alan Doe"
+        ],
+        "year": 2021,
+        "venue": "Journal of Machine Learning Research",
+        "doi": "10.1000/example",
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "We study optimization techniques for neural networks.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 98,
+    "expected_metadata_overall_max": 100,
+    "notes": "Identical DOI after normalization. DOI match scores 100, all other fields align."
+  },
+  {
+    "id": "normalized_doi",
+    "bibliography_entry": {
+      "raw_text": "Lee, C. (2019). Quantum entanglement surveys. Nature Physics, 15(4), 412-418.",
+      "authors": "Lee, C.",
+      "year": 2019,
+      "title": "Quantum Entanglement Surveys",
+      "doi": "10.1000/example",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Quantum Entanglement Surveys",
+        "authors": [
+          "Chen Lee"
+        ],
+        "year": 2019,
+        "venue": "Nature Physics",
+        "doi": "10.1000/ EXAMPLE",
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "A survey of quantum entanglement phenomena.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 98,
+    "expected_metadata_overall_max": 100,
+    "notes": "DOI with whitespace差异 normalizes to identical string."
+  },
+  {
+    "id": "exact_arxiv",
+    "bibliography_entry": {
+      "raw_text": "Nguyen, T., & Park, S. (2022). Transformer architectures for low-resource languages. arXiv:2205.12345.",
+      "authors": "Nguyen, T. & Park, S.",
+      "year": 2022,
+      "title": "Transformer Architectures for Low-Resource Languages",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Transformer Architectures for Low-Resource Languages",
+        "authors": [
+          "Thanh Nguyen",
+          "Soojung Park"
+        ],
+        "year": 2022,
+        "venue": null,
+        "doi": null,
+        "url": "https://arxiv.org/abs/2205.12345",
+        "source_api": "semantic_scholar",
+        "abstract": "We propose novel transformer architectures for low-resource NLP.",
+        "work_type": "preprint"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 90,
+    "expected_metadata_overall_max": 100,
+    "notes": "arXiv ID match serves as strong identifier even without DOI."
+  },
+  {
+    "id": "title_author_year_match",
+    "bibliography_entry": {
+      "raw_text": "Garcia, M. R., & Wang, L. (2018). Climate change impact on coastal ecosystems. Environmental Science & Technology, 52(11), 5890-5901.",
+      "authors": "Garcia, M. R. & Wang, L.",
+      "year": 2018,
+      "title": "Climate Change Impact on Coastal Ecosystems",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Climate Change Impact on Coastal Ecosystems",
+        "authors": [
+          "Maria R. Garcia",
+          "Li Wang"
+        ],
+        "year": 2018,
+        "venue": "Environmental Science & Technology",
+        "doi": "10.1021/est.2018.00123",
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "We assess climate change impacts on coastal marine ecosystems.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 70,
+    "expected_metadata_overall_max": 100,
+    "notes": "Strong title, author, and year alignment. DOI exists on candidate but not entry, so weighting uses title/author/year."
+  },
+  {
+    "id": "partial_metadata",
+    "bibliography_entry": {
+      "raw_text": "Brown, K. (2015). Advances in protein folding. Annual Review of Biochemistry.",
+      "authors": "Brown, K.",
+      "year": 2015,
+      "title": "Advances in Protein Folding",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Completely Different Topic Title",
+        "authors": [
+          "Lee"
+        ],
+        "year": 2021,
+        "venue": "Biochemistry Journal",
+        "doi": null,
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "A review of protein folding advances.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "partially_verified",
+    "expected_metadata_overall_min": 50,
+    "expected_metadata_overall_max": 70,
+    "notes": "Title partially overlaps, but different first author surname and off-by-one year."
+  },
+  {
+    "id": "metadata_mismatch",
+    "bibliography_entry": {
+      "raw_text": "Chen, Y. (2020). Deep reinforcement learning for robotics. IEEE Transactions on Robotics, 36(2), 200-215.",
+      "authors": "Chen, Y.",
+      "year": 2020,
+      "title": "Deep Reinforcement Learning for Robotics",
+      "doi": "10.1109/TRO.2020.3001234",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Deep Reinforcement Learning for Autonomous Navigation",
+        "authors": [
+          "Y. Chen"
+        ],
+        "year": 2020,
+        "venue": "IEEE Transactions on Robotics",
+        "doi": "10.1109/TRO.2020.9999999",
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "A study on deep RL for autonomous robot navigation.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "metadata_mismatch",
+    "expected_metadata_overall_min": 0,
+    "expected_metadata_overall_max": 49,
+    "notes": "DOI exists in both but differs. DOI score is 0, overall capped at 49. The mismatch is the key signal."
+  },
+  {
+    "id": "same_doi_conflict",
+    "bibliography_entry": {
+      "raw_text": "Muller, H., & Schmidt, F. (2017). CRISPR-Cas9 off-target effects. Nature Biotechnology, 35(6), 550-558.",
+      "authors": "Muller, H. & Schmidt, F.",
+      "year": 2017,
+      "title": "CRISPR-Cas9 Off-Target Effects in Mammalian Cells",
+      "doi": "10.1038/nbt.2017.001",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "CRISPR-Cas9 off-target effects in mammalian cell lines",
+        "authors": [
+          "Hans Muller",
+          "Friedrich Schmidt"
+        ],
+        "year": 2016,
+        "venue": "Nature Biotechnology",
+        "doi": "10.1038/nbt.2017.001",
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "We characterize off-target effects of CRISPR-Cas9.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 70,
+    "expected_metadata_overall_max": 100,
+    "notes": "Same DOI wins. Year differs by 1, title has minor variation, but DOI match forces VERIFIED."
+  },
+  {
+    "id": "different_doi_same_work",
+    "bibliography_entry": {
+      "raw_text": "Kim, J. (2019). Genome-wide association studies in East Asian populations. Nature Genetics, 51(3), 420-428.",
+      "authors": "Kim, J.",
+      "year": 2019,
+      "title": "Genome-Wide Association Studies in East Asian Populations",
+      "doi": "10.1038/ng.2019.001",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Genome-wide association studies in East Asian populations",
+        "authors": [
+          "Jaehoon Kim"
+        ],
+        "year": 2019,
+        "venue": "Nature Genetics",
+        "doi": "10.1038/s41588-019-0345-7",
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "Large-scale GWAS in East Asian cohorts.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "metadata_mismatch",
+    "expected_metadata_overall_min": 0,
+    "expected_metadata_overall_max": 49,
+    "notes": "Different DOIs for what appears to be the same work. System cannot reconcile without manual review."
+  },
+  {
+    "id": "missing_doi_no_match",
+    "bibliography_entry": {
+      "raw_text": "Ivanov, P. (2010). Turbulence in plasma confinement devices. Physics of Plasmas, 17(5).",
+      "authors": "Ivanov, P.",
+      "year": 2010,
+      "title": "Turbulence in Plasma Confinement Devices",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Statistical Models for Atmospheric Turbulence",
+        "authors": [
+          "Roberto Fernandez"
+        ],
+        "year": 2012,
+        "venue": "Journal of Atmospheric Sciences",
+        "doi": null,
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "Atmospheric turbulence statistical modeling.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "unresolved",
+    "expected_metadata_overall_min": 0,
+    "expected_metadata_overall_max": 30,
+    "notes": "No DOI, poor title/author match. Candidate is unrelated."
+  },
+  {
+    "id": "not_found",
+    "bibliography_entry": {
+      "raw_text": "Xavier, A. (2023). Methylmercury cycling in Arctic fjords. Marine Chemistry, 251, 104198.",
+      "authors": "Xavier, A.",
+      "year": 2023,
+      "title": "Methylmercury Cycling in Arctic Fjords",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [],
+    "expected_status": "not_found",
+    "expected_metadata_overall_min": 0,
+    "expected_metadata_overall_max": 0,
+    "notes": "No candidates returned from any provider."
+  },
+  {
+    "id": "provider_error",
+    "bibliography_entry": {
+      "raw_text": "Tanaka, R. (2018). Superconductivity in hydrogen-rich compounds. Nature, 553(7686), 68-72.",
+      "authors": "Tanaka, R.",
+      "year": 2018,
+      "title": "Superconductivity in Hydrogen-Rich Compounds",
+      "doi": "10.1038/nature25115",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [],
+    "expected_status": "provider_error",
+    "expected_metadata_overall_min": 0,
+    "expected_metadata_overall_max": 0,
+    "notes": "Simulated provider error. Pipeline sets provider_errors flag and returns PROVIDER_ERROR when no candidates and errors present."
+  },
+  {
+    "id": "formatting_differences",
+    "bibliography_entry": {
+      "raw_text": "O'Brien, P., & de Silva, N. (2020). Lanthanide coordination chemistry revisited. Inorganic Chemistry, 59(8), 5300-5312.",
+      "authors": "O'Brien, P. & de Silva, N.",
+      "year": 2020,
+      "title": "Lanthanide Coordination Chemistry Revisited",
+      "doi": "10.1021/acs.inorgchem.0c00456",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Lanthanide Coordination Chemistry Revisited: New Insights",
+        "authors": [
+          "Patrick O'Brien",
+          "Nisha de Silva"
+        ],
+        "year": 2020,
+        "venue": "Inorganic Chemistry",
+        "doi": "10.1021/acs.inorgchem.0c00456",
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "We revisit lanthanide coordination complexes.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 95,
+    "expected_metadata_overall_max": 100,
+    "notes": "Minor title suffix difference. Same DOI, authors, year. Formatting differences resolved by normalization."
+  },
+  {
+    "id": "generic_venue",
+    "bibliography_entry": {
+      "raw_text": "Patel, V. (2021). Edge computing for IoT: A survey. Proceedings of the IEEE, 109(4), 510-530.",
+      "authors": "Patel, V.",
+      "year": 2021,
+      "title": "Edge Computing for IoT: A Survey",
+      "doi": "10.1109/JPROC.2021.3054001",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Edge Computing for Internet of Things: A Comprehensive Survey",
+        "authors": [
+          "Vivek Patel"
+        ],
+        "year": 2021,
+        "venue": "Proceedings of the IEEE",
+        "doi": "10.1109/JPROC.2021.3054001",
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "Comprehensive survey on edge computing for IoT.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 85,
+    "expected_metadata_overall_max": 100,
+    "notes": "Generic 'Proceedings' venue is acceptable. Same DOI, strong title overlap, author and year match."
+  },
+  {
+    "id": "explicit_review",
+    "bibliography_entry": {
+      "raw_text": "Zhang, W., & Li, H. (2022). A meta-analysis of sleep deprivation and cognition. Neuroscience & Biobehavioral Reviews, 135, 104560.",
+      "authors": "Zhang, W. & Li, H.",
+      "year": 2022,
+      "title": "A Meta-Analysis of Sleep Deprivation and Cognition",
+      "doi": "10.1016/j.neubiorev.2022.104560",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "A meta-analysis of sleep deprivation and cognitive performance",
+        "authors": [
+          "Wei Zhang",
+          "Hui Li"
+        ],
+        "year": 2022,
+        "venue": "Neuroscience & Biobehavioral Reviews",
+        "doi": "10.1016/j.neubiorev.2022.104560",
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "Meta-analysis examining sleep deprivation effects.",
+        "work_type": "review"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 90,
+    "expected_metadata_overall_max": 100,
+    "notes": "work_type='review' is noted but does not prevent VERIFIED status. Metadata alignment is strong."
+  },
+  {
+    "id": "explicit_research",
+    "bibliography_entry": {
+      "raw_text": "Johnson, L. M. (2020). Single-cell RNA sequencing reveals heterogeneity in tumor microenvironment. Cell, 181(2), 442-455.",
+      "authors": "Johnson, L. M.",
+      "year": 2020,
+      "title": "Single-Cell RNA Sequencing Reveals Heterogeneity in Tumor Microenvironment",
+      "doi": "10.1016/j.cell.2020.03.021",
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Single-cell RNA sequencing reveals heterogeneity in tumor microenvironment",
+        "authors": [
+          "Laura M. Johnson"
+        ],
+        "year": 2020,
+        "venue": "Cell",
+        "doi": "10.1016/j.cell.2020.03.021",
+        "url": null,
+        "source_api": "crossref",
+        "abstract": "scRNA-seq reveals cellular heterogeneity in tumors.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 95,
+    "expected_metadata_overall_max": 100,
+    "notes": "Standard journal article with strong metadata alignment across all fields."
+  },
+  {
+    "id": "threshold_boundary",
+    "bibliography_entry": {
+      "raw_text": "Fernandez, C. (2017). Protein aggregation kinetics in vivo. Biophysical Journal, 112(9), 1900-1910.",
+      "authors": "Fernandez, C.",
+      "year": 2017,
+      "title": "Protein Aggregation Kinetics in Vivo",
+      "doi": null,
+      "numbered_ref": null,
+      "no_date": false
+    },
+    "provider_candidates": [
+      {
+        "title": "Protein aggregation kinetics measured in living cells",
+        "authors": [
+          "Carlos Fernandez"
+        ],
+        "year": 2017,
+        "venue": "Biophysical Journal",
+        "doi": null,
+        "url": null,
+        "source_api": "semantic_scholar",
+        "abstract": "Kinetic study of protein aggregation.",
+        "work_type": "journal-article"
+      }
+    ],
+    "expected_status": "verified",
+    "expected_metadata_overall_min": 70,
+    "expected_metadata_overall_max": 75,
+    "notes": "Score hovers at the 70 threshold. Title has minor variation; author and year match perfectly."
+  }
+]

@@ -1,14 +1,18 @@
-# citeguard
+# citeguard v1.0.0
 
-**Find missing citations. Verify existing references. Audit academic writing from your terminal.**
+**Audit citations in academic documents. Detect uncited claims, verify bibliography metadata, and estimate source support — from your terminal.**
 
 [![CI](https://github.com/mmustafasenoglu/citeguard/actions/workflows/tests.yml/badge.svg)](https://github.com/mmustafasenoglu/citeguard/actions/workflows/tests.yml)
 [![Python 3.10–3.12](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-`citeguard` is an open-source CLI for detecting citation-worthy claims, resolving existing academic references, and estimating whether a retrieved source actually supports the surrounding claim.
+`citeguard` is an open-source CLI and Python library for auditing citations in academic documents
+(.md, .txt, .docx). It parses citations and bibliographies, searches academic providers for
+metadata and source suggestions, and produces structured reports with deterministic health scores.
 
-> **Important:** citeguard does **not** prove that a claim is true. It helps determine whether a real, relevant source can be found and whether that source appears to support the claim. All results require human review.
+> **Important:** citeguard does **not** prove that a claim is true, detect plagiarism, or verify
+> scientific correctness. It helps determine whether a real, relevant source can be found and
+> whether that source appears to support the claim. All results require human review.
 
 ## Features
 
@@ -16,7 +20,7 @@
 - Parse parenthetical, narrative, multi-source, numbered, and DOI citations
 - Support `.md`, `.txt`, and `.docx` files including DOCX table cells
 - Parse English and Turkish bibliography headings
-- Search Semantic Scholar, Crossref, and arXiv for source suggestions
+- Search Semantic Scholar, Crossref, OpenAlex, and arXiv for source suggestions
 - Verify bibliography metadata against Crossref (direct DOI lookup + bibliographic fallback)
 - Compute a deterministic Citation Health Score
 - Produce terminal, Markdown, and JSON reports (`--format both` for JSON + Markdown)
@@ -26,13 +30,19 @@
 - Parallel provider queries for faster multi-provider searches
 - Per-provider rate limiting to avoid API throttling
 - Rich progress spinners during long-running searches
-- Full offline baseline — no API keys required for default operation
 - **Evidence extraction** — sentence-level evidence passages from source abstracts, ranked by relevance
 - **Entailment evaluation** — lexical contradiction signals and LLM-backed support classification
 - **Evidence-aware scoring** — three-stage pipeline: metadata match → evidence → entailment → aggregate
 - **CLI evidence controls** — `--show-evidence` to display evidence passages, `--require-evidence` to filter
+- **Document similarity** — sentence-level overlap, lexical, and semantic similarity analysis against a corpus
 
 ## Installation
+
+```bash
+pip install citeguard
+```
+
+Or install from source:
 
 ```bash
 git clone https://github.com/mmustafasenoglu/citeguard.git
@@ -45,17 +55,13 @@ pip install .
 For development:
 
 ```bash
-git clone https://github.com/mmustafasenoglu/citeguard.git
-cd citeguard
-python3 -m venv .venv
-source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
 ## Quick start
 
 ```bash
-# Inspect document parsing (offline, no API keys needed)
+# Inspect document parsing (offline, no network calls)
 citeguard inspect examples/example-paper.md
 
 # Full citation audit
@@ -66,6 +72,9 @@ citeguard suggest examples/example-paper.md
 
 # Verify bibliography metadata against Crossref
 citeguard verify examples/example-paper.md
+
+# Offline mode — zero network calls, deterministic baseline only
+citeguard check examples/example-paper.md --offline
 
 # JSON output
 citeguard check examples/example-paper.md --format json
@@ -90,11 +99,15 @@ citeguard check examples/example-paper.md --severity high
 
 # Limit extracted claims
 citeguard check examples/example-paper.md --max-claims 5
+
+# Document similarity analysis
+citeguard similarity examples/example-paper.md --corpus path/to/corpus
 ```
 
 ### LLM-enhanced mode (optional)
 
-citeguard supports multiple LLM providers. Set one API key to enable LLM-backed claim extraction and entailment:
+citeguard supports multiple LLM providers. Set one API key to enable LLM-backed claim extraction
+and entailment:
 
 ```bash
 # Create .env template
@@ -140,11 +153,14 @@ When no API key is available, citeguard falls back to the deterministic offline 
 
 | Command | Description |
 |---------|-------------|
-| `citeguard inspect FILE` | Offline parsing and bibliography detection |
-| `citeguard check FILE` | Full audit: claims, verification, health score |
-| `citeguard suggest FILE` | Search academic providers for uncited claims |
+| `citeguard check FILE` | Full audit: claims, verification, suggestions, health score |
 | `citeguard verify FILE` | Verify bibliography metadata via Crossref |
+| `citeguard suggest FILE` | Search academic providers for uncited claims |
+| `citeguard inspect FILE` | Offline parsing and bibliography detection |
+| `citeguard similarity FILE` | Document similarity analysis against a corpus |
 | `citeguard init` | Create a local `.env` template for API keys |
+| `citeguard llm doctor` | Test LLM provider connectivity |
+| `citeguard llm list` | Display current LLM configuration (no secrets) |
 
 ### Common options
 
@@ -152,6 +168,7 @@ When no API key is available, citeguard falls back to the deterministic offline 
 |--------|-------------|
 | `--format terminal\|json\|md\|both` | Output format (default: terminal) |
 | `--output FILE` | Write report to file |
+| `--offline` | Skip all remote provider network calls |
 | `--max-results INT` | Maximum provider results per query (1–20) |
 | `--threshold INT` | Minimum confidence to report suggestions (0–100) |
 | `--max-claims INT` | Limit number of extracted claims |
@@ -161,46 +178,48 @@ When no API key is available, citeguard falls back to the deterministic offline 
 | `--show-evidence` | Display evidence passages for matched claims |
 | `--require-evidence` | Only show claims with evidence in priority review |
 
-## Example: check output
+## Python API
 
-```
-Citation Health Score: 30/100
+citeguard exposes a stable Python API for programmatic use:
 
-┌──────────────────────────────────────────┐
-│           Audit Summary                  │
-├─────────────────────────────┬────────────┤
-│ Total claims                │            2 │
-│ Claims requiring citations  │            1 │
-│ Cited claims                │            1 │
-│ Verified citations          │            0 │
-│ Weak matches                │            1 │
-│ Uncited high-severity claims│            0 │
-│ Contradictions              │            0 │
-│ Bibliography issues         │            0 │
-│ Citation coverage           │       50.0%  │
-│ Verification ratio          │        0.0%  │
-│ Support ratio               │        0.0%  │
-│ Bibliography consistency    │      100.0%  │
-└─────────────────────────────┴────────────┘
+```python
+from citeguard.api import (
+    AuditOptions,
+    AuditResult,
+    audit_document,
+    suggest_document,
+    verify_document,
+)
 
-Priority review list
-  LOW (confidence: 43) - Large language models can generate references that
-  appear plausible but require independent verification. [verdict: insufficient_information]
+# Full audit
+result: AuditResult = audit_document("paper.md", AuditOptions(offline=True))
+
+# Suggest sources for uncited claims only
+result: AuditResult = suggest_document("paper.md")
+
+# Verify bibliography entries only
+result: AuditResult = verify_document("paper.md")
 ```
 
-Example output files are committed under `examples/`:
+Internal modules are not part of the public API. Only symbols re-exported from `citeguard.api`
+are supported.
 
-- `example-inspect.json` / `example-inspect.md` — offline inspection
-- `example-check.json` / `example-check.md` — full audit
+## Providers
 
-Reproduce them with:
+citeguard queries academic metadata providers to resolve citations and suggest sources:
 
-```bash
-citeguard inspect examples/example-paper.md --format both --output examples/example-inspect
-citeguard check examples/example-paper.md --format both --output examples/example-check
-```
+| Provider | Purpose |
+|----------|---------|
+| **Semantic Scholar** | Primary source search and metadata retrieval |
+| **Crossref** | Bibliography verification (DOI lookup + bibliographic search) |
+| **OpenAlex** | Open-access source search |
+| **arXiv** | Preprint search |
 
-## Reliability model
+Provider queries run in parallel with per-provider rate limiting (1 s minimum interval).
+HTTP 429 and 5xx responses trigger exponential backoff (max 3 attempts). Provider failures do not
+terminate the scan; citeguard warns and continues with remaining providers.
+
+## Citation verification vs. claim support
 
 citeguard treats these as separate questions:
 
@@ -210,21 +229,43 @@ citeguard treats these as separate questions:
 4. **Entailment** — do the evidence passages support, contradict, or leave the claim unsupported?
 5. **Overall confidence** — a deterministic score derived from the previous signals.
 
-A citation can therefore be successfully resolved while receiving a `contradicted` or `unrelated` verdict.
+A citation can therefore be successfully resolved while receiving a `contradicted` or `unrelated`
+verdict. Verification confirms that metadata exists; support assessment evaluates whether the source
+actually backs the claim.
+
+## Exit codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Pass — no findings, or all checks above threshold |
+| `1` | Findings — claims below health score threshold, or audit issues detected |
+| `2` | Usage error — invalid arguments or missing file |
+| `3` | Provider failure — a required online provider phase failed |
+
+## Citation Health Score
+
+The Citation Health Score is a **deterministic heuristic** for prioritizing review. It combines
+citation coverage, verification ratio, support ratio, and bibliography consistency into a single
+0–100 score. It is **not** a measure of scientific correctness or writing quality. A high score
+does not mean claims are true; a low score does not mean they are false.
+
+Calibration details and benchmark results are available in
+[CALIBRATION.md](CALIBRATION.md) and the [`benchmarks/`](benchmarks/) directory.
 
 ## Privacy
 
-citeguard is a local CLI. The analysis pipeline sends limited content to configured third-party APIs:
+citeguard is a local CLI. Network behavior depends on mode:
 
-- **Academic providers** (Semantic Scholar, Crossref, arXiv): generated search queries derived
-  from claims and bibliography metadata. The full document is not sent.
-- **LLM provider** (when configured): paragraphs are sent for claim extraction; claims plus
-  source titles, authors, years, and abstracts are sent for entailment classification. Supported
-  providers: Anthropic, OpenAI, xAI/Grok, Groq, OpenRouter, NVIDIA NIM, and custom endpoints.
-  The full document, bibliography, and API key are not included in prompts.
+- **`--offline`**: zero network calls. All analysis uses the deterministic baseline with cached
+  data only. No API keys are read.
+- **Default mode**: limited content is sent to configured third-party APIs:
+  - **Academic providers** (Semantic Scholar, Crossref, OpenAlex, arXiv): generated search
+    queries derived from claims and bibliography metadata. The full document is not sent.
+  - **LLM provider** (when configured): paragraphs are sent for claim extraction; claims plus
+    source titles, authors, years, and abstracts are sent for entailment classification. The full
+    document, bibliography, and API key are not included in prompts.
 - **API keys** are never written to reports, logs, screenshots, or cache files.
-
-citeguard has no telemetry or usage analytics.
+- citeguard has no telemetry or usage analytics.
 
 ## Limitations
 
@@ -232,26 +273,20 @@ citeguard has no telemetry or usage analytics.
 - Abstract-level evidence may be insufficient to establish claim support.
 - Search providers can fail to index legitimate publications.
 - `unresolved` does **not** mean `fake`.
-- Numbered citation-to-bibliography resolution is deferred beyond v0.1.
-- Full-text evidence verification is not part of v0.1.
-- Citation Health Score is a heuristic prioritization metric, not a measure of scientific correctness.
+- citeguard is **not** plagiarism detection.
+- citeguard does **not** evaluate scientific validity or correctness.
+- Human review is required for all results.
+- Full-text evidence verification is not supported; only source abstracts are used.
+- Citation Health Score is a review heuristic, not a measure of writing quality.
 
-## Roadmap
+## Post-1.0 roadmap
 
-See [SPEC.md](SPEC.md) for the full technical specification.
-
-**v0.2 in progress:**
-- Evidence extraction from source abstracts (shipped)
-- Entailment evaluation with lexical + LLM classifier (shipped)
-- Three-stage evidence-aware matching pipeline (shipped)
-- `--show-evidence` / `--require-evidence` CLI options (shipped)
-- OpenAlex / PubMed provider support
-- Retraction metadata
-- Full-text evidence verification
+_planned improvements will be documented here as they are scoped._
 
 ## Contributing
 
-Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, test expectations, and guidelines.
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, test
+expectations, and guidelines.
 
 ## Security
 

@@ -1,0 +1,89 @@
+{
+  "benchmark_version": "1.0",
+  "package_version_candidate": "1.0.0",
+  "dataset_counts": {
+    "calibration": {
+      "citation_parsing": 20,
+      "bibliography_resolution": 16,
+      "retrieval_ranking": 12,
+      "suggestion_threshold": 15,
+      "health_score": 6,
+      "entailment": 10
+    },
+    "holdout": {
+      "citation_parsing": 15,
+      "bibliography_resolution": 12,
+      "retrieval_ranking": 10,
+      "suggestion_threshold": 10,
+      "health_score": 4,
+      "entailment": 8
+    }
+  },
+  "chosen_thresholds": {
+    "suggestion": 60,
+    "metadata_verification": 70,
+    "strong_retrieval": 80,
+    "health_pass": 80,
+    "partial_metadata": 50,
+    "weak_match": 60
+  },
+  "calibration_metrics": {
+    "citation_parsing": {
+      "recall": 1.0,
+      "precision": 1.0,
+      "f1": 1.0
+    },
+    "bibliography_resolution": {
+      "verified_precision": 1.0,
+      "verified_recall": 0.9,
+      "accuracy": 0.688
+    },
+    "retrieval_ranking": {
+      "mrr": 0.917,
+      "recall_at_1": 0.917,
+      "recall_at_5": 1.0
+    },
+    "suggestion_threshold": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "health_score": {
+      "monotonicity_violations": 0
+    },
+    "entailment": {
+      "accuracy": 1.0
+    }
+  },
+  "holdout_metrics": {
+    "citation_parsing": {
+      "recall": 1.0,
+      "precision": 1.0,
+      "f1": 1.0
+    },
+    "bibliography_resolution": {
+      "verified_precision": 1.0,
+      "verified_recall": 1.0,
+      "accuracy": 0.583
+    },
+    "retrieval_ranking": {
+      "mrr": 1.0,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0
+    },
+    "suggestion_threshold": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "health_score": {
+      "monotonicity_violations": 0
+    },
+    "entailment": {
+      "accuracy": 1.0
+    }
+  },
+  "determinism_result": "100% reproducible on identical inputs/cache/options",
+  "offline_network_result": "Zero network calls in offline mode",
+  "release_gate_passed": true
+}

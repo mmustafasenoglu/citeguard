@@ -1,0 +1,92 @@
+[
+  {
+    "id": "st_ho_01",
+    "claim_text": "The Amazon rainforest produces 20% of the world's oxygen",
+    "candidate_metadata_match_score": 88,
+    "candidate_claim_support_score": 92,
+    "has_entailment": true,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "High quality match with entailment; overall_confidence=91"
+  },
+  {
+    "id": "st_ho_02",
+    "claim_text": "Climate change has doubled the frequency of extreme weather events",
+    "candidate_metadata_match_score": 55,
+    "candidate_claim_support_score": 62,
+    "has_entailment": true,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Just above threshold with entailment; overall_confidence=61"
+  },
+  {
+    "id": "st_ho_03",
+    "claim_text": "Plant-based diets can reduce individual carbon footprint by 73%",
+    "candidate_metadata_match_score": 45,
+    "candidate_claim_support_score": 62,
+    "has_entailment": true,
+    "expected_label": "INADEQUATE_SUGGESTION",
+    "notes": "Just below threshold with entailment; overall_confidence=59"
+  },
+  {
+    "id": "st_ho_04",
+    "claim_text": "Global coral reef coverage has declined by 50% since 1950",
+    "candidate_metadata_match_score": 65,
+    "candidate_claim_support_score": 72,
+    "has_entailment": true,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Moderate-high scores with entailment; overall_confidence=71"
+  },
+  {
+    "id": "st_ho_05",
+    "claim_text": "Tidal energy has the potential to meet 10% of global demand",
+    "candidate_metadata_match_score": 25,
+    "candidate_claim_support_score": 35,
+    "has_entailment": true,
+    "expected_label": "INADEQUATE_SUGGESTION",
+    "notes": "Low scores; overall_confidence=33"
+  },
+  {
+    "id": "st_ho_06",
+    "claim_text": "Geothermal energy is the most reliable renewable source",
+    "candidate_metadata_match_score": 85,
+    "candidate_claim_support_score": 60,
+    "has_entailment": false,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Good metadata without entailment; overall_confidence=70"
+  },
+  {
+    "id": "st_ho_07",
+    "claim_text": "Wildfire seasons are 20% longer than in the 1970s",
+    "candidate_metadata_match_score": 55,
+    "candidate_claim_support_score": 68,
+    "has_entailment": false,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Above threshold without entailment; overall_confidence=63"
+  },
+  {
+    "id": "st_ho_08",
+    "claim_text": "Hydropower accounts for 16% of global electricity generation",
+    "candidate_metadata_match_score": 45,
+    "candidate_claim_support_score": 65,
+    "has_entailment": false,
+    "expected_label": "INADEQUATE_SUGGESTION",
+    "notes": "Below threshold without entailment; overall_confidence=57"
+  },
+  {
+    "id": "st_ho_09",
+    "claim_text": "Offshore wind costs have fallen by 60% since 2010",
+    "candidate_metadata_match_score": 100,
+    "candidate_claim_support_score": 0,
+    "has_entailment": true,
+    "expected_label": "INADEQUATE_SUGGESTION",
+    "notes": "Extreme mismatch: perfect metadata but zero support; overall_confidence=20"
+  },
+  {
+    "id": "st_ho_10",
+    "claim_text": "Glacier retreat has accelerated by 300% since 2000",
+    "candidate_metadata_match_score": 50,
+    "candidate_claim_support_score": 63,
+    "has_entailment": true,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Exact boundary with entailment; overall_confidence=60, minimal pass"
+  }
+]

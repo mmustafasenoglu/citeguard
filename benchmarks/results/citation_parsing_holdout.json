@@ -1,0 +1,179 @@
+{
+  "name": "citation_parsing",
+  "suite": "holdout",
+  "cases": 15,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "true_positives": 23,
+  "false_positives": 0,
+  "false_negatives": 0,
+  "all_exact": true,
+  "details": [
+    {
+      "id": "complex_multi_source",
+      "detected": 3,
+      "expected": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "nested_parenthetical",
+      "detected": 0,
+      "expected": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "consecutive_citations",
+      "detected": 3,
+      "expected": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "citation_with_subtitle",
+      "detected": 0,
+      "expected": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "inline_doi",
+      "detected": 1,
+      "expected": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "long_author_list",
+      "detected": 1,
+      "expected": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "cross_reference",
+      "detected": 1,
+      "expected": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "footnote_style",
+      "detected": 0,
+      "expected": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "multiple_bibs",
+      "detected": 5,
+      "expected": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "no_citation_paragraph",
+      "detected": 0,
+      "expected": 0,
+      "matched": 0,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "very_long_paragraph",
+      "detected": 8,
+      "expected": 8,
+      "matched": 8,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "turkish_authors",
+      "detected": 1,
+      "expected": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "initials_only",
+      "detected": 1,
+      "expected": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "hybrid_numbered_and_authoryear",
+      "detected": 6,
+      "expected": 6,
+      "matched": 6,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    },
+    {
+      "id": "citation_at_boundary",
+      "detected": 1,
+      "expected": 1,
+      "matched": 1,
+      "false_positive": 0,
+      "missed": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "passed": true
+    }
+  ]
+}

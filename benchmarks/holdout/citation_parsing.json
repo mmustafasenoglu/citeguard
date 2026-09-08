@@ -1,0 +1,668 @@
+[
+  {
+    "id": "complex_multi_source",
+    "paragraphs": [
+      "Public health interventions require coordinated international efforts (Smith, 2020; Jones & Lee, 2021; World Health Organization, 2019).",
+      "Resource allocation remains a key challenge in implementation."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Smith, 2020; Jones & Lee, 2021; World Health Organization, 2019)",
+        "authors": "Smith, 2020; Jones & Lee, 2021; World Health Organization, 2019",
+        "year": null,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 56
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Smith, J. (2020). Public health coordination frameworks. Lancet, 396(10251), 890-898.",
+        "authors": "Smith, J.",
+        "year": 2020,
+        "title": "Public health coordination frameworks",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Jones, A. and Lee, B. (2021). International health partnerships. BMJ Global Health, 6(4), e005612.",
+        "authors": "Jones, A. and Lee, B.",
+        "year": 2021,
+        "title": "International health partnerships",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "World Health Organization. (2019). Global health cooperation report. WHO Press.",
+        "authors": "World Health Organization",
+        "year": 2019,
+        "title": "Global health cooperation report",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "nested_parenthetical",
+    "paragraphs": [
+      "The theory was empirically validated (see Smith, 2020, pp. 10-15) in controlled laboratory conditions.",
+      "Subsequent field studies confirmed these initial findings.",
+      "The methodology has since been adopted by multiple research groups."
+    ],
+    "expected_citations": [],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Smith, J. (2020). Empirical Methods in Laboratory Research. Springer.",
+        "authors": "Smith, J.",
+        "year": 2020,
+        "title": "Empirical Methods in Laboratory Research",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ],
+    "notes": "Edge case: (see Author, Year, pp.) not detected by current parser"
+  },
+  {
+    "id": "consecutive_citations",
+    "paragraphs": [
+      "The methodology has been validated by multiple independent studies [1, 2, 3].",
+      "Each study used slightly different experimental conditions.",
+      "Results were consistent across all three replications."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "[1, 2, 3]",
+        "authors": null,
+        "year": null,
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 51
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "1. Anderson, R. (2018). Validation of experimental methods. Nature Methods, 15(3), 210-218.",
+        "authors": "Anderson, R.",
+        "year": 2018,
+        "title": "Validation of experimental methods",
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false
+      },
+      {
+        "raw_text": "2. Brown, K. (2019). Replication in experimental science. Science, 364(6440), 567-570.",
+        "authors": "Brown, K.",
+        "year": 2019,
+        "title": "Replication in experimental science",
+        "doi": null,
+        "numbered_ref": 2,
+        "no_date": false
+      },
+      {
+        "raw_text": "3. Chen, Y. (2020). Cross-laboratory validation studies. PNAS, 117(12), 6540-6548.",
+        "authors": "Chen, Y.",
+        "year": 2020,
+        "title": "Cross-laboratory validation studies",
+        "doi": null,
+        "numbered_ref": 3,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "citation_with_subtitle",
+    "paragraphs": [
+      "The theoretical framework is thoroughly examined in the monograph (Smith, 2020: chapter 3).",
+      "Chapter 5 provides practical implementation guidelines.",
+      "The appendix contains supplementary mathematical derivations."
+    ],
+    "expected_citations": [],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Smith, J. (2020). Theoretical Frameworks in Modern Science. Oxford University Press.",
+        "authors": "Smith, J.",
+        "year": 2020,
+        "title": "Theoretical Frameworks in Modern Science",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ],
+    "notes": "Edge case: (Author, Year: chapter N) not detected by current parser"
+  },
+  {
+    "id": "inline_doi",
+    "paragraphs": [
+      "The raw dataset is archived at 10.1000/example and can be freely accessed.",
+      "All preprocessing scripts are available in the supplementary repository.",
+      "Data collection followed a pre-registered protocol approved by the IRB."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "10.1000/example",
+        "authors": null,
+        "year": null,
+        "doi": "10.1000/example",
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 40
+      }
+    ],
+    "expected_bibliography_entries": []
+  },
+  {
+    "id": "long_author_list",
+    "paragraphs": [
+      "A large-scale collaboration produced the most comprehensive study to date (Smith, Jones, Lee, and Kim, 2020).",
+      "The consortium included researchers from 30 institutions across 12 countries.",
+      "Data harmonization was a major technical challenge addressed through standardized protocols."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Smith, Jones, Lee, and Kim, 2020)",
+        "authors": "Smith, Jones, Lee, and Kim",
+        "year": 2020,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 53
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Smith, A., Jones, B., Lee, C., and Kim, D. (2020). A multi-institutional study of data harmonization. Nature Communications, 11, 1234.",
+        "authors": "Smith, A., Jones, B., Lee, C., and Kim, D.",
+        "year": 2020,
+        "title": "A multi-institutional study of data harmonization",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "cross_reference",
+    "paragraphs": [
+      "The implementation details are as described in [1].",
+      "Performance benchmarks were measured using the standard test suite.",
+      "All experiments were repeated five times with different random seeds."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "[1]",
+        "authors": null,
+        "year": null,
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 42
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "1. Patel, S. and Gupta, R. (2019). Efficient implementation patterns for deep learning frameworks. IEEE Transactions on Software Engineering, 45(8), 812-825.",
+        "authors": "Patel, S. and Gupta, R.",
+        "year": 2019,
+        "title": "Efficient implementation patterns for deep learning frameworks",
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "footnote_style",
+    "paragraphs": [
+      "Smith showed this conclusion is robust across different model architectures^1.",
+      "Further evidence comes from independent replications.",
+      "The authors acknowledge several limitations of their approach."
+    ],
+    "expected_citations": [],
+    "expected_bibliography_entries": []
+  },
+  {
+    "id": "multiple_bibs",
+    "paragraphs": [
+      "The field has seen rapid progress across multiple fronts (Lee, 2017; Patel, 2018; Kim, 2019; Garcia, 2020; Wang, 2021).",
+      "Each contribution addressed a distinct aspect of the overall challenge."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Lee, 2017; Patel, 2018; Kim, 2019; Garcia, 2020; Wang, 2021)",
+        "authors": "Lee, 2017; Patel, 2018; Kim, 2019; Garcia, 2020; Wang, 2021",
+        "year": null,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 41
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Lee, H. (2017). Foundational methods for neural inference. JMLR, 18(1), 1234-1260.",
+        "authors": "Lee, H.",
+        "year": 2017,
+        "title": "Foundational methods for neural inference",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Patel, R. (2018). Scalable approximation algorithms for graph matching. Algorithmica, 80(5), 1456-1480.",
+        "authors": "Patel, R.",
+        "year": 2018,
+        "title": "Scalable approximation algorithms for graph matching",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Kim, S. (2019). Bayesian optimization with high-dimensional outputs. NeurIPS, 32.",
+        "authors": "Kim, S.",
+        "year": 2019,
+        "title": "Bayesian optimization with high-dimensional outputs",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Garcia, M. (2020). Self-supervised representation learning at scale. ICLR, 2020.",
+        "authors": "Garcia, M.",
+        "year": 2020,
+        "title": "Self-supervised representation learning at scale",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Wang, X. (2021). Efficient fine-tuning with parameter-efficient methods. ICML, 2021.",
+        "authors": "Wang, X.",
+        "year": 2021,
+        "title": "Efficient fine-tuning with parameter-efficient methods",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "no_citation_paragraph",
+    "paragraphs": [
+      "The experimental setup involved a controlled laboratory environment with carefully calibrated instruments.",
+      "Temperature was maintained at 22 degrees Celsius throughout all trials.",
+      "Participants were recruited through standard institutional channels."
+    ],
+    "expected_citations": [],
+    "expected_bibliography_entries": []
+  },
+  {
+    "id": "very_long_paragraph",
+    "paragraphs": [
+      "Recent advances in artificial intelligence have transformed multiple scientific disciplines (Brown, 2019). In natural language processing, large language models have achieved unprecedented performance on benchmark tasks (Chen, 2020), while simultaneously raising concerns about computational costs (Davis, 2021). Computer vision has likewise benefited from deep convolutional architectures (Lee, 2018) and attention-based mechanisms adapted from NLP research (Wang, 2020). In computational biology, protein structure prediction has been revolutionized by transformer models (Patel, 2021), enabling new drug discovery pipelines (Kim, 2022). The intersection of these advances presents both opportunities and challenges for interdisciplinary collaboration (Smith et al., 2023)."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Brown, 2019)",
+        "authors": "Brown",
+        "year": 2019,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 70
+      },
+      {
+        "raw_text": "(Chen, 2020)",
+        "authors": "Chen",
+        "year": 2020,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 168
+      },
+      {
+        "raw_text": "(Davis, 2021)",
+        "authors": "Davis",
+        "year": 2021,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 252
+      },
+      {
+        "raw_text": "(Lee, 2018)",
+        "authors": "Lee",
+        "year": 2018,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 325
+      },
+      {
+        "raw_text": "(Wang, 2020)",
+        "authors": "Wang",
+        "year": 2020,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 408
+      },
+      {
+        "raw_text": "(Patel, 2021)",
+        "authors": "Patel",
+        "year": 2021,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 505
+      },
+      {
+        "raw_text": "(Kim, 2022)",
+        "authors": "Kim",
+        "year": 2022,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 588
+      },
+      {
+        "raw_text": "(Smith et al., 2023)",
+        "authors": "Smith et al.",
+        "year": 2023,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 671
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Brown, T. (2019). Language models are few-shot learners. NeurIPS, 32.",
+        "authors": "Brown, T.",
+        "year": 2019,
+        "title": "Language models are few-shot learners",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Chen, L. (2020). Benchmarking neural language models at scale. ACL, 2020.",
+        "authors": "Chen, L.",
+        "year": 2020,
+        "title": "Benchmarking neural language models at scale",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Davis, P. (2021). The carbon footprint of large language models. arXiv preprint.",
+        "authors": "Davis, P.",
+        "year": 2021,
+        "title": "The carbon footprint of large language models",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Lee, K. (2018). Deep residual learning for image recognition. CVPR, 2018.",
+        "authors": "Lee, K.",
+        "year": 2018,
+        "title": "Deep residual learning for image recognition",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Wang, X. (2020). Vision transformer adaptation for efficient inference. ICCV, 2020.",
+        "authors": "Wang, X.",
+        "year": 2020,
+        "title": "Vision transformer adaptation for efficient inference",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Patel, R. (2021). Protein structure prediction with attention networks. Nature, 596, 583-589.",
+        "authors": "Patel, R.",
+        "year": 2021,
+        "title": "Protein structure prediction with attention networks",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Kim, S. (2022). AI-driven drug discovery pipelines. Nature Reviews Drug Discovery, 21(3), 175-192.",
+        "authors": "Kim, S.",
+        "year": 2022,
+        "title": "AI-driven drug discovery pipelines",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      },
+      {
+        "raw_text": "Smith, A. et al. (2023). Interdisciplinary AI collaboration challenges. Science, 379(6632), eadf1234.",
+        "authors": "Smith, A. et al.",
+        "year": 2023,
+        "title": "Interdisciplinary AI collaboration challenges",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "turkish_authors",
+    "paragraphs": [
+      "Turkiye'deki nufus dagilimi uzerine yapilan calismada onemli bulgular ortaya konmustur (Yilmaz ve Kaya, 2020).",
+      "Calismada 81 ildeki nufus verileri analiz edilmistir.",
+      "Sonuclar kirsal-kentsel goc trendlerini acikca gostermektedir."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Yilmaz ve Kaya, 2020)",
+        "authors": "Yilmaz ve Kaya",
+        "year": 2020,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 58
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Yilmaz, A. ve Kaya, B. (2020). Turkiye nufus dagilim analizi. Turkiye Istatistik Dergisi, 15(2), 45-67.",
+        "authors": "Yilmaz, A. ve Kaya, B.",
+        "year": 2020,
+        "title": "Turkiye nufus dagilim analizi",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "initials_only",
+    "paragraphs": [
+      "A.B. Smith (2020) established the baseline methodology for this class of problems.",
+      "The method has since been refined and extended by several research groups.",
+      "Its computational complexity remains a bottleneck for large-scale applications."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "A.B. Smith (2020)",
+        "authors": "A.B. Smith",
+        "year": 2020,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 0
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Smith, A.B. (2020). Baseline methods for combinatorial optimization. Operations Research, 68(4), 1023-1040.",
+        "authors": "Smith, A.B.",
+        "year": 2020,
+        "title": "Baseline methods for combinatorial optimization",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "hybrid_numbered_and_authoryear",
+    "paragraphs": [
+      "The theoretical foundations were laid by early pioneers (Newton, 1687) [1].",
+      "Modern extensions incorporate computational methods (Gauss, 2019) [2].",
+      "These approaches have been empirically validated [3] (Taylor, 2020).",
+      "References",
+      "1. Newton, I. (1687). Philosophiae Naturalis Principia Mathematica.",
+      "2. Gauss, K. (2019). Computational Methods for Differential Equations. Springer.",
+      "3. Taylor, R. (2020). Empirical validation of classical mechanics. Physical Review Letters, 125(7), 071101."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Newton, 1687)",
+        "authors": "Newton",
+        "year": 1687,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 43
+      },
+      {
+        "raw_text": "[1]",
+        "authors": null,
+        "year": null,
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 59
+      },
+      {
+        "raw_text": "(Gauss, 2019)",
+        "authors": "Gauss",
+        "year": 2019,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 1,
+        "char_offset": 42
+      },
+      {
+        "raw_text": "[2]",
+        "authors": null,
+        "year": null,
+        "doi": null,
+        "numbered_ref": 2,
+        "no_date": false,
+        "paragraph_index": 1,
+        "char_offset": 57
+      },
+      {
+        "raw_text": "[3]",
+        "authors": null,
+        "year": null,
+        "doi": null,
+        "numbered_ref": 3,
+        "no_date": false,
+        "paragraph_index": 2,
+        "char_offset": 41
+      },
+      {
+        "raw_text": "(Taylor, 2020)",
+        "authors": "Taylor",
+        "year": 2020,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 2,
+        "char_offset": 45
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "1. Newton, I. (1687). Philosophiae Naturalis Principia Mathematica.",
+        "authors": "Newton, I.",
+        "year": 1687,
+        "title": "Philosophiae Naturalis Principia Mathematica",
+        "doi": null,
+        "numbered_ref": 1,
+        "no_date": false
+      },
+      {
+        "raw_text": "2. Gauss, K. (2019). Computational Methods for Differential Equations. Springer.",
+        "authors": "Gauss, K.",
+        "year": 2019,
+        "title": "Computational Methods for Differential Equations",
+        "doi": null,
+        "numbered_ref": 2,
+        "no_date": false
+      },
+      {
+        "raw_text": "3. Taylor, R. (2020). Empirical validation of classical mechanics. Physical Review Letters, 125(7), 071101.",
+        "authors": "Taylor, R.",
+        "year": 2020,
+        "title": "Empirical validation of classical mechanics",
+        "doi": null,
+        "numbered_ref": 3,
+        "no_date": false
+      }
+    ]
+  },
+  {
+    "id": "citation_at_boundary",
+    "paragraphs": [
+      "The phenomenon has been observed in multiple independent studies (Baker, 2019).",
+      "These include large-scale epidemiological surveys and focused laboratory investigations.",
+      "The consistency of results across diverse methodologies strengthens the overall evidence base."
+    ],
+    "expected_citations": [
+      {
+        "raw_text": "(Baker, 2019)",
+        "authors": "Baker",
+        "year": 2019,
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false,
+        "paragraph_index": 0,
+        "char_offset": 50
+      }
+    ],
+    "expected_bibliography_entries": [
+      {
+        "raw_text": "Baker, M. (2019). Cross-methodological consistency in observational studies. PNAS, 116(45), 22500-22507.",
+        "authors": "Baker, M.",
+        "year": 2019,
+        "title": "Cross-methodological consistency in observational studies",
+        "doi": null,
+        "numbered_ref": null,
+        "no_date": false
+      }
+    ]
+  }
+]

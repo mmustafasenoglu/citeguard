@@ -1,0 +1,159 @@
+{
+  "name": "retrieval_ranking",
+  "suite": "calibration",
+  "cases": 12,
+  "mrr": 0.9167,
+  "recall_at_1": 0.9167,
+  "recall_at_5": 1.0,
+  "all_passed": false,
+  "details": [
+    {
+      "id": "cal_doi_vs_fuzzy",
+      "expected_best": "Attention Is All You Need",
+      "actual_order": [
+        "Attention Is All You Need",
+        "Neural attention models for NLP tasks",
+        "Attention mechanisms for sequence-to-sequence learning"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "cal_arxiv_vs_fuzzy",
+      "expected_best": "Language Models are Few-Shot Learners",
+      "actual_order": [
+        "Language Models are Few-Shot Learners",
+        "Scaling laws for autoregressive generative modeling",
+        "A study on scaling in deep networks"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "cal_exact_title",
+      "expected_best": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+      "actual_order": [
+        "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+        "ALBERT: A Lite BERT for Self-supervised Learning",
+        "RoBERTa: A Robustly Optimized BERT Pretraining Approach"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "cal_identical_multi_provider",
+      "expected_best": "Generative Adversarial Nets",
+      "actual_order": [
+        "Generative Adversarial Nets"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "cal_provider_priority_tiebreak",
+      "expected_best": "Dropout: A Simple Way to Prevent Neural Networks from Overfitting",
+      "actual_order": [
+        "Dropout: A Simple Way to Prevent Neural Networks from Overfitting"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "cal_newer_fuzzy_vs_older_exact",
+      "expected_best": "Deep Residual Learning for Image Recognition",
+      "actual_order": [
+        "Deep Residual Learning for Image Recognition",
+        "Deep Residual Learning: From Image Recognition to Beyond"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "cal_negative_cosine",
+      "expected_best": "Floral pollination algorithms for optimization",
+      "actual_order": [
+        "Swarm intelligence for supply chain management",
+        "Floral pollination algorithms for optimization"
+      ],
+      "rank": 1,
+      "mrr": 0.0,
+      "recall_at_1": 0,
+      "passed": false
+    },
+    {
+      "id": "cal_lexical_only_mode",
+      "expected_best": "Transfer Learning with Transformer-Based Models",
+      "actual_order": [
+        "Transfer Learning with Transformer-Based Models",
+        "Deep transfer learning: a survey",
+        "A Survey of Transfer Learning Techniques"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "cal_rrf_fusion",
+      "expected_best": "Neural Message Passing for Quantum Chemistry",
+      "actual_order": [
+        "Neural Message Passing for Quantum Chemistry",
+        "SchNet: A continuous-filter convolutional neural network for modeling quantum interactions",
+        "Learning Convolutional Neural Networks for Graphs"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "cal_duplicate_candidates",
+      "expected_best": "Efficient Estimation of Word Representations in Vector Space",
+      "actual_order": [
+        "Efficient Estimation of Word Representations in Vector Space",
+        "Distributed Representations of Words and Phrases and their Compositionality"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "cal_provider_conflict",
+      "expected_best": "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift",
+      "actual_order": [
+        "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift",
+        "Batch Renormalization: Reducing Internal Covariate Shift in Deep Networks"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    },
+    {
+      "id": "cal_strong_match_early_stop",
+      "expected_best": "Improving Language Understanding by Generative Pre-Training",
+      "actual_order": [
+        "Improving Language Understanding by Generative Pre-Training",
+        "Language Models are Unsupervised Multitask Learners",
+        "Fine-Tuning Pre-Trained Transformers for Text Classification"
+      ],
+      "rank": 1,
+      "mrr": 1.0,
+      "recall_at_1": 1,
+      "passed": true
+    }
+  ]
+}

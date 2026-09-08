@@ -1,0 +1,137 @@
+[
+  {
+    "id": "st_cal_01",
+    "claim_text": "Global temperatures have risen by 1.1C since pre-industrial times",
+    "candidate_metadata_match_score": 95,
+    "candidate_claim_support_score": 95,
+    "has_entailment": true,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Perfect metadata and support match with entailment; clearly above threshold"
+  },
+  {
+    "id": "st_cal_02",
+    "claim_text": "Deforestation accounts for approximately 10% of global emissions",
+    "candidate_metadata_match_score": 80,
+    "candidate_claim_support_score": 85,
+    "has_entailment": true,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Strong scores with entailment; comfortably above threshold (overall=84)"
+  },
+  {
+    "id": "st_cal_03",
+    "claim_text": "Renewable energy capacity doubled between 2010 and 2020",
+    "candidate_metadata_match_score": 50,
+    "candidate_claim_support_score": 68,
+    "has_entailment": true,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Moderate metadata with decent support and entailment; above threshold (overall=64)"
+  },
+  {
+    "id": "st_cal_04",
+    "claim_text": "Ocean acidification has increased by 30% since the industrial revolution",
+    "candidate_metadata_match_score": 50,
+    "candidate_claim_support_score": 63,
+    "has_entailment": true,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Exact boundary case with entailment; overall_confidence=60, just passes"
+  },
+  {
+    "id": "st_cal_05",
+    "claim_text": "Methane is 80 times more potent than CO2 over a 20-year period",
+    "candidate_metadata_match_score": 48,
+    "candidate_claim_support_score": 62,
+    "has_entailment": true,
+    "expected_label": "INADEQUATE_SUGGESTION",
+    "notes": "Just below threshold with entailment; overall_confidence=59, fails by 1 point"
+  },
+  {
+    "id": "st_cal_06",
+    "claim_text": "Permafrost thaw releases significant quantities of methane",
+    "candidate_metadata_match_score": 30,
+    "candidate_claim_support_score": 50,
+    "has_entailment": true,
+    "expected_label": "INADEQUATE_SUGGESTION",
+    "notes": "Below threshold with entailment; overall_confidence=46"
+  },
+  {
+    "id": "st_cal_07",
+    "claim_text": "Solar panel efficiency has improved by 20% in the last decade",
+    "candidate_metadata_match_score": 10,
+    "candidate_claim_support_score": 20,
+    "has_entailment": true,
+    "expected_label": "INADEQUATE_SUGGESTION",
+    "notes": "Very low scores; overall_confidence=18, clearly inadequate"
+  },
+  {
+    "id": "st_cal_08",
+    "claim_text": "Nuclear energy produces fewer lifecycle emissions than wind power",
+    "candidate_metadata_match_score": 95,
+    "candidate_claim_support_score": 40,
+    "has_entailment": true,
+    "expected_label": "INADEQUATE_SUGGESTION",
+    "notes": "High metadata match but low support; overall_confidence=51, shows support dominance"
+  },
+  {
+    "id": "st_cal_09",
+    "claim_text": "Electric vehicles have lower lifetime emissions than ICE vehicles",
+    "candidate_metadata_match_score": 90,
+    "candidate_claim_support_score": 70,
+    "has_entailment": false,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Good scores without entailment; overall_confidence=78, high metadata weight"
+  },
+  {
+    "id": "st_cal_10",
+    "claim_text": "Carbon capture technology can reduce emissions by 90%",
+    "candidate_metadata_match_score": 50,
+    "candidate_claim_support_score": 67,
+    "has_entailment": false,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Boundary case without entailment; overall_confidence=60, just passes"
+  },
+  {
+    "id": "st_cal_11",
+    "claim_text": "Sea level rise is accelerating at 3.6mm per year",
+    "candidate_metadata_match_score": 45,
+    "candidate_claim_support_score": 62,
+    "has_entailment": false,
+    "expected_label": "INADEQUATE_SUGGESTION",
+    "notes": "Below threshold without entailment; overall_confidence=55"
+  },
+  {
+    "id": "st_cal_12",
+    "claim_text": "Biofuel production competes with food crops for agricultural land",
+    "candidate_metadata_match_score": 20,
+    "candidate_claim_support_score": 85,
+    "has_entailment": false,
+    "expected_label": "INADEQUATE_SUGGESTION",
+    "notes": "Low metadata but high support without entailment; overall_confidence=59"
+  },
+  {
+    "id": "st_cal_13",
+    "claim_text": "Green hydrogen costs will fall below $2/kg by 2030",
+    "candidate_metadata_match_score": 0,
+    "candidate_claim_support_score": 0,
+    "has_entailment": false,
+    "expected_label": "INADEQUATE_SUGGESTION",
+    "notes": "Zero scores; overall_confidence=0, baseline test"
+  },
+  {
+    "id": "st_cal_14",
+    "claim_text": "Reforestation can sequester up to 10 gigatons of CO2 per year",
+    "candidate_metadata_match_score": 60,
+    "candidate_claim_support_score": 65,
+    "has_entailment": true,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Mid-range metadata with decent support and entailment; overall_confidence=64"
+  },
+  {
+    "id": "st_cal_15",
+    "claim_text": "Aviation accounts for 2.5% of global CO2 emissions",
+    "candidate_metadata_match_score": 40,
+    "candidate_claim_support_score": 68,
+    "has_entailment": true,
+    "expected_label": "ADEQUATE_SUGGESTION",
+    "notes": "Entailment flips label: same scores without entailment would yield 57 (INADEQUATE)"
+  }
+]

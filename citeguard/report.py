@@ -396,6 +396,8 @@ def audit_report(result: Any) -> dict[str, Any]:
             "offline": result.execution.offline,
             "network_allowed": result.execution.network_allowed,
             "network_used": result.execution.network_used,
+            "academic_network_used": result.execution.academic_network_used,
+            "llm_network_used": result.execution.llm_network_used,
             "providers_queried": result.execution.providers_queried,
             "providers_from_cache": result.execution.providers_from_cache,
             "llm_used": result.execution.llm_used,

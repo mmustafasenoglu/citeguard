@@ -1,0 +1,89 @@
+{
+  "name": "entailment",
+  "suite": "holdout",
+  "cases": 8,
+  "accuracy": 1.0,
+  "all_passed": true,
+  "details": [
+    {
+      "id": "ent_ho_01",
+      "expected_verdict": "partially_supported",
+      "confidence": 94,
+      "expected_range": [
+        88,
+        97
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_ho_02",
+      "expected_verdict": "partially_supported",
+      "confidence": 48,
+      "expected_range": [
+        40,
+        55
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_ho_03",
+      "expected_verdict": "insufficient_information",
+      "confidence": 36,
+      "expected_range": [
+        25,
+        42
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_ho_04",
+      "expected_verdict": "supported",
+      "confidence": 29,
+      "expected_range": [
+        20,
+        38
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_ho_05",
+      "expected_verdict": "insufficient_information",
+      "confidence": 41,
+      "expected_range": [
+        35,
+        48
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_ho_06",
+      "expected_verdict": "contradicted",
+      "confidence": 65,
+      "expected_range": [
+        58,
+        72
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_ho_07",
+      "expected_verdict": "partially_supported",
+      "confidence": 50,
+      "expected_range": [
+        42,
+        58
+      ],
+      "passed": true
+    },
+    {
+      "id": "ent_ho_08",
+      "expected_verdict": "insufficient_information",
+      "confidence": 36,
+      "expected_range": [
+        28,
+        44
+      ],
+      "passed": true
+    }
+  ]
+}

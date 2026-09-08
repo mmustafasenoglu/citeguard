@@ -24,7 +24,7 @@ distinct signals and are never collapsed into one ambiguous "verified" or
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -35,7 +35,13 @@ from .bibliography import (
 )
 from .cache import FileCache
 from .claims import extract_claims
-from .config import DEFAULT_MAX_RESULTS, DEFAULT_THRESHOLD, Settings
+from .config import (
+    DEFAULT_MAX_RESULTS,
+    DEFAULT_THRESHOLD,
+    HEALTH_PASS_THRESHOLD,
+    WEAK_MATCH_THRESHOLD,
+    Settings,
+)
 from .extractor import parse_document
 from .matcher import match_claim_to_source
 from .models import (
@@ -119,6 +125,8 @@ class ExecutionContext:
     offline: bool
     network_allowed: bool
     network_used: bool
+    academic_network_used: bool = False
+    llm_network_used: bool = False
     providers_queried: list[str] = field(default_factory=list)
     providers_from_cache: list[str] = field(default_factory=list)
     llm_used: bool = False
@@ -547,12 +555,17 @@ def _make_engines(
 
 
 def audit_document(
-    source: Path | ParsedDocument, options: AuditOptions | None = None
+    source: Path | ParsedDocument,
+    options: AuditOptions | None = None,
+    *,
+    offline: bool | None = None,
 ) -> AuditResult:
     """Run the full product audit and return one structured AuditResult."""
     from .llm import get_audit_log
 
     options = options or AuditOptions()
+    if offline is not None:
+        options = replace(options, offline=offline)
     llm_log_before = len(get_audit_log())
     record: list[tuple[str, str, RetrievalResult]] = []
 
@@ -644,12 +657,17 @@ def audit_document(
 
 
 def suggest_document(
-    source: Path | ParsedDocument, options: AuditOptions | None = None
+    source: Path | ParsedDocument,
+    options: AuditOptions | None = None,
+    *,
+    offline: bool | None = None,
 ) -> AuditResult:
     """Run claim extraction plus uncited suggestions (no bib verification)."""
     from .llm import get_audit_log
 
     options = options or AuditOptions()
+    if offline is not None:
+        options = replace(options, offline=offline)
     llm_log_before = len(get_audit_log())
     record: list[tuple[str, str, RetrievalResult]] = []
 
@@ -712,12 +730,17 @@ def suggest_document(
 
 
 def verify_document(
-    source: Path | ParsedDocument, options: AuditOptions | None = None
+    source: Path | ParsedDocument,
+    options: AuditOptions | None = None,
+    *,
+    offline: bool | None = None,
 ) -> AuditResult:
     """Run bibliography verification only (no claim extraction)."""
     from .llm import get_audit_log
 
     options = options or AuditOptions()
+    if offline is not None:
+        options = replace(options, offline=offline)
     llm_log_before = len(get_audit_log())
     record: list[tuple[str, str, RetrievalResult]] = []
 
@@ -792,9 +815,9 @@ def _run_similarity(
         enriched = parse_enriched_document(Path(source))
     except Exception:
         return None, None
-    from .cli import _load_similarity_corpus  # local import: cli owns corpus IO
+    from .corpus.loader import load_similarity_corpus
 
-    index = _load_similarity_corpus(options.corpus, options.corpus_license)
+    index = load_similarity_corpus(options.corpus, options.corpus_license)
     engine = SimilarityEngine(config=SimilarityConfig())
     result = engine.analyze_document(
         enriched.sentences,
@@ -819,10 +842,16 @@ def _build_execution(
     for engine in engines:
         remote.update(engine.remote_calls)
     tasks = sorted({e.task for e in new_llm_entries if hasattr(e, "task")})
+    academic_remote = bool(remote)
+    llm_remote = any(
+        hasattr(e, "cached") and not e.cached for e in new_llm_entries
+    )
     return ExecutionContext(
         offline=options.offline,
         network_allowed=not options.offline,
-        network_used=bool(remote),
+        network_used=academic_remote or llm_remote,
+        academic_network_used=academic_remote,
+        llm_network_used=llm_remote,
         providers_queried=sorted(queried),
         providers_from_cache=sorted(from_cache),
         llm_used=bool(new_llm_entries),
@@ -899,7 +928,7 @@ def _build_metrics(
         weak_cited += sum(
             1
             for s in evaluated_sources
-            if s.confidence is not None and s.confidence < 60
+            if s.confidence is not None and s.confidence < WEAK_MATCH_THRESHOLD
         )
         if (
             assessment.claim.severity == Severity.HIGH
@@ -912,7 +941,7 @@ def _build_metrics(
         1
         for s in suggestions
         for m in s.suggestions
-        if m.overall_confidence < 60
+        if m.overall_confidence < WEAK_MATCH_THRESHOLD
     )
     uncited_high = sum(
         1
@@ -1228,7 +1257,7 @@ def privacy_notice(execution: ExecutionContext) -> str:
     else:
         if execution.providers_queried:
             names = ", ".join(execution.providers_queried)
-            if execution.network_used:
+            if execution.academic_network_used:
                 base = (
                     f"Bibliographic metadata queries were sent to {names}."
                 )
@@ -1242,9 +1271,19 @@ def privacy_notice(execution: ExecutionContext) -> str:
             base = "No academic provider was queried."
     if execution.llm_used:
         tasks = ", ".join(execution.llm_tasks) or "language-model tasks"
-        base += (
-            f" Claim text was sent to the configured LLM provider ({tasks})."
-        )
+        if execution.llm_network_used:
+            base += (
+                f" Claim text was sent to the configured LLM provider ({tasks})."
+            )
+        elif execution.offline or not execution.network_allowed:
+            base += (
+                f" LLM tasks ({tasks}) were skipped (offline mode)."
+            )
+        else:
+            base += (
+                f" LLM results ({tasks}) were served from cache; no LLM "
+                "provider was contacted."
+            )
     else:
         base += " No document text was sent to any LLM provider."
     base += " Verification does not establish claim support."
@@ -1256,16 +1295,18 @@ def resolve_exit_code(result: AuditResult, *, command: str) -> int:
 
     Interim policy (Checkpoint 8 owns calibration):
     - required provider phase failed online -> 3
-    - check with incomplete health or health < 80 -> 1, else 0
+    - check with incomplete health or health below the pass threshold -> 1
     - suggest/verify -> 0 on completion (2/3 handled elsewhere)
     """
     if result.provider_phase_failed:
         return 3
     if command == "check":
         if (
+            result.metrics is None
+            or
             not result.metrics.health_score_complete
             or result.metrics.health_score is None
-            or result.metrics.health_score < 80
+            or result.metrics.health_score < HEALTH_PASS_THRESHOLD
         ):
             return 1
         return 0

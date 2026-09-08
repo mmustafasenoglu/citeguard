@@ -2,6 +2,31 @@
 
 All notable changes to citeguard will be documented here.
 
+## [1.0.0] - 2026-09-08
+
+### Added
+
+- Stable Python API (`citeguard.api`): `audit_document`, `suggest_document`, `verify_document`, `AuditOptions`, `AuditResult`.
+- Deterministic benchmark suite (79 calibration + 59 holdout cases).
+- CALIBRATION.md with methodology and results.
+- Corpus loader as library-level module (`citeguard.corpus.loader`).
+- `ExecutionContext` fields: `academic_network_used`, `llm_network_used` for truthful privacy reporting.
+- Centralized `WEAK_MATCH_THRESHOLD` constant.
+- Release contract tests (30+ assertions).
+
+### Changed
+
+- `unresolved_citations` metric is now resolution-based (bib entries NOT verified), not claim-support-based.
+- `network_used` now reflects both academic and LLM network usage.
+- Privacy notices distinguish academic vs LLM network usage, cache-only vs remote.
+- Package version: 0.3.0 → 1.0.0.
+
+### Fixed
+
+- Architecture: core modules no longer import from `citeguard.cli`.
+- `_load_similarity_corpus` moved to `citeguard.corpus.loader`.
+- Similarity command self-imports cleaned up.
+
 ## [0.2.0] - 2026-09-06
 
 ### Added

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from .config import WEAK_MATCH_THRESHOLD
 from .models import (
     BibliographyIssue,
     Claim,
@@ -170,7 +171,7 @@ def compute_audit_metrics(
 
     weak_matches = sum(
         1 for r in verification_results if r.matched is not None and
-        r.matched.overall_confidence < 60
+        r.matched.overall_confidence < WEAK_MATCH_THRESHOLD
     )
 
     health = compute_health_score(
@@ -273,6 +274,8 @@ def compute_product_metrics(
       evaluated cited claims; None when none were evaluated.
     - ``bibliography_consistency`` = 1 - issues /
       max(entries + distinct in-text citations, 1), clamped to 0..1.
+    - ``unresolved_citations`` = bibliography entries that were NOT verified
+      (resolution-based, not claim-support-based).
     - ``health_score`` uses the established SPEC weights; None (with
       ``health_score_complete`` False) when any required component is
       unavailable instead of substituting 100%.
@@ -298,6 +301,9 @@ def compute_product_metrics(
     bibliography_consistency = max(
         0.0, min(1.0, 1.0 - (bibliography_issues / denom))
     )
+
+    # unresolved_citations: resolution-based — bib entries NOT verified.
+    unresolved_citations = bib_total - verified_citations
 
     unavailable = [
         name
@@ -335,7 +341,7 @@ def compute_product_metrics(
         partially_verified=partially_verified,
         weak_cited_source_matches=weak_cited_source_matches,
         weak_suggestions=weak_suggestions,
-        unresolved_citations=cited_claims - supported_cited_claims,
+        unresolved_citations=unresolved_citations,
         uncited_high_severity_claims=uncited_high,
         contradictions=contradicted_assessments,
         bibliography_issues=bibliography_issues,

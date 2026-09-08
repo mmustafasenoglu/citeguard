@@ -1,0 +1,882 @@
+{
+  "suite": "calibration",
+  "benchmarks": {
+    "citation_parsing": {
+      "name": "citation_parsing",
+      "suite": "calibration",
+      "cases": 20,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "true_positives": 23,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "all_exact": true,
+      "details": [
+        {
+          "id": "apa_author_year",
+          "detected": 1,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "narrative",
+          "detected": 2,
+          "expected": 2,
+          "matched": 2,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "multi_source",
+          "detected": 2,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "numbered",
+          "detected": 3,
+          "expected": 3,
+          "matched": 3,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "numbered_range",
+          "detected": 3,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "doi_in_text",
+          "detected": 1,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "doi_url",
+          "detected": 1,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "organization_author",
+          "detected": 1,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "page_locator",
+          "detected": 1,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "no_date",
+          "detected": 1,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "turkish_no_date",
+          "detected": 1,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "multiple_claims_one_citation",
+          "detected": 1,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "one_claim_multiple_citations",
+          "detected": 2,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "malformed",
+          "detected": 0,
+          "expected": 0,
+          "matched": 0,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "year_not_citation",
+          "detected": 0,
+          "expected": 0,
+          "matched": 0,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "bracketed_not_citation",
+          "detected": 0,
+          "expected": 0,
+          "matched": 0,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "bibliography_exclusion",
+          "detected": 2,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "mixed_types",
+          "detected": 4,
+          "expected": 4,
+          "matched": 4,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "et_al",
+          "detected": 1,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        },
+        {
+          "id": "double_initial",
+          "detected": 1,
+          "expected": 1,
+          "matched": 1,
+          "false_positive": 0,
+          "missed": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "passed": true
+        }
+      ]
+    },
+    "bibliography_resolution": {
+      "name": "bibliography_resolution",
+      "suite": "calibration",
+      "cases": 16,
+      "accuracy": 0.6875,
+      "verified_precision": 1.0,
+      "verified_recall": 0.9,
+      "verified_cases": 10,
+      "predicted_verified": 9,
+      "verified_correct": 9,
+      "all_passed": false,
+      "details": [
+        {
+          "id": "exact_doi_match",
+          "expected": "verified",
+          "actual": "verified",
+          "score": 100,
+          "score_range": [
+            98,
+            100
+          ],
+          "passed": true
+        },
+        {
+          "id": "normalized_doi",
+          "expected": "verified",
+          "actual": "verified",
+          "score": 100,
+          "score_range": [
+            98,
+            100
+          ],
+          "passed": true
+        },
+        {
+          "id": "exact_arxiv",
+          "expected": "verified",
+          "actual": "partially_verified",
+          "score": 100,
+          "score_range": [
+            90,
+            100
+          ],
+          "passed": false
+        },
+        {
+          "id": "title_author_year_match",
+          "expected": "verified",
+          "actual": "verified",
+          "score": 100,
+          "score_range": [
+            70,
+            100
+          ],
+          "passed": true
+        },
+        {
+          "id": "partial_metadata",
+          "expected": "partially_verified",
+          "actual": "unresolved",
+          "score": 5,
+          "score_range": [
+            50,
+            70
+          ],
+          "passed": false
+        },
+        {
+          "id": "metadata_mismatch",
+          "expected": "metadata_mismatch",
+          "actual": "metadata_mismatch",
+          "score": 33,
+          "score_range": [
+            0,
+            49
+          ],
+          "passed": true
+        },
+        {
+          "id": "same_doi_conflict",
+          "expected": "verified",
+          "actual": "verified",
+          "score": 91,
+          "score_range": [
+            70,
+            100
+          ],
+          "passed": true
+        },
+        {
+          "id": "different_doi_same_work",
+          "expected": "metadata_mismatch",
+          "actual": "metadata_mismatch",
+          "score": 40,
+          "score_range": [
+            0,
+            49
+          ],
+          "passed": true
+        },
+        {
+          "id": "missing_doi_no_match",
+          "expected": "unresolved",
+          "actual": "unresolved",
+          "score": 7,
+          "score_range": [
+            0,
+            30
+          ],
+          "passed": true
+        },
+        {
+          "id": "not_found",
+          "expected": "not_found",
+          "actual": "NOT_FOUND",
+          "passed": false
+        },
+        {
+          "id": "provider_error",
+          "expected": "provider_error",
+          "actual": "NOT_FOUND",
+          "passed": false
+        },
+        {
+          "id": "formatting_differences",
+          "expected": "verified",
+          "actual": "verified",
+          "score": 95,
+          "score_range": [
+            95,
+            100
+          ],
+          "passed": true
+        },
+        {
+          "id": "generic_venue",
+          "expected": "verified",
+          "actual": "verified",
+          "score": 91,
+          "score_range": [
+            85,
+            100
+          ],
+          "passed": true
+        },
+        {
+          "id": "explicit_review",
+          "expected": "verified",
+          "actual": "verified",
+          "score": 96,
+          "score_range": [
+            90,
+            100
+          ],
+          "passed": true
+        },
+        {
+          "id": "explicit_research",
+          "expected": "verified",
+          "actual": "verified",
+          "score": 100,
+          "score_range": [
+            95,
+            100
+          ],
+          "passed": true
+        },
+        {
+          "id": "threshold_boundary",
+          "expected": "verified",
+          "actual": "verified",
+          "score": 85,
+          "score_range": [
+            70,
+            75
+          ],
+          "passed": false
+        }
+      ]
+    },
+    "retrieval_ranking": {
+      "name": "retrieval_ranking",
+      "suite": "calibration",
+      "cases": 12,
+      "mrr": 0.9167,
+      "recall_at_1": 0.9167,
+      "recall_at_5": 1.0,
+      "all_passed": false,
+      "details": [
+        {
+          "id": "cal_doi_vs_fuzzy",
+          "expected_best": "Attention Is All You Need",
+          "actual_order": [
+            "Attention Is All You Need",
+            "Neural attention models for NLP tasks",
+            "Attention mechanisms for sequence-to-sequence learning"
+          ],
+          "rank": 1,
+          "mrr": 1.0,
+          "recall_at_1": 1,
+          "passed": true
+        },
+        {
+          "id": "cal_arxiv_vs_fuzzy",
+          "expected_best": "Language Models are Few-Shot Learners",
+          "actual_order": [
+            "Language Models are Few-Shot Learners",
+            "Scaling laws for autoregressive generative modeling",
+            "A study on scaling in deep networks"
+          ],
+          "rank": 1,
+          "mrr": 1.0,
+          "recall_at_1": 1,
+          "passed": true
+        },
+        {
+          "id": "cal_exact_title",
+          "expected_best": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+          "actual_order": [
+            "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+            "ALBERT: A Lite BERT for Self-supervised Learning",
+            "RoBERTa: A Robustly Optimized BERT Pretraining Approach"
+          ],
+          "rank": 1,
+          "mrr": 1.0,
+          "recall_at_1": 1,
+          "passed": true
+        },
+        {
+          "id": "cal_identical_multi_provider",
+          "expected_best": "Generative Adversarial Nets",
+          "actual_order": [
+            "Generative Adversarial Nets"
+          ],
+          "rank": 1,
+          "mrr": 1.0,
+          "recall_at_1": 1,
+          "passed": true
+        },
+        {
+          "id": "cal_provider_priority_tiebreak",
+          "expected_best": "Dropout: A Simple Way to Prevent Neural Networks from Overfitting",
+          "actual_order": [
+            "Dropout: A Simple Way to Prevent Neural Networks from Overfitting"
+          ],
+          "rank": 1,
+          "mrr": 1.0,
+          "recall_at_1": 1,
+          "passed": true
+        },
+        {
+          "id": "cal_newer_fuzzy_vs_older_exact",
+          "expected_best": "Deep Residual Learning for Image Recognition",
+          "actual_order": [
+            "Deep Residual Learning for Image Recognition",
+            "Deep Residual Learning: From Image Recognition to Beyond"
+          ],
+          "rank": 1,
+          "mrr": 1.0,
+          "recall_at_1": 1,
+          "passed": true
+        },
+        {
+          "id": "cal_negative_cosine",
+          "expected_best": "Floral pollination algorithms for optimization",
+          "actual_order": [
+            "Swarm intelligence for supply chain management",
+            "Floral pollination algorithms for optimization"
+          ],
+          "rank": 1,
+          "mrr": 0.0,
+          "recall_at_1": 0,
+          "passed": false
+        },
+        {
+          "id": "cal_lexical_only_mode",
+          "expected_best": "Transfer Learning with Transformer-Based Models",
+          "actual_order": [
+            "Transfer Learning with Transformer-Based Models",
+            "Deep transfer learning: a survey",
+            "A Survey of Transfer Learning Techniques"
+          ],
+          "rank": 1,
+          "mrr": 1.0,
+          "recall_at_1": 1,
+          "passed": true
+        },
+        {
+          "id": "cal_rrf_fusion",
+          "expected_best": "Neural Message Passing for Quantum Chemistry",
+          "actual_order": [
+            "Neural Message Passing for Quantum Chemistry",
+            "SchNet: A continuous-filter convolutional neural network for modeling quantum interactions",
+            "Learning Convolutional Neural Networks for Graphs"
+          ],
+          "rank": 1,
+          "mrr": 1.0,
+          "recall_at_1": 1,
+          "passed": true
+        },
+        {
+          "id": "cal_duplicate_candidates",
+          "expected_best": "Efficient Estimation of Word Representations in Vector Space",
+          "actual_order": [
+            "Efficient Estimation of Word Representations in Vector Space",
+            "Distributed Representations of Words and Phrases and their Compositionality"
+          ],
+          "rank": 1,
+          "mrr": 1.0,
+          "recall_at_1": 1,
+          "passed": true
+        },
+        {
+          "id": "cal_provider_conflict",
+          "expected_best": "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift",
+          "actual_order": [
+            "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift",
+            "Batch Renormalization: Reducing Internal Covariate Shift in Deep Networks"
+          ],
+          "rank": 1,
+          "mrr": 1.0,
+          "recall_at_1": 1,
+          "passed": true
+        },
+        {
+          "id": "cal_strong_match_early_stop",
+          "expected_best": "Improving Language Understanding by Generative Pre-Training",
+          "actual_order": [
+            "Improving Language Understanding by Generative Pre-Training",
+            "Language Models are Unsupervised Multitask Learners",
+            "Fine-Tuning Pre-Trained Transformers for Text Classification"
+          ],
+          "rank": 1,
+          "mrr": 1.0,
+          "recall_at_1": 1,
+          "passed": true
+        }
+      ]
+    },
+    "suggestion_threshold": {
+      "name": "suggestion_threshold",
+      "suite": "calibration",
+      "cases": 15,
+      "threshold": 60,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "true_positives": 8,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "true_negatives": 7,
+      "all_passed": true,
+      "details": [
+        {
+          "id": "st_cal_01",
+          "confidence": 95,
+          "threshold": 60,
+          "predicted": "ADEQUATE",
+          "actual": "ADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_02",
+          "confidence": 84,
+          "threshold": 60,
+          "predicted": "ADEQUATE",
+          "actual": "ADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_03",
+          "confidence": 64,
+          "threshold": 60,
+          "predicted": "ADEQUATE",
+          "actual": "ADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_04",
+          "confidence": 60,
+          "threshold": 60,
+          "predicted": "ADEQUATE",
+          "actual": "ADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_05",
+          "confidence": 59,
+          "threshold": 60,
+          "predicted": "INADEQUATE",
+          "actual": "INADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_06",
+          "confidence": 46,
+          "threshold": 60,
+          "predicted": "INADEQUATE",
+          "actual": "INADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_07",
+          "confidence": 18,
+          "threshold": 60,
+          "predicted": "INADEQUATE",
+          "actual": "INADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_08",
+          "confidence": 51,
+          "threshold": 60,
+          "predicted": "INADEQUATE",
+          "actual": "INADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_09",
+          "confidence": 78,
+          "threshold": 60,
+          "predicted": "ADEQUATE",
+          "actual": "ADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_10",
+          "confidence": 60,
+          "threshold": 60,
+          "predicted": "ADEQUATE",
+          "actual": "ADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_11",
+          "confidence": 55,
+          "threshold": 60,
+          "predicted": "INADEQUATE",
+          "actual": "INADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_12",
+          "confidence": 59,
+          "threshold": 60,
+          "predicted": "INADEQUATE",
+          "actual": "INADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_13",
+          "confidence": 0,
+          "threshold": 60,
+          "predicted": "INADEQUATE",
+          "actual": "INADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_14",
+          "confidence": 64,
+          "threshold": 60,
+          "predicted": "ADEQUATE",
+          "actual": "ADEQUATE",
+          "passed": true
+        },
+        {
+          "id": "st_cal_15",
+          "confidence": 62,
+          "threshold": 60,
+          "predicted": "ADEQUATE",
+          "actual": "ADEQUATE",
+          "passed": true
+        }
+      ]
+    },
+    "health_score": {
+      "name": "health_score",
+      "suite": "calibration",
+      "cases": 6,
+      "all_passed": true,
+      "monotonicity_violations": 0,
+      "details": [
+        {
+          "id": "hs_cal_01",
+          "description": "CLEAN",
+          "expected_score": 93,
+          "actual_score": 93,
+          "complete": true,
+          "passed": true
+        },
+        {
+          "id": "hs_cal_02",
+          "description": "MINOR_REVIEW",
+          "expected_score": 74,
+          "actual_score": 74,
+          "complete": true,
+          "passed": true
+        },
+        {
+          "id": "hs_cal_03",
+          "description": "NEEDS_REVIEW",
+          "expected_score": 46,
+          "actual_score": 46,
+          "complete": true,
+          "passed": true
+        },
+        {
+          "id": "hs_cal_04",
+          "description": "SEVERE",
+          "expected_score": 6,
+          "actual_score": 6,
+          "complete": true,
+          "passed": true
+        },
+        {
+          "id": "hs_cal_05",
+          "description": "INCOMPLETE",
+          "expected_score": null,
+          "actual_score": null,
+          "complete": false,
+          "passed": true
+        },
+        {
+          "id": "hs_cal_06",
+          "description": "CLEAN",
+          "expected_score": 82,
+          "actual_score": 82,
+          "complete": true,
+          "passed": true
+        }
+      ]
+    },
+    "entailment": {
+      "name": "entailment",
+      "suite": "calibration",
+      "cases": 10,
+      "accuracy": 1.0,
+      "all_passed": true,
+      "details": [
+        {
+          "id": "ent_cal_01",
+          "expected_verdict": "supported",
+          "confidence": 89,
+          "expected_range": [
+            85,
+            93
+          ],
+          "passed": true
+        },
+        {
+          "id": "ent_cal_02",
+          "expected_verdict": "partially_supported",
+          "confidence": 58,
+          "expected_range": [
+            50,
+            65
+          ],
+          "passed": true
+        },
+        {
+          "id": "ent_cal_03",
+          "expected_verdict": "contradicted",
+          "confidence": 39,
+          "expected_range": [
+            25,
+            45
+          ],
+          "passed": true
+        },
+        {
+          "id": "ent_cal_04",
+          "expected_verdict": "unrelated",
+          "confidence": 28,
+          "expected_range": [
+            15,
+            35
+          ],
+          "passed": true
+        },
+        {
+          "id": "ent_cal_05",
+          "expected_verdict": "insufficient_information",
+          "confidence": 31,
+          "expected_range": [
+            20,
+            40
+          ],
+          "passed": true
+        },
+        {
+          "id": "ent_cal_06",
+          "expected_verdict": "insufficient_information",
+          "confidence": 36,
+          "expected_range": [
+            30,
+            42
+          ],
+          "passed": true
+        },
+        {
+          "id": "ent_cal_07",
+          "expected_verdict": "partially_supported",
+          "confidence": 53,
+          "expected_range": [
+            45,
+            60
+          ],
+          "passed": true
+        },
+        {
+          "id": "ent_cal_08",
+          "expected_verdict": "contradicted",
+          "confidence": 39,
+          "expected_range": [
+            30,
+            45
+          ],
+          "passed": true
+        },
+        {
+          "id": "ent_cal_09",
+          "expected_verdict": "contradicted",
+          "confidence": 43,
+          "expected_range": [
+            35,
+            50
+          ],
+          "passed": true
+        },
+        {
+          "id": "ent_cal_10",
+          "expected_verdict": "supported",
+          "confidence": 77,
+          "expected_range": [
+            70,
+            85
+          ],
+          "passed": true
+        }
+      ]
+    }
+  },
+  "release_gate_passed": true,
+  "release_gate_failures": []
+}

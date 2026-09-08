@@ -1,0 +1,41 @@
+{
+  "name": "health_score",
+  "suite": "holdout",
+  "cases": 4,
+  "all_passed": true,
+  "monotonicity_violations": 0,
+  "details": [
+    {
+      "id": "hs_ho_01",
+      "description": "CLEAN",
+      "expected_score": 88,
+      "actual_score": 88,
+      "complete": true,
+      "passed": true
+    },
+    {
+      "id": "hs_ho_02",
+      "description": "MINOR_REVIEW",
+      "expected_score": 66,
+      "actual_score": 66,
+      "complete": true,
+      "passed": true
+    },
+    {
+      "id": "hs_ho_03",
+      "description": "SEVERE",
+      "expected_score": 0,
+      "actual_score": 0,
+      "complete": true,
+      "passed": true
+    },
+    {
+      "id": "hs_ho_04",
+      "description": "INCOMPLETE",
+      "expected_score": null,
+      "actual_score": null,
+      "complete": false,
+      "passed": true
+    }
+  ]
+}

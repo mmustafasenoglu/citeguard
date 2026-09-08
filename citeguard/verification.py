@@ -149,6 +149,21 @@ def _determine_status(
             return VerificationStatus.VERIFIED
         if scores.doi == 0:
             return VerificationStatus.METADATA_MISMATCH
+    raw_entry = entry.raw_text.lower()
+    if "proceedings" in raw_entry and candidate.work_type == "journal-article":
+        return VerificationStatus.UNRESOLVED
+    if "arxiv" in raw_entry and not candidate.arxiv_id:
+        return VerificationStatus.PARTIALLY_VERIFIED
+    if scores.title is not None and scores.title < 60:
+        return (
+            VerificationStatus.PARTIALLY_VERIFIED
+            if scores.overall >= _PARTIAL_METADATA_THRESHOLD
+            else VerificationStatus.UNRESOLVED
+        )
+    if scores.author is not None and scores.author < 80:
+        if scores.author >= _PARTIAL_METADATA_THRESHOLD:
+            return VerificationStatus.PARTIALLY_VERIFIED
+        return VerificationStatus.UNRESOLVED
     if scores.overall >= VERIFIED_METADATA_THRESHOLD:
         return VerificationStatus.VERIFIED
     if scores.overall >= _PARTIAL_METADATA_THRESHOLD:
@@ -341,15 +356,23 @@ def _text_similarity(first: str | None, second: str | None) -> int | None:
 def _author_similarity(entry_authors: str | None, candidate_authors: list[str]) -> int | None:
     if not entry_authors or not candidate_authors:
         return None
-    entry_first = _first_author_for_query(entry_authors)
-    candidate_first = candidate_authors[0]
-    entry_surname = _normalized_name(entry_first).split()
-    candidate_parts = _normalized_name(candidate_first).split()
-    if not entry_surname or not candidate_parts:
+    entry_tokens = set(_normalized_name(entry_authors).split())
+    candidate_surnames = {
+        _normalized_name(author).split()[-1]
+        for author in candidate_authors
+        if _normalized_name(author)
+    }
+    if not entry_tokens or not candidate_surnames:
         return None
-    if entry_surname[0] in candidate_parts:
-        return 100
-    return _text_similarity(entry_first, candidate_first)
+    matched = sum(surname in entry_tokens for surname in candidate_surnames)
+    entry_author_count = len(
+        re.findall(
+            r"\b[A-Z][A-Za-z'-]+(?=,\s*[A-Z]\.?|\s*&|\s+and\b)",
+            entry_authors,
+        )
+    )
+    denominator = max(len(candidate_surnames), entry_author_count, 1)
+    return round(matched / denominator * 100)
 
 
 def _year_score(entry: BibliographyEntry, candidate: SourceCandidate) -> int | None:
