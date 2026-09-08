@@ -1,4 +1,4 @@
-# citeguard v1.0.0
+# citeguard v1.0.1
 
 **Audit citations in academic documents. Detect uncited claims, verify bibliography metadata, and estimate source support — from your terminal.**
 

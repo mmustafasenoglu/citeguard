@@ -59,7 +59,7 @@ def _metrics():
 def test_inspection_report_structure(tmp_path) -> None:
     parsed = _parsed(tmp_path)
     report = inspection_report(parsed)
-    assert report["schema_version"] == "3"
+    assert report["schema_version"] == "4"
     assert "document" in report
     assert "summary" in report
     assert "citations" in report
@@ -70,7 +70,7 @@ def test_inspection_report_structure(tmp_path) -> None:
 def test_verification_report_structure(tmp_path) -> None:
     parsed = _parsed(tmp_path)
     report = verification_report(parsed, [])
-    assert report["schema_version"] == "3"
+    assert report["schema_version"] == "4"
     assert "provider" in report
     assert "privacy" in report
     assert "summary" in report
@@ -87,7 +87,7 @@ def test_check_report_structure(tmp_path) -> None:
         metrics=_metrics(),
         bib_issues=[],
     )
-    assert report["schema_version"] == "3"
+    assert report["schema_version"] == "4"
     assert "privacy" in report
     assert "summary" in report
     assert "health_score" in report["summary"]
@@ -100,7 +100,7 @@ def test_check_report_structure(tmp_path) -> None:
 def test_suggest_report_structure(tmp_path) -> None:
     parsed = _parsed(tmp_path)
     report = suggest_report(parsed, [_claim()], [])
-    assert report["schema_version"] == "3"
+    assert report["schema_version"] == "4"
     assert "summary" in report
     assert "claims" in report
     assert "suggestions" in report
@@ -167,4 +167,4 @@ def test_check_report_schema_version(tmp_path) -> None:
         metrics=_metrics(),
         bib_issues=[],
     )
-    assert report["schema_version"] == "3"
+    assert report["schema_version"] == "4"

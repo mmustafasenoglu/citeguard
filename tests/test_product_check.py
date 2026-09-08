@@ -118,7 +118,7 @@ def test_check_offline_e2e(tmp_path, monkeypatch) -> None:
     assert result.exit_code in (0, 1)
 
     payload = json.loads(result.output)
-    assert payload["schema_version"] == "3"
+    assert payload["schema_version"] == "4"
     assert payload["execution"]["offline"] is True
     assert payload["execution"]["network_allowed"] is False
     assert payload["execution"]["network_used"] is False
@@ -145,7 +145,7 @@ def test_check_format_json(tmp_path, monkeypatch) -> None:
     assert result.exit_code in (0, 1)
     payload = json.loads(result.output)
 
-    assert payload["schema_version"] == "3"
+    assert payload["schema_version"] == "4"
     assert "execution" in payload
     assert "summary" in payload
     assert "health_score" in payload["summary"]
@@ -205,7 +205,7 @@ def test_check_format_both(tmp_path, monkeypatch) -> None:
     payload = json.loads(json_path.read_text(encoding="utf-8"))
     md_content = md_path.read_text(encoding="utf-8")
 
-    assert payload["schema_version"] == "3"
+    assert payload["schema_version"] == "4"
     assert "health_score" in payload["summary"]
     assert "# citeguard Check Report" in md_content
     assert "Citation Health Score" in md_content

@@ -2,6 +2,15 @@
 
 All notable changes to citeguard will be documented here.
 
+## [1.0.1] - 2026-09-08
+
+### Fixed
+
+- Bumped the JSON report schema to version 4 to cover the 1.0 execution/privacy fields and
+  resolution-based `unresolved_citations` semantics.
+- Replaced the release schema smoke test with exact top-level, execution, summary, and metrics
+  contract assertions.
+
 ## [1.0.0] - 2026-09-08
 
 ### Added

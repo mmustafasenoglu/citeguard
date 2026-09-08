@@ -1,4 +1,4 @@
-"""Release contract tests for citeguard 1.0.0.
+"""Release contract tests for citeguard 1.0.1.
 
 Verifies core contract guarantees for the v1.0 release.
 Each test can be run independently via pytest.
@@ -9,17 +9,17 @@ from __future__ import annotations
 from pathlib import Path
 
 
-def test_package_version_is_1_0_0():
-    """Package version must be 1.0.0."""
+def test_package_version_is_1_0_1():
+    """Package version must be 1.0.1."""
     text = Path("pyproject.toml").read_text()
-    assert 'version = "1.0.0"' in text
+    assert 'version = "1.0.1"' in text
 
 
 def test_python_api_version():
     """Python API must report correct version."""
     from citeguard import __version__
 
-    assert __version__ == "1.0.0"
+    assert __version__ == "1.0.1"
 
 
 def test_stable_api_imports():
@@ -38,27 +38,78 @@ def test_stable_api_imports():
 
 
 def test_report_schema_has_required_fields():
-    """Audit report JSON must contain all required fields."""
+    """Audit report JSON must contain the frozen v4 contract fields."""
 
     from citeguard.audit import audit_document
     from citeguard.report import audit_report
 
     result = audit_document("examples/example-paper.md", offline=True)
     report = audit_report(result)
-    data = {
-        "schema_version": isinstance(report["schema_version"], str),
-        "execution": True,
-        "privacy": True,
-        "summary": True,
-        "claims": True,
-        "bibliography_verification": True,
-        "source_suggestions": True,
-        "similarity": result.similarity is not None or True,
-        "priority_review": True,
-        "diagnostics": True,
-        "provider_phase_failed": True,
+    assert report["schema_version"] == "4"
+    assert set(report) == {
+        "schema_version",
+        "document",
+        "execution",
+        "privacy",
+        "summary",
+        "metrics",
+        "claims",
+        "bibliography_verification",
+        "verification_results",
+        "claim_support",
+        "source_suggestions",
+        "bibliography_issues",
+        "similarity",
+        "priority_review",
+        "diagnostics",
+        "provider_phase_failed",
     }
-    assert all(data.values()), f"Missing fields: {[k for k, v in data.items() if not v]}"
+    assert set(report["execution"]) == {
+        "offline",
+        "network_allowed",
+        "network_used",
+        "academic_network_used",
+        "llm_network_used",
+        "providers_queried",
+        "providers_from_cache",
+        "llm_used",
+        "llm_tasks",
+        "semantic_backend_used",
+    }
+    expected_summary = {
+        "health_score",
+        "health_score_complete",
+        "unavailable_metrics",
+        "total_claims",
+        "claims_requiring_citations",
+        "cited_claims",
+        "verified_citations",
+        "partially_verified",
+        "weak_cited_source_matches",
+        "weak_suggestions",
+        "unresolved_citations",
+        "uncited_high_severity_claims",
+        "contradictions",
+        "bibliography_issues",
+        "citation_coverage",
+        "verification_ratio",
+        "support_ratio",
+        "bibliography_consistency",
+        "evidence_coverage",
+    }
+    assert set(report["summary"]) == expected_summary | {"weak_matches"}
+    expected_metrics = expected_summary - {"weak_matches"}
+    assert set(report["metrics"]) == expected_metrics
+    assert report["execution"]["offline"] is True
+    assert report["execution"]["network_allowed"] is False
+    assert report["execution"]["network_used"] is False
+
+
+def test_report_schema_version_is_exported():
+    """The report module must expose the frozen schema version."""
+    from citeguard.report import SCHEMA_VERSION
+
+    assert SCHEMA_VERSION == "4"
 
 
 def test_exit_codes_defined():

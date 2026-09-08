@@ -16,7 +16,7 @@ from .models import (
 from .scoring import AuditMetrics
 from .similarity.models import MatchType, SimilarityEngineResult
 
-SCHEMA_VERSION = "3"
+SCHEMA_VERSION = "4"
 
 
 def similarity_report(result: SimilarityEngineResult) -> dict[str, Any]:
