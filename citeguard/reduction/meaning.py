@@ -27,6 +27,20 @@ from .models import (
 
 log = logging.getLogger(__name__)
 
+
+class LocalModelUnavailableError(Exception):
+    """Raised when a real local model backend cannot serve a request.
+
+    This distinguishes three states explicitly:
+
+    - ``REAL_SEMANTIC`` — a local embedding/NLI model produced evidence
+    - ``SEQUENCE_FALLBACK`` — ``SequenceSemanticBackend`` lexical screening
+    - ``UNAVAILABLE`` — this error; no fake evidence is substituted
+    """
+
+    pass
+
+
 _NEGATION_RE = re.compile(
     r"\b(?:not|no|never|without|neither|nor|failed|lack|absence|"
     r"didn't|doesn't|isn't|wasn't|weren't)\b",
@@ -91,13 +105,25 @@ class SentenceTransformerSemanticBackend:
     Lazily initialized on first ``similarity()`` call.  No network or
     model loading at import time.
 
+    Returns raw cosine similarity in approximately ``[-1.0, 1.0]``.
+    Negative values are meaningful (opposing semantics) and are NOT
+    clamped to zero.  Only floating-point overshoot beyond ``[-1, 1]``
+    is clipped as numerical safety.
+
+    When the real embedding model is unavailable this backend raises
+    ``LocalModelUnavailableError``.  It never silently substitutes
+    lexical ``SequenceMatcher`` output as semantic evidence; use the
+    explicit ``SequenceSemanticBackend`` for screening instead.
+
     Parameters
     ----------
     model_name:
         HuggingFace model identifier.
         Default: ``paraphrase-multilingual-MiniLM-L12-v2``.
     allow_download:
-        When *False*, only use locally cached models.
+        When *False*, only use locally cached models.  Offline loading
+        is enforced with ``HF_HUB_OFFLINE=1`` at the loader boundary,
+        so no network request is attempted.
     """
 
     _backend: object | None = None
@@ -112,7 +138,7 @@ class SentenceTransformerSemanticBackend:
         self._allow_download = allow_download
 
     def _get_backend(self):
-        """Return the SentenceTransformerBackend singleton, or None."""
+        """Return the SentenceTransformerBackend, or None when unavailable."""
         if self._attempted:
             return self._backend
         self._attempted = True
@@ -133,10 +159,29 @@ class SentenceTransformerSemanticBackend:
                 self._backend = None
                 return self._backend
 
-            self._backend = SentenceTransformerBackend(
-                model_name=self._model_name,
-                allow_download=self._allow_download,
-            )
+            if not self._allow_download:
+                # Enforce zero-network loading at the loader boundary.
+                # HF_HUB_OFFLINE=1 makes huggingface_hub raise instead of
+                # downloading; restored afterwards.
+                import os
+
+                previous = os.environ.get("HF_HUB_OFFLINE")
+                os.environ["HF_HUB_OFFLINE"] = "1"
+                try:
+                    self._backend = SentenceTransformerBackend(
+                        model_name=self._model_name,
+                        allow_download=self._allow_download,
+                    )
+                finally:
+                    if previous is None:
+                        del os.environ["HF_HUB_OFFLINE"]
+                    else:
+                        os.environ["HF_HUB_OFFLINE"] = previous
+            else:
+                self._backend = SentenceTransformerBackend(
+                    model_name=self._model_name,
+                    allow_download=self._allow_download,
+                )
         except Exception as exc:
             log.debug("Semantic backend unavailable: %s", exc)
             self._backend = None
@@ -148,17 +193,25 @@ class SentenceTransformerSemanticBackend:
         return self._get_backend() is not None
 
     def similarity(self, original: str, candidate: str) -> float:
-        """Compute cosine similarity between original and candidate.
+        """Compute raw cosine similarity between original and candidate.
 
-        Returns a score in [0, 1] where 1 means identical semantic meaning.
-        Falls back to SequenceSemanticBackend when the embedding model
-        is unavailable.
+        Returns raw cosine similarity, approximately in ``[-1.0, 1.0]``.
+        This is semantic evidence — not a plagiarism probability, not a
+        confidence percentage, and never mixed into textual
+        ``overall_similarity_pct``.
+
+        Raises
+        ------
+        LocalModelUnavailableError
+            When the real embedding model cannot be loaded.  No lexical
+            fallback is substituted.
         """
         backend = self._get_backend()
         if backend is None:
-            from difflib import SequenceMatcher
-
-            return SequenceMatcher(None, original.casefold(), candidate.casefold()).ratio()
+            raise LocalModelUnavailableError(
+                f"Semantic embedding model '{self._model_name}' is unavailable. "
+                "Use SequenceSemanticBackend explicitly for lexical screening."
+            )
 
         import numpy as np
 
@@ -170,7 +223,8 @@ class SentenceTransformerSemanticBackend:
         if norm_a == 0.0 or norm_b == 0.0:
             return 0.0
         cos = float(np.dot(vec_a, vec_b) / (norm_a * norm_b))
-        return max(0.0, min(1.0, cos))
+        # Numerical safety only: clip floating-point overshoot, keep negatives.
+        return max(-1.0, min(1.0, cos))
 
 
 # ---------------------------------------------------------------------------
@@ -179,23 +233,36 @@ class SentenceTransformerSemanticBackend:
 
 _DEFAULT_NLI_MODEL = "cross-encoder/nli-deberta-v3-base"
 
-_LABEL_MAP: dict[str, MeaningVerdict] = {
-    "entailment": MeaningVerdict.PRESERVED,
-    "contradiction": MeaningVerdict.CONTRADICTED,
-    "neutral": MeaningVerdict.UNKNOWN,
-}
+# Matches negated entailment aliases such as "non-entailment" or
+# "not entailment", which must map to UNKNOWN — never PRESERVED.
+_NEGATED_ENTAIL_RE = re.compile(r"\b(?:non|not|no|without)\b.*\bentail")
 
 
 def _map_nli_label(raw_label: str) -> MeaningVerdict:
     """Map a model's output label to a MeaningVerdict.
 
-    Case-insensitive, prefix-stripped matching.  Unknown labels map to
-    UNKNOWN (conservative).
+    Label order is never assumed; the caller reads
+    ``model.config.id2label`` dynamically.  Matching is case-insensitive
+    and tolerant of ``LABEL_<id>`` prefixes and ``_``/``-`` separators.
+
+    - entailment → PRESERVED
+    - contradiction (or any "contradict*" form) → CONTRADICTED
+    - neutral → UNKNOWN
+    - negated entailment aliases ("non-entailment", ...) → UNKNOWN
+    - anything else (including bare ``LABEL_<id>``) → UNKNOWN (conservative)
     """
-    normalized = raw_label.strip().lower()
-    for key, verdict in _LABEL_MAP.items():
-        if key in normalized:
-            return verdict
+    normalized = raw_label.strip().lower().replace("_", " ").replace("-", " ")
+    normalized = re.sub(r"^label\s+\d+\s*", "", normalized).strip()
+    if not normalized or normalized == "unknown":
+        return MeaningVerdict.UNKNOWN
+    if "contradict" in normalized:
+        return MeaningVerdict.CONTRADICTED
+    if "neutral" in normalized:
+        return MeaningVerdict.UNKNOWN
+    if "entail" in normalized:
+        if _NEGATED_ENTAIL_RE.search(normalized):
+            return MeaningVerdict.UNKNOWN
+        return MeaningVerdict.PRESERVED
     return MeaningVerdict.UNKNOWN
 
 
@@ -203,14 +270,22 @@ class TransformerNLIBackend:
     """Local transformer-based natural language inference backend.
 
     Uses a cross-encoder NLI model from HuggingFace transformers.
-    Lazily loaded on first ``evaluate()`` call.
+    Lazily loaded on first ``evaluate()`` call.  No network or model
+    loading at import time.  CPU-compatible; inference runs without
+    gradients and the loaded model is reused across calls.
+
+    Output labels are read from ``model.config.id2label`` dynamically —
+    label order is never assumed.  See :func:`_map_nli_label`.
 
     Parameters
     ----------
     model_name:
         HuggingFace model identifier for a sequence-classification NLI model.
     allow_download:
-        When *False*, only use locally cached models.
+        When *False*, only use locally cached models.  Offline loading
+        is enforced with ``local_files_only=True`` at the actual
+        tokenizer and model loader calls, so no network request is
+        attempted.
     """
 
     _model = None
@@ -248,9 +323,15 @@ class TransformerNLIBackend:
                     self._model = None
                     return self._model
 
-            tokenizer = AutoTokenizer.from_pretrained(self._model_name)
+            loader_kwargs: dict[str, object] = {}
+            if not self._allow_download:
+                # Enforce zero-network loading at the loader boundary.
+                loader_kwargs["local_files_only"] = True
+            tokenizer = AutoTokenizer.from_pretrained(
+                self._model_name, **loader_kwargs
+            )
             model = AutoModelForSequenceClassification.from_pretrained(
-                self._model_name
+                self._model_name, **loader_kwargs
             )
             model.eval()
 
@@ -284,6 +365,9 @@ class TransformerNLIBackend:
         Returns an EntailmentDirection with a MeaningVerdict of
         PRESERVED (entailment), CONTRADICTED, or UNKNOWN (neutral/unknown).
         Never returns PRESERVED on failure — UNKNOWN is the safe default.
+
+        ``score`` is the model confidence (softmax probability) for the
+        selected directional NLI class — not a rewrite-safety probability.
         """
         loaded = self._load_model()
         if loaded is None:
@@ -342,18 +426,33 @@ def validate_meaning(
 ) -> MeaningValidation:
     """Validate meaning using semantic similarity and both entailment directions.
 
-    Any contradiction rejects immediately.  Otherwise acceptance requires both
-    directions and semantic similarity to clear calibrated thresholds.
+    ``semantic`` is raw cosine similarity (approximately ``[-1.0, 1.0]``),
+    kept separate from textual ``overall_similarity_pct``.
+
+    Any contradiction rejects immediately.  Otherwise acceptance requires
+    both directions and semantic similarity to clear calibrated thresholds.
+    An unavailable real semantic model fails closed: no fake evidence is
+    substituted and the verdict can never be PRESERVED.
     """
     thresholds = thresholds or MeaningThresholds()
-    semantic = semantic_backend.similarity(original, candidate.text)
+    try:
+        semantic: float | None = semantic_backend.similarity(
+            original, candidate.text
+        )
+    except LocalModelUnavailableError as exc:
+        semantic = None
+        log.debug("Semantic evidence unavailable: %s", exc)
     forward = entailment_backend.evaluate(original, candidate.text)
     backward = entailment_backend.evaluate(candidate.text, original)
     forward_verdict = _coerce_verdict(forward.verdict)
     backward_verdict = _coerce_verdict(backward.verdict)
     reasons: list[str] = []
 
-    if semantic < thresholds.semantic_minimum:
+    if semantic is None:
+        reasons.append(
+            "real semantic evidence is unavailable (model not loaded)"
+        )
+    elif semantic < thresholds.semantic_minimum:
         reasons.append("semantic similarity is below the calibrated minimum")
     if forward_verdict == MeaningVerdict.CONTRADICTED:
         reasons.append("original passage contradicts the candidate")
@@ -364,7 +463,8 @@ def validate_meaning(
             reasons.append(f"{direction} entailment is below the calibrated minimum")
 
     definitive = (
-        semantic >= thresholds.semantic_minimum
+        semantic is not None
+        and semantic >= thresholds.semantic_minimum
         and forward_verdict == MeaningVerdict.PRESERVED
         and backward_verdict == MeaningVerdict.PRESERVED
         and forward.score >= thresholds.entailment_minimum
@@ -377,7 +477,8 @@ def validate_meaning(
     else:
         verdict = MeaningVerdict.INSUFFICIENT
 
-    meaning_score = (semantic + forward.score + backward.score) / 3.0
+    parts = [s for s in (semantic, forward.score, backward.score) if s is not None]
+    meaning_score = sum(parts) / len(parts) if parts else None
     candidate.semantic_similarity_to_original = semantic
     candidate.forward_entailment_score = forward.score
     candidate.backward_entailment_score = backward.score

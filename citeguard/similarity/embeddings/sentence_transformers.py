@@ -29,16 +29,7 @@ def _is_model_cached(model_name: str) -> bool:
     """
     from pathlib import Path
 
-    try:
-        # Default HF cache: ~/.cache/huggingface/hub
-        cache_home = Path.home() / ".cache" / "huggingface" / "hub"
-        if not cache_home.exists():
-            return False
-        # HF cache structure: models--{org}--{model_name}/snapshots/
-        sanitized = model_name.replace("/", "--")
-        repo_path = cache_home / f"models--{sanitized}"
-        if not repo_path.exists():
-            return False
+    def _has_weights(repo_path: Path) -> bool:
         snapshots = repo_path / "snapshots"
         if not snapshots.exists():
             return False
@@ -49,6 +40,21 @@ def _is_model_cached(model_name: str) -> bool:
                     if f.suffix in (".bin", ".safetensors", ".pt"):
                         return True
         return False
+
+    try:
+        # Default HF cache: ~/.cache/huggingface/hub
+        cache_home = Path.home() / ".cache" / "huggingface" / "hub"
+        if not cache_home.exists():
+            return False
+        # HF cache structure: models--{org}--{model_name}/snapshots/
+        candidates = [model_name.replace("/", "--")]
+        if "/" not in model_name:
+            # Bare names resolve under the sentence-transformers org.
+            candidates.append(f"sentence-transformers--{model_name}")
+        return any(
+            _has_weights(cache_home / f"models--{candidate}")
+            for candidate in candidates
+        )
     except Exception:
         return False
 

@@ -158,7 +158,12 @@ class SemanticBackend(Protocol):
     """Backend for local or remote sentence semantic similarity."""
 
     def similarity(self, original: str, candidate: str) -> float:
-        """Return a normalized similarity score in the inclusive [0, 1] range."""
+        """Return raw cosine similarity, approximately in [-1.0, 1.0].
+
+        This is semantic evidence only — not a plagiarism probability,
+        not a confidence percentage, and never mixed into textual
+        ``overall_similarity_pct``.
+        """
 
 
 class EntailmentBackend(Protocol):

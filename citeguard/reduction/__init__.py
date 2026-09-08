@@ -17,6 +17,7 @@ from .candidates import generate_candidates
 from .evaluator import evaluate_candidate
 from .meaning import (
     HeuristicEntailmentBackend,
+    LocalModelUnavailableError,
     MeaningThresholds,
     SentenceTransformerSemanticBackend,
     SequenceSemanticBackend,
@@ -51,6 +52,7 @@ __all__ = [
     "evaluate_candidate",
     "generate_candidates",
     "HeuristicEntailmentBackend",
+    "LocalModelUnavailableError",
     "MeaningThresholds",
     "SentenceTransformerSemanticBackend",
     "SequenceSemanticBackend",

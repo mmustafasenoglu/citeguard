@@ -8,6 +8,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import pytest
 
 from citeguard.reduction.meaning import (
     HeuristicEntailmentBackend,
@@ -77,16 +78,94 @@ def test_sequence_semantic_backend_returns_float_0_1() -> None:
     assert 0.0 <= score <= 1.0
 
 
-def test_sentence_transformer_semantic_backend_fallback() -> None:
-    """When ST model is unavailable, falls back to SequenceMatcher."""
+def test_unavailable_semantic_backend_raises_explicit_error() -> None:
+    """An unavailable real semantic backend must NOT silently return
+    SequenceMatcher output as semantic evidence."""
+    from citeguard.reduction.meaning import LocalModelUnavailableError
+
     backend = SentenceTransformerSemanticBackend(
         model_name="nonexistent-model", allow_download=False
     )
     assert backend.available is False
-    score = backend.similarity("hello world", "hello world")
-    assert score == 1.0
-    score_diff = backend.similarity("cat", "dog")
-    assert 0.0 <= score_diff < 1.0
+    with pytest.raises(LocalModelUnavailableError):
+        backend.similarity("hello world", "hello world")
+
+
+def test_unavailable_semantic_is_distinguishable_from_sequence_fallback() -> None:
+    """REAL_SEMANTIC vs SEQUENCE_FALLBACK vs UNAVAILABLE are distinct."""
+    from citeguard.reduction.meaning import LocalModelUnavailableError
+
+    unavailable = SentenceTransformerSemanticBackend(
+        model_name="nonexistent-model", allow_download=False
+    )
+    fallback = SequenceSemanticBackend()
+    # Fallback still works as an explicit, separate screening backend.
+    assert fallback.similarity("hello world", "hello world") == 1.0
+    # Unavailable real backend raises instead of impersonating the fallback.
+    with pytest.raises(LocalModelUnavailableError):
+        unavailable.similarity("hello world", "hello world")
+
+
+def test_negative_cosine_remains_negative() -> None:
+    """Raw cosine < 0 must NOT be clamped to 0."""
+    from citeguard.similarity.embeddings import sentence_transformers as st_mod
+
+    vectors = np.array(
+        [[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]], dtype=np.float32
+    )
+
+    class _FakeSTBackend:
+        def encode(self, texts: list[str]) -> np.ndarray:
+            return vectors
+
+    backend = SentenceTransformerSemanticBackend(
+        model_name="test-model", allow_download=True
+    )
+    with patch.object(
+        st_mod, "SentenceTransformerBackend", lambda **kw: _FakeSTBackend()
+    ):
+        score = backend.similarity("original text", "opposite text")
+    assert score == pytest.approx(-1.0)
+    assert score < 0
+
+
+def test_positive_cosine_returned_unchanged() -> None:
+    """Raw cosine values pass through without rescaling."""
+    from citeguard.similarity.embeddings import sentence_transformers as st_mod
+
+    vectors = np.array(
+        [[1.0, 0.0, 0.0], [1.0, 0.0, 0.0]], dtype=np.float32
+    )
+
+    class _FakeSTBackend:
+        def encode(self, texts: list[str]) -> np.ndarray:
+            return vectors
+
+    backend = SentenceTransformerSemanticBackend(
+        model_name="test-model", allow_download=True
+    )
+    with patch.object(
+        st_mod, "SentenceTransformerBackend", lambda **kw: _FakeSTBackend()
+    ):
+        identical = backend.similarity("same text", "same text")
+    assert identical == pytest.approx(1.0)
+
+    orthogonal = np.array(
+        [[1.0, 0.0], [0.0, 1.0]], dtype=np.float32
+    )
+
+    class _FakeSTOrtho:
+        def encode(self, texts: list[str]) -> np.ndarray:
+            return orthogonal
+
+    backend2 = SentenceTransformerSemanticBackend(
+        model_name="test-model", allow_download=True
+    )
+    with patch.object(
+        st_mod, "SentenceTransformerBackend", lambda **kw: _FakeSTOrtho()
+    ):
+        score = backend2.similarity("text a", "text b")
+    assert score == pytest.approx(0.0)
 
 
 # ===========================================================================
@@ -94,26 +173,28 @@ def test_sentence_transformer_semantic_backend_fallback() -> None:
 # ===========================================================================
 
 
-def test_semantic_is_not_lexical_overlap() -> None:
-    """When real embeddings are available, semantic cosine differs from lexical."""
-    backend = SentenceTransformerSemanticBackend(
-        model_name="nonexistent", allow_download=False
+def test_semantic_evidence_never_touches_textual_overlap_metrics() -> None:
+    """MeaningValidation carries only semantic/entailment evidence.
+
+    It must never contain exact/lexical overlap fields or
+    overall_similarity_pct — semantic evidence is a separate signal.
+    """
+    candidate = RewriteCandidate("The drug reduced symptoms.", "test")
+    result = validate_meaning(
+        "The medication alleviated symptoms.",
+        candidate,
+        semantic_backend=_FakeSemanticBackend(-0.25),
+        entailment_backend=_FakeEntailmentBackend(
+            forward=EntailmentDirection(0.9, MeaningVerdict.PRESERVED),
+            backward=EntailmentDirection(0.9, MeaningVerdict.PRESERVED),
+        ),
+        thresholds=MeaningThresholds(semantic_minimum=0.5, entailment_minimum=0.5),
     )
-    # When the model is unavailable, falls back to SequenceMatcher (same as lexical)
-    # With a real model, cosine similarity captures meaning, not just surface form.
-    # This test validates the architecture: the interface is pluggable and
-    # SequenceSemanticBackend is the deterministic fallback.
-    seq_score = SequenceSemanticBackend().similarity(
-        "The patient was prescribed medication",
-        "Drug therapy was administered to the patient",
-    )
-    assert 0.0 <= seq_score <= 1.0
-    # Verify SequenceSemanticBackend and fallback use the same underlying method
-    fallback_score = backend.similarity(
-        "The patient was prescribed medication",
-        "Drug therapy was administered to the patient",
-    )
-    assert fallback_score == seq_score
+    assert result.semantic_similarity_raw == pytest.approx(-0.25)
+    assert not hasattr(result, "exact_overlap")
+    assert not hasattr(result, "lexical_similarity")
+    assert not hasattr(result, "overall_similarity_pct")
+    assert result.verdict == MeaningVerdict.INSUFFICIENT
 
 
 # ===========================================================================
@@ -366,25 +447,175 @@ def test_offline_uncached_nli_no_network() -> None:
 # ===========================================================================
 
 
-def test_cached_model_loads_when_available() -> None:
-    """When model IS cached and allow_download=False, it should load."""
-    mock_st = MagicMock()
-    mock_model = MagicMock()
-    mock_model.get_sentence_embedding_dimension.return_value = 384
-    mock_st.SentenceTransformer.return_value = mock_model
+def test_offline_enforces_hf_hub_offline_at_loader_boundary() -> None:
+    """allow_download=False must set HF_HUB_OFFLINE=1 around backend load."""
+    import os
 
-    with patch(
-        "citeguard.reduction.meaning.SentenceTransformerSemanticBackend._get_backend",
+    from citeguard.similarity.embeddings import sentence_transformers as st_mod
+
+    seen: dict[str, object] = {}
+    real_getenv = os.environ.get
+
+    class _FakeSTBackend:
+        def __init__(self, **kwargs: object) -> None:
+            seen.update(kwargs)
+            seen["HF_HUB_OFFLINE"] = real_getenv("HF_HUB_OFFLINE")
+
+        def encode(self, texts: list[str]) -> np.ndarray:
+            return np.ones((len(texts), 8), dtype=np.float32)
+
+    backend = SentenceTransformerSemanticBackend(
+        model_name="test-model", allow_download=False
+    )
+    with (
+        patch.object(st_mod, "_is_model_cached", return_value=True),
+        patch.object(st_mod, "SentenceTransformerBackend", _FakeSTBackend),
     ):
-        backend = SentenceTransformerSemanticBackend(
-            model_name="test-model", allow_download=True
-        )
-        with patch.object(backend, "_backend", mock_model):
-            backend._attempted = True
-            backend._backend = MagicMock()
-            backend._backend.encode.return_value = np.ones((2, 384), dtype=np.float32)
-            score = backend.similarity("text a", "text b")
-            assert 0.0 <= score <= 1.0
+        assert backend.available is True
+    assert seen.get("HF_HUB_OFFLINE") == "1"
+    assert real_getenv("HF_HUB_OFFLINE") is None
+
+
+def test_bare_model_name_resolves_org_prefixed_cache(tmp_path) -> None:
+    """_is_model_cached must find org-prefixed cache dirs for bare names."""
+    from pathlib import Path
+
+    from citeguard.similarity.embeddings import sentence_transformers as st_mod
+
+    snap = (
+        tmp_path
+        / ".cache"
+        / "huggingface"
+        / "hub"
+        / "models--sentence-transformers--my-model"
+        / "snapshots"
+        / "abc123"
+    )
+    snap.mkdir(parents=True)
+    (snap / "model.safetensors").write_bytes(b"fake")
+    with patch.object(Path, "home", return_value=tmp_path):
+        assert st_mod._is_model_cached("my-model") is True
+        assert st_mod._is_model_cached("other-org/my-model") is False
+
+
+def test_nli_offline_passes_local_files_only_to_loaders() -> None:
+    """allow_download=False must pass local_files_only=True to both the
+    tokenizer and the model loader."""
+    import sys
+
+    calls: dict[str, dict[str, object]] = {}
+
+    class _FakeTokenizer:
+        @classmethod
+        def from_pretrained(cls, name: str, **kwargs: object) -> MagicMock:
+            calls["tokenizer"] = {"name": name, **kwargs}
+            return MagicMock()
+
+    class _FakeModel:
+        config = MagicMock(label2id={"entailment": 0, "neutral": 1})
+
+        @classmethod
+        def from_pretrained(cls, name: str, **kwargs: object) -> MagicMock:
+            calls["model"] = {"name": name, **kwargs}
+            instance = MagicMock()
+            instance.config.label2id = {"entailment": 0, "neutral": 1}
+            return instance
+
+    fake_transformers = MagicMock()
+    fake_transformers.AutoTokenizer = _FakeTokenizer
+    fake_transformers.AutoModelForSequenceClassification = _FakeModel
+
+    backend = TransformerNLIBackend(
+        model_name="test-nli-model", allow_download=False
+    )
+    with (
+        patch.dict(sys.modules, {"transformers": fake_transformers}),
+        patch(
+            "citeguard.similarity.embeddings.sentence_transformers._is_model_cached",
+            return_value=True,
+        ),
+    ):
+        assert backend.available is True
+    assert calls["tokenizer"].get("local_files_only") is True
+    assert calls["model"].get("local_files_only") is True
+
+
+def test_nli_online_does_not_force_local_files_only() -> None:
+    """allow_download=True must not inject local_files_only."""
+    import sys
+
+    calls: dict[str, dict[str, object]] = {}
+
+    class _FakeTokenizer:
+        @classmethod
+        def from_pretrained(cls, name: str, **kwargs: object) -> MagicMock:
+            calls["tokenizer"] = {"name": name, **kwargs}
+            return MagicMock()
+
+    class _FakeModel:
+        @classmethod
+        def from_pretrained(cls, name: str, **kwargs: object) -> MagicMock:
+            calls["model"] = {"name": name, **kwargs}
+            instance = MagicMock()
+            instance.config.label2id = {}
+            return instance
+
+    fake_transformers = MagicMock()
+    fake_transformers.AutoTokenizer = _FakeTokenizer
+    fake_transformers.AutoModelForSequenceClassification = _FakeModel
+
+    backend = TransformerNLIBackend(
+        model_name="test-nli-model", allow_download=True
+    )
+    with patch.dict(sys.modules, {"transformers": fake_transformers}):
+        assert backend.available is True
+    assert "local_files_only" not in calls["tokenizer"]
+    assert "local_files_only" not in calls["model"]
+
+
+def test_offline_unavailable_semantic_fails_closed_in_pipeline() -> None:
+    """Unavailable real semantic model → INSUFFICIENT, never PRESERVED."""
+    from citeguard.reduction.meaning import LocalModelUnavailableError
+
+    unavailable = SentenceTransformerSemanticBackend(
+        model_name="nonexistent-model", allow_download=False
+    )
+    with pytest.raises(LocalModelUnavailableError):
+        unavailable.similarity("a", "b")
+
+    candidate = RewriteCandidate("The drug reduced symptoms.", "test")
+    result = validate_meaning(
+        "The medication alleviated symptoms.",
+        candidate,
+        semantic_backend=unavailable,
+        entailment_backend=_FakeEntailmentBackend(
+            forward=EntailmentDirection(0.99, MeaningVerdict.PRESERVED),
+            backward=EntailmentDirection(0.99, MeaningVerdict.PRESERVED),
+        ),
+        thresholds=MeaningThresholds(semantic_minimum=0.0, entailment_minimum=0.0),
+    )
+    assert result.verdict == MeaningVerdict.INSUFFICIENT
+    assert result.semantic_similarity_raw is None
+    assert "unavailable" in " ".join(result.reasons).lower()
+
+
+def test_offline_unavailable_nli_yields_unknown_never_preserved() -> None:
+    """Unavailable NLI model → UNKNOWN direction; pipeline stays INSUFFICIENT."""
+    backend = TransformerNLIBackend(
+        model_name="nonexistent/nli-model-for-test", allow_download=False
+    )
+    direction = backend.evaluate("premise text", "hypothesis text")
+    assert direction.verdict == MeaningVerdict.UNKNOWN
+
+    candidate = RewriteCandidate("A paraphrase.", "test")
+    result = validate_meaning(
+        "Original text.",
+        candidate,
+        semantic_backend=_FakeSemanticBackend(0.99),
+        entailment_backend=backend,
+        thresholds=MeaningThresholds(semantic_minimum=0.0, entailment_minimum=0.0),
+    )
+    assert result.verdict == MeaningVerdict.INSUFFICIENT
 
 
 # ===========================================================================
@@ -425,6 +656,68 @@ def test_nli_unknown_label_maps_to_unknown() -> None:
     assert _map_nli_label("some_random_label") == MeaningVerdict.UNKNOWN
     assert _map_nli_label("") == MeaningVerdict.UNKNOWN
     assert _map_nli_label("nonsense") == MeaningVerdict.UNKNOWN
+    assert _map_nli_label("LABEL_0") == MeaningVerdict.UNKNOWN
+    assert _map_nli_label("LABEL_1") == MeaningVerdict.UNKNOWN
+    assert _map_nli_label("LABEL_2") == MeaningVerdict.UNKNOWN
+    assert _map_nli_label("unknown") == MeaningVerdict.UNKNOWN
+
+
+def test_nli_negated_entailment_alias_maps_to_unknown() -> None:
+    """'non-entailment' must NEVER map to PRESERVED."""
+    assert _map_nli_label("non-entailment") == MeaningVerdict.UNKNOWN
+    assert _map_nli_label("non_entailment") == MeaningVerdict.UNKNOWN
+    assert _map_nli_label("NOT ENTAILMENT") == MeaningVerdict.UNKNOWN
+    assert _map_nli_label("not-entailed") == MeaningVerdict.UNKNOWN
+
+
+def test_nli_contradict_forms_map_to_contradicted() -> None:
+    assert _map_nli_label("contradictory") == MeaningVerdict.CONTRADICTED
+    assert _map_nli_label("CONTRADICTS") == MeaningVerdict.CONTRADICTED
+
+
+def test_nli_score_is_predicted_class_confidence() -> None:
+    """EntailmentDirection.score is the model confidence for the SELECTED
+    directional NLI class — not a rewrite-safety probability."""
+    import sys
+
+    import torch
+
+    class _FakeTokenizer:
+        def __call__(self, *args: object, **kwargs: object) -> dict[str, object]:
+            return {"input_ids": torch.tensor([[1, 2, 3]])}
+
+    class _FakeModel:
+        config = MagicMock(
+            label2id={"contradiction": 0, "neutral": 1, "entailment": 2}
+        )
+
+        def eval(self) -> None:
+            return None
+
+        def __call__(self, **kwargs: object) -> MagicMock:
+            out = MagicMock()
+            # Logits strongly favor class 0 (contradiction).
+            out.logits = torch.tensor([[5.0, 1.0, 0.5]])
+            return out
+
+    fake_transformers = MagicMock()
+    fake_transformers.AutoTokenizer = MagicMock()
+    fake_transformers.AutoTokenizer.from_pretrained.return_value = _FakeTokenizer()
+    fake_transformers.AutoModelForSequenceClassification = MagicMock()
+    fake_transformers.AutoModelForSequenceClassification.from_pretrained.return_value = (
+        _FakeModel()
+    )
+
+    backend = TransformerNLIBackend(
+        model_name="test-nli-model", allow_download=True
+    )
+    with patch.dict(sys.modules, {"transformers": fake_transformers}):
+        direction = backend.evaluate("premise", "hypothesis")
+    assert direction.verdict == MeaningVerdict.CONTRADICTED
+    # Score equals the contradiction-class softmax confidence.
+    expected = float(torch.softmax(torch.tensor([5.0, 1.0, 0.5]), dim=-1)[0].item())
+    assert direction.score == pytest.approx(expected)
+    assert direction.score > 0.9
 
 
 # ===========================================================================
