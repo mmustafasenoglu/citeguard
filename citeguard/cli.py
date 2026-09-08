@@ -421,15 +421,16 @@ def verify_command(
     parsed = parse_document(file)
     _validate_parsed(parsed)
     settings = Settings.from_env()
-    providers = [] if offline else [CrossrefProvider(), OpenAlexProvider()]
-    engine = RetrievalEngine(
-        providers,
-        cache=FileCache(settings.cache_dir),
+    cache = FileCache(settings.cache_dir)
+    bib_engine = RetrievalEngine(
+        [CrossrefProvider(), OpenAlexProvider()],
+        cache=cache,
         use_cache=not no_cache,
+        offline=offline,
     )
     results = verify_bibliography(
         parsed.bibliography_entries,
-        engine,
+        bib_engine,
         max_results=max_results,
         recency_max_age=recency_max_age,
     )
@@ -514,6 +515,7 @@ def suggest_command(
 
     claims = _extract_claims_hybrid(
         parsed, max_claims=max_claims, severity=severity, verbose=verbose,
+        offline=offline,
     )
 
     uncited_claims = [c for c in claims if not c.has_existing_citation]
@@ -534,6 +536,7 @@ def suggest_command(
         providers,
         cache=cache,
         use_cache=not no_cache,
+        offline=offline,
     )
 
     suggestion_results: list[VerificationResult] = []
@@ -709,17 +712,18 @@ def check_command(
 
     claims = _extract_claims_hybrid(
         parsed, max_claims=max_claims, severity=severity, verbose=verbose,
+        offline=offline,
     )
 
     if verbose:
         console.print(f"[dim]Extracted {len(claims)} claims from document.[/dim]")
 
     # Verify bibliography
-    bib_providers = [] if offline else [CrossrefProvider(), OpenAlexProvider()]
     bib_engine = RetrievalEngine(
-        bib_providers,
+        [CrossrefProvider(), OpenAlexProvider()],
         cache=cache,
         use_cache=not no_cache,
+        offline=offline,
     )
     bib_results = verify_bibliography(
         parsed.bibliography_entries,
@@ -839,6 +843,12 @@ def check_command(
         verification_results=claim_verification,
         bibliography_issues=bib_issues,
     )
+
+    # When offline, metrics are unavailable (no provider phase executed)
+    if offline:
+        metrics.health_score = None
+        metrics.health_score_complete = False
+        metrics.unavailable_metrics = ("offline mode",)
 
     sorted_claims = priority_list(claim_verification)
 
@@ -1060,6 +1070,7 @@ def _extract_claims_hybrid(
     max_claims: int | None = None,
     severity: str | None = None,
     verbose: bool = False,
+    offline: bool = False,
 ) -> list[Claim]:
     """Extract claims using LLM when available, falling back to deterministic rules."""
 
@@ -1075,9 +1086,12 @@ def _extract_claims_hybrid(
             c for c in parsed.citations if c.paragraph_index == index
         ]
 
-        llm_claims = extract_claims_with_llm(
-            paragraph, index, paragraph_citations
-        )
+        if offline:
+            llm_claims = []
+        else:
+            llm_claims = extract_claims_with_llm(
+                paragraph, index, paragraph_citations
+            )
         if llm_claims:
             if verbose:
                 n = len(llm_claims)

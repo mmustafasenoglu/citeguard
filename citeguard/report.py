@@ -375,32 +375,6 @@ def _verification_result_item(result: VerificationResult) -> dict[str, Any]:
     }
 
 
-def _verification_result_item(result: VerificationResult) -> dict[str, Any]:
-    matched = result.matched
-    return {
-        "claim_text": result.claim.text,
-        "claim_type": result.claim.claim_type.value,
-        "severity": result.claim.severity.value,
-        "paragraph": result.claim.paragraph_index + 1,
-        "status": result.status.value,
-        "matched": (
-            {
-                "title": matched.candidate.title,
-                "authors": matched.candidate.authors,
-                "year": matched.candidate.year,
-                "doi": matched.candidate.doi,
-                "overall_confidence": matched.overall_confidence,
-                "verdict": matched.verdict.value,
-                "evidence": [_evidence_item(e) for e in matched.evidence],
-            }
-            if matched
-            else None
-        ),
-        "suggestions_count": len(result.suggestions),
-        "warnings": result.warnings,
-    }
-
-
 # ---------------------------------------------------------------------------
 # Product audit report (Checkpoint 7)
 # ---------------------------------------------------------------------------
