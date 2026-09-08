@@ -6,6 +6,13 @@ candidates without treating lower similarity as proof of academic integrity.
 """
 
 from .analyzer import analyze_passage_risks
+from .apply import (
+    AppliedReplacement,
+    TextReplacement,
+    apply_text_replacements,
+    restore_text,
+    write_revised_text,
+)
 from .candidates import generate_candidates
 from .evaluator import evaluate_candidate
 from .meaning import (
@@ -47,4 +54,9 @@ __all__ = [
     "build_fix_plans",
     "rank_candidates",
     "validate_candidate",
+    "AppliedReplacement",
+    "TextReplacement",
+    "apply_text_replacements",
+    "restore_text",
+    "write_revised_text",
 ]

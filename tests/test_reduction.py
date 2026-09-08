@@ -11,10 +11,13 @@ from citeguard.reduction import (
     ReductionRiskType,
     RewriteCandidate,
     SequenceSemanticBackend,
+    TextReplacement,
+    apply_text_replacements,
     build_fix_plans,
     evaluate_candidate,
     generate_candidates,
     rank_candidates,
+    restore_text,
     validate_candidate,
     validate_meaning,
 )
@@ -293,6 +296,26 @@ def test_offline_heuristic_does_not_claim_entailment() -> None:
         "The method increased accuracy.",
     )
     assert result.verdict == MeaningVerdict.UNKNOWN
+
+
+def test_text_patch_is_exact_and_reversible() -> None:
+    original = "First claim. Second claim."
+    revised, applied = apply_text_replacements(
+        original,
+        [TextReplacement("Second claim.", "Rewritten claim.", "p0s1")],
+    )
+    assert revised == "First claim. Rewritten claim."
+    assert restore_text(revised, applied) == original
+
+
+def test_text_patch_rejects_ambiguous_original() -> None:
+    from pytest import raises
+
+    with raises(ValueError, match="ambiguous"):
+        apply_text_replacements(
+            "Same sentence. Same sentence.",
+            [TextReplacement("Same sentence.", "Changed.", "p0s0")],
+        )
 
 
 def test_reduction_report_is_json_safe() -> None:
