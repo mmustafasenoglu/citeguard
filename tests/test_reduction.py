@@ -14,6 +14,7 @@ from citeguard.reduction import (
     TextReplacement,
     apply_text_replacements,
     build_fix_plans,
+    compute_reduction_metrics,
     evaluate_candidate,
     generate_candidates,
     rank_candidates,
@@ -316,6 +317,17 @@ def test_text_patch_rejects_ambiguous_original() -> None:
             "Same sentence. Same sentence.",
             [TextReplacement("Same sentence.", "Changed.", "p0s0")],
         )
+
+
+def test_reduction_metrics_use_absolute_and_relative_overlap() -> None:
+    before = _similarity_result("Before.", exact=0.9, lexical=0.9)
+    after = _similarity_result("After.", exact=0.2, lexical=0.2)
+    before.overall_similarity_pct = 26.8
+    after.overall_similarity_pct = 12.4
+    metrics = compute_reduction_metrics(before, after, rewritten_passages=2)
+    assert metrics.absolute_reduction_pct == 14.4
+    assert round(metrics.relative_reduction_pct or 0, 3) == 0.537
+    assert metrics.rewritten_passages == 2
 
 
 def test_reduction_report_is_json_safe() -> None:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .metrics import ReductionMetrics
 from .models import FixPlan, PassageRisk, RewriteCandidate
 
 REDUCTION_SCHEMA_VERSION = "1"
@@ -79,4 +80,21 @@ def reduction_report(
             ]
             for passage_id, values in candidate_map.items()
         },
+    }
+
+
+def metrics_report(metrics: ReductionMetrics) -> dict[str, Any]:
+    """Serialize before/after measurements for JSON and Markdown callers."""
+    return {
+        "before_textual_similarity_pct": metrics.before_textual_similarity_pct,
+        "after_textual_similarity_pct": metrics.after_textual_similarity_pct,
+        "absolute_reduction_pct": metrics.absolute_reduction_pct,
+        "relative_reduction_pct": metrics.relative_reduction_pct,
+        "before_high_risk": metrics.before_high_risk,
+        "after_high_risk": metrics.after_high_risk,
+        "rewritten_passages": metrics.rewritten_passages,
+        "rejected_candidates": metrics.rejected_candidates,
+        "meaning_preservation_avg": metrics.meaning_preservation_avg,
+        "citation_integrity_passed": metrics.citation_integrity_passed,
+        "new_unsupported_claims": metrics.new_unsupported_claims,
     }

@@ -21,6 +21,7 @@ from .meaning import (
     SequenceSemanticBackend,
     validate_meaning,
 )
+from .metrics import ReductionMetrics, compute_reduction_metrics
 from .models import (
     EntailmentDirection,
     FixAction,
@@ -51,6 +52,8 @@ __all__ = [
     "MeaningThresholds",
     "SequenceSemanticBackend",
     "validate_meaning",
+    "ReductionMetrics",
+    "compute_reduction_metrics",
     "build_fix_plans",
     "rank_candidates",
     "validate_candidate",
