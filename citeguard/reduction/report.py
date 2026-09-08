@@ -64,6 +64,16 @@ def reduction_report(
                     "citations_preserved": candidate.citations_preserved,
                     "numeric_integrity": candidate.numeric_integrity,
                     "factual_integrity": candidate.factual_integrity,
+                    "semantic_similarity_to_original": (
+                        candidate.semantic_similarity_to_original
+                    ),
+                    "forward_entailment_score": candidate.forward_entailment_score,
+                    "backward_entailment_score": candidate.backward_entailment_score,
+                    "meaning_verdict": (
+                        candidate.meaning_verdict.value
+                        if candidate.meaning_verdict
+                        else None
+                    ),
                 }
                 for candidate in values
             ]

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ..models import Verdict
 from .analyzer import extract_numbers
-from .models import FixPlan, RewriteCandidate, ValidationResult
+from .models import FixPlan, MeaningValidation, MeaningVerdict, RewriteCandidate, ValidationResult
 
 
 def validate_candidate(
@@ -14,6 +14,7 @@ def validate_candidate(
     *,
     supported_verdict: Verdict | None = None,
     unsupported_claims: list[str] | None = None,
+    meaning_validation: MeaningValidation | None = None,
 ) -> ValidationResult:
     """Apply non-negotiable citation, numeric, and support gates."""
     reasons: list[str] = []
@@ -35,12 +36,19 @@ def validate_candidate(
         reasons.append("candidate contradicts source support")
     if unsupported:
         reasons.append("candidate introduces unsupported claims")
+    if (
+        meaning_validation is not None
+        and meaning_validation.verdict != MeaningVerdict.PRESERVED
+    ):
+        reasons.append("meaning preservation was not established")
 
     accepted = not reasons
     candidate.citations_preserved = citations_preserved
     candidate.numeric_integrity = numeric_integrity
     candidate.factual_integrity = factual_integrity
     candidate.verdict = supported_verdict
+    if meaning_validation is not None:
+        candidate.meaning_verdict = meaning_validation.verdict
     candidate.introduced_claims = list(unsupported)
     candidate.rejection_reasons.extend(reasons)
     return ValidationResult(

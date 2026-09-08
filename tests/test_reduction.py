@@ -5,16 +5,21 @@ from __future__ import annotations
 from citeguard.models import ExistingCitation, Sentence, Verdict
 from citeguard.reduction import (
     FixAction,
+    MeaningThresholds,
+    MeaningVerdict,
     PassageRisk,
     ReductionRiskType,
     RewriteCandidate,
+    SequenceSemanticBackend,
     build_fix_plans,
     evaluate_candidate,
     generate_candidates,
     rank_candidates,
     validate_candidate,
+    validate_meaning,
 )
 from citeguard.reduction.analyzer import analyze_passage_risks
+from citeguard.reduction.meaning import EntailmentDirection
 from citeguard.reduction.models import RewriteRequest
 from citeguard.reduction.report import reduction_report
 from citeguard.similarity.models import (
@@ -200,6 +205,94 @@ def test_validator_requires_exact_citation_text() -> None:
     )
     assert result.accepted is False
     assert result.citations_preserved is False
+
+
+def test_meaning_requires_bidirectional_entailment() -> None:
+    class Backend:
+        def __init__(self, verdicts):
+            self.verdicts = iter(verdicts)
+
+        def evaluate(self, _premise, _hypothesis):
+            return next(self.verdicts)
+
+    candidate = RewriteCandidate("Treatment reduced mortality by 12%.", "test")
+    result = validate_meaning(
+        "Treatment reduced mortality by 12%.",
+        candidate,
+        semantic_backend=SequenceSemanticBackend(),
+        entailment_backend=Backend(
+            [
+                EntailmentDirection(0.95, MeaningVerdict.PRESERVED),
+                EntailmentDirection(0.40, MeaningVerdict.INSUFFICIENT),
+            ]
+        ),
+        thresholds=MeaningThresholds(semantic_minimum=0.8, entailment_minimum=0.8),
+    )
+    assert result.verdict == MeaningVerdict.INSUFFICIENT
+    assert result.backward_verdict == MeaningVerdict.INSUFFICIENT
+    assert candidate.meaning_verdict == MeaningVerdict.INSUFFICIENT
+
+
+def test_meaning_rejects_contradiction_in_either_direction() -> None:
+    class Backend:
+        def evaluate(self, _premise, _hypothesis):
+            return EntailmentDirection(0.9, MeaningVerdict.CONTRADICTED)
+
+    candidate = RewriteCandidate("Treatment increased mortality.", "test")
+    result = validate_meaning(
+        "Treatment reduced mortality.",
+        candidate,
+        semantic_backend=SequenceSemanticBackend(),
+        entailment_backend=Backend(),
+    )
+    assert result.verdict == MeaningVerdict.CONTRADICTED
+    assert candidate.rejection_reasons
+
+
+def test_integrity_validator_applies_meaning_gate() -> None:
+    plan = build_fix_plans(
+        analyze_passage_risks(
+            _similarity_result(
+                "The method improved accuracy. (Smith, 2024)",
+                exact=0.75,
+                lexical=0.81,
+                citation=True,
+            )
+        )
+    )[0]
+    candidate = RewriteCandidate("The method improved accuracy. (Smith, 2024)", "test")
+    meaning = validate_meaning(
+        "The method improved accuracy. (Smith, 2024)",
+        candidate,
+        semantic_backend=SequenceSemanticBackend(),
+        entailment_backend=type(
+            "Backend",
+            (),
+            {
+                "evaluate": lambda _self, _premise, _hypothesis: EntailmentDirection(
+                    0.0, MeaningVerdict.UNKNOWN
+                )
+            },
+        )(),
+    )
+    result = validate_candidate(
+        "The method improved accuracy. (Smith, 2024)",
+        candidate,
+        plan,
+        meaning_validation=meaning,
+    )
+    assert result.accepted is False
+    assert "meaning preservation was not established" in result.reasons
+
+
+def test_offline_heuristic_does_not_claim_entailment() -> None:
+    from citeguard.reduction.meaning import HeuristicEntailmentBackend
+
+    result = HeuristicEntailmentBackend().evaluate(
+        "The method improved accuracy.",
+        "The method increased accuracy.",
+    )
+    assert result.verdict == MeaningVerdict.UNKNOWN
 
 
 def test_reduction_report_is_json_safe() -> None:

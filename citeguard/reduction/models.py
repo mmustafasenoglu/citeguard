@@ -34,6 +34,38 @@ class FixAction(str, Enum):
     MANUAL_REVIEW = "manual_review"
 
 
+class MeaningVerdict(str, Enum):
+    """Meaning-preservation decision from bidirectional validation."""
+
+    PRESERVED = "meaning_preserved"
+    CONTRADICTED = "contradicted"
+    INSUFFICIENT = "insufficient_information"
+    UNKNOWN = "unknown"
+
+
+@dataclass(frozen=True, slots=True)
+class EntailmentDirection:
+    """One directional entailment measurement."""
+
+    score: float
+    verdict: MeaningVerdict
+    reasoning: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class MeaningValidation:
+    """Semantic and bidirectional evidence for a rewrite candidate."""
+
+    semantic_similarity_raw: float | None
+    forward_entailment_score: float | None
+    backward_entailment_score: float | None
+    forward_verdict: MeaningVerdict
+    backward_verdict: MeaningVerdict
+    meaning_preservation_score: float | None
+    verdict: MeaningVerdict
+    reasons: tuple[str, ...] = ()
+
+
 @dataclass(frozen=True, slots=True)
 class PassageRisk:
     """Similarity and attribution evidence for one document sentence."""
@@ -82,6 +114,9 @@ class RewriteCandidate:
     lexical_overlap: float | None = None
     exact_overlap: float | None = None
     semantic_similarity_to_original: float | None = None
+    forward_entailment_score: float | None = None
+    backward_entailment_score: float | None = None
+    meaning_verdict: MeaningVerdict | None = None
     source_support_score: float | None = None
     factual_integrity: bool | None = None
     numeric_integrity: bool | None = None
@@ -117,3 +152,17 @@ class RewriteBackend(Protocol):
 
     def generate(self, request: RewriteRequest) -> list[RewriteCandidate]:
         """Generate reviewable candidates without applying them."""
+
+
+class SemanticBackend(Protocol):
+    """Backend for local or remote sentence semantic similarity."""
+
+    def similarity(self, original: str, candidate: str) -> float:
+        """Return a normalized similarity score in the inclusive [0, 1] range."""
+
+
+class EntailmentBackend(Protocol):
+    """Backend for directional natural-language entailment."""
+
+    def evaluate(self, premise: str, hypothesis: str) -> EntailmentDirection:
+        """Evaluate whether premise entails hypothesis."""

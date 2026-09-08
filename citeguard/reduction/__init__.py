@@ -8,9 +8,18 @@ candidates without treating lower similarity as proof of academic integrity.
 from .analyzer import analyze_passage_risks
 from .candidates import generate_candidates
 from .evaluator import evaluate_candidate
+from .meaning import (
+    HeuristicEntailmentBackend,
+    MeaningThresholds,
+    SequenceSemanticBackend,
+    validate_meaning,
+)
 from .models import (
+    EntailmentDirection,
     FixAction,
     FixPlan,
+    MeaningValidation,
+    MeaningVerdict,
     PassageRisk,
     ReductionRiskType,
     RewriteCandidate,
@@ -22,12 +31,19 @@ from .validator import validate_candidate
 __all__ = [
     "FixAction",
     "FixPlan",
+    "EntailmentDirection",
+    "MeaningValidation",
+    "MeaningVerdict",
     "PassageRisk",
     "ReductionRiskType",
     "RewriteCandidate",
     "analyze_passage_risks",
     "evaluate_candidate",
     "generate_candidates",
+    "HeuristicEntailmentBackend",
+    "MeaningThresholds",
+    "SequenceSemanticBackend",
+    "validate_meaning",
     "build_fix_plans",
     "rank_candidates",
     "validate_candidate",
