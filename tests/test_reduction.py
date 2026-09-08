@@ -9,10 +9,13 @@ from citeguard.reduction import (
     ReductionRiskType,
     RewriteCandidate,
     build_fix_plans,
+    evaluate_candidate,
+    generate_candidates,
     rank_candidates,
     validate_candidate,
 )
 from citeguard.reduction.analyzer import analyze_passage_risks
+from citeguard.reduction.models import RewriteRequest
 from citeguard.reduction.report import reduction_report
 from citeguard.similarity.models import (
     MatchType,
@@ -143,6 +146,60 @@ def test_ranker_prefers_meaning_and_support_over_lower_overlap() -> None:
         factual_integrity=True,
     )
     assert rank_candidates([drifted, safe])[0] is safe
+
+
+def test_candidate_generation_is_bounded_and_does_not_accept_candidates() -> None:
+    class Backend:
+        def generate(self, request):
+            return [RewriteCandidate(f"candidate-{i}", "test") for i in range(5)]
+
+    plan = build_fix_plans(
+        analyze_passage_risks(
+            _similarity_result(
+                "The method improved accuracy by 12%. (Smith, 2024)",
+                exact=0.75,
+                lexical=0.81,
+                citation=True,
+            )
+        )
+    )[0]
+    candidates = generate_candidates(
+        Backend(),
+        RewriteRequest(plan=plan, original_text=plan.reason, candidate_count=2),
+    )
+    assert len(candidates) == 2
+    assert all(candidate.rejection_reasons == [] for candidate in candidates)
+
+
+def test_evaluator_populates_overlap_measurements() -> None:
+    candidate = evaluate_candidate(
+        "The method improved accuracy.",
+        RewriteCandidate("The method increased accuracy.", "test"),
+    )
+    assert candidate.lexical_overlap is not None
+    assert candidate.exact_overlap is not None
+    assert candidate.meaning_score == candidate.semantic_similarity_to_original
+
+
+def test_validator_requires_exact_citation_text() -> None:
+    plan = build_fix_plans(
+        analyze_passage_risks(
+            _similarity_result(
+                "A result was reported. (Smith, 2024)",
+                exact=0.75,
+                lexical=0.81,
+                citation=True,
+            )
+        )
+    )[0]
+    candidate = RewriteCandidate("A result was reported. (Jones, 2024)", "test")
+    result = validate_candidate(
+        "A result was reported. (Smith, 2024)",
+        candidate,
+        plan,
+    )
+    assert result.accepted is False
+    assert result.citations_preserved is False
 
 
 def test_reduction_report_is_json_safe() -> None:

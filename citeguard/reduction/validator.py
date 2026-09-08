@@ -2,21 +2,9 @@
 
 from __future__ import annotations
 
-import re
-
 from ..models import Verdict
 from .analyzer import extract_numbers
 from .models import FixPlan, RewriteCandidate, ValidationResult
-
-_TOKEN_RE = re.compile(r"\b[\w'-]+\b", re.UNICODE)
-
-
-def _citation_tokens(text: str) -> set[str]:
-    return {
-        token.lower()
-        for token in _TOKEN_RE.findall(text)
-        if token.isdigit() or token[:1].isupper()
-    }
 
 
 def validate_candidate(
@@ -29,9 +17,9 @@ def validate_candidate(
 ) -> ValidationResult:
     """Apply non-negotiable citation, numeric, and support gates."""
     reasons: list[str] = []
-    original_citations = _citation_tokens(original_text)
-    candidate_citations = _citation_tokens(candidate.text)
-    citations_preserved = not original_citations.difference(candidate_citations)
+    citations_preserved = all(
+        citation in candidate.text for citation in plan.preserve_citations
+    )
     if plan.preserve_citations and not citations_preserved:
         reasons.append("required citation tokens were removed")
 
