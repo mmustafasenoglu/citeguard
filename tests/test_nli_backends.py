@@ -680,7 +680,9 @@ def test_nli_score_is_predicted_class_confidence() -> None:
     directional NLI class — not a rewrite-safety probability."""
     import sys
 
-    import torch
+    # torch/transformers are optional (citeguard[nli]); skip where absent,
+    # e.g. CI installs only .[dev].
+    torch = pytest.importorskip("torch")
 
     class _FakeTokenizer:
         def __call__(self, *args: object, **kwargs: object) -> dict[str, object]:
