@@ -122,7 +122,7 @@ class TaskModelSettings:
     def from_env(cls, task: str) -> TaskModelSettings:
         """Load task-specific settings.
 
-        Supported tasks: ``claim``, ``entailment``.
+        Supported tasks: ``claim``, ``entailment``, ``rewrite``.
         """
         prefix = f"CITEGUARD_{task.upper()}"
         provider = (
@@ -130,6 +130,79 @@ class TaskModelSettings:
         )
         model = os.getenv(f"{prefix}_MODEL", "").strip() or None
         return cls(provider=provider, model=model)
+
+
+DEFAULT_REWRITE_TIMEOUT = 30.0
+DEFAULT_REWRITE_MAX_CONTEXT_CHARS = 2000
+
+
+@dataclass(frozen=True, slots=True)
+class RewriteSettings:
+    """Rewrite feature configuration (separate namespace).
+
+    Environment variables (all optional):
+
+    - ``CITEGUARD_REWRITE_ENABLED``: ``0`` disables the rewrite command.
+    - ``CITEGUARD_REWRITE_PROVIDER`` / ``CITEGUARD_REWRITE_MODEL``:
+      provider/model override (falls back to global LLM settings).
+    - ``CITEGUARD_REWRITE_TIMEOUT``: network timeout in seconds.
+    - ``CITEGUARD_REWRITE_MAX_CONTEXT``: max evidence chars per request.
+    """
+
+    enabled: bool = True
+    provider: str | None = None
+    model: str | None = None
+    timeout: float = DEFAULT_REWRITE_TIMEOUT
+    max_context_chars: int = DEFAULT_REWRITE_MAX_CONTEXT_CHARS
+
+    @classmethod
+    def from_env(cls) -> RewriteSettings:
+        """Build rewrite settings from environment variables."""
+        enabled_raw = os.getenv("CITEGUARD_REWRITE_ENABLED", "1").strip().lower()
+        enabled = enabled_raw not in {"0", "false", "no", "off"}
+        provider = (
+            os.getenv("CITEGUARD_REWRITE_PROVIDER", "").strip().lower() or None
+        )
+        model = os.getenv("CITEGUARD_REWRITE_MODEL", "").strip() or None
+        timeout_raw = os.getenv("CITEGUARD_REWRITE_TIMEOUT", "").strip()
+        if timeout_raw:
+            try:
+                timeout = float(timeout_raw)
+            except ValueError:
+                raise ValueError(
+                    f"Invalid CITEGUARD_REWRITE_TIMEOUT={timeout_raw!r}: "
+                    "must be a number of seconds."
+                ) from None
+            if timeout <= 0:
+                raise ValueError(
+                    f"Invalid CITEGUARD_REWRITE_TIMEOUT={timeout_raw!r}: "
+                    "must be positive."
+                )
+        else:
+            timeout = DEFAULT_REWRITE_TIMEOUT
+        max_context_raw = os.getenv("CITEGUARD_REWRITE_MAX_CONTEXT", "").strip()
+        if max_context_raw:
+            try:
+                max_context_chars = int(max_context_raw)
+            except ValueError:
+                raise ValueError(
+                    f"Invalid CITEGUARD_REWRITE_MAX_CONTEXT={max_context_raw!r}: "
+                    "must be an integer number of characters."
+                ) from None
+            if max_context_chars <= 0:
+                raise ValueError(
+                    f"Invalid CITEGUARD_REWRITE_MAX_CONTEXT={max_context_raw!r}: "
+                    "must be positive."
+                )
+        else:
+            max_context_chars = DEFAULT_REWRITE_MAX_CONTEXT_CHARS
+        return cls(
+            enabled=enabled,
+            provider=provider,
+            model=model,
+            timeout=timeout,
+            max_context_chars=max_context_chars,
+        )
 
 
 @dataclass(frozen=True, slots=True)

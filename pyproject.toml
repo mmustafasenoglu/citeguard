@@ -63,6 +63,7 @@ packages = [
   "citeguard.similarity",
   "citeguard.similarity.embeddings",
   "citeguard.reduction",
+  "citeguard.rewrite",
 ]
 
 [tool.pytest.ini_options]

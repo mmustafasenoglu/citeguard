@@ -1225,6 +1225,310 @@ def _similarity_to_markdown(result: SimilarityEngineResult, show_sentences: bool
     return "".join(lines)
 
 
+@main.command("rewrite")
+@click.argument("file", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option(
+    "--mode",
+    type=click.Choice(
+        [
+            "clarify",
+            "hedge",
+            "align_with_evidence",
+            "remove_unsupported_detail",
+            "citation_safe",
+        ]
+    ),
+    default="clarify",
+    show_default=True,
+    help="Rewrite goal applied to every eligible claim.",
+)
+@click.option(
+    "--claim-index",
+    type=int,
+    default=None,
+    help="Rewrite only the eligible suggestion with this index (see terminal list).",
+)
+@click.option(
+    "--max-rewrites",
+    type=click.IntRange(1, 500),
+    default=None,
+    help="Maximum number of rewrite suggestions to generate.",
+)
+@click.option(
+    "--style",
+    "styles",
+    multiple=True,
+    help="Extra style constraint (repeatable, e.g. --style 'formal tone').",
+)
+@click.option("--provider", default=None, help="Rewrite LLM provider override.")
+@click.option("--model", default=None, help="Rewrite LLM model override.")
+@click.option("--timeout", type=float, default=None, help="Rewrite network timeout.")
+@click.option("--max-results", type=click.IntRange(1, 20), default=DEFAULT_MAX_RESULTS)
+@click.option("--threshold", type=click.IntRange(0, 100), default=DEFAULT_THRESHOLD)
+@click.option("--max-claims", type=click.IntRange(1, 500), default=None)
+@click.option("--severity", type=click.Choice(["high", "medium", "low"]), default=None)
+@click.option("--no-cache", is_flag=True, help="Do not read or write provider cache entries.")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["terminal", "json", "md", "both"]),
+    default="terminal",
+    show_default=True,
+)
+@click.option("--output", type=click.Path(dir_okay=False, path_type=Path))
+@click.option("--verbose", is_flag=True, help="Show detailed progress information.")
+@click.option("--offline", is_flag=True, help="Skip all remote provider network calls.")
+@click.option(
+    "--recency-max-age",
+    type=click.IntRange(1, 200),
+    default=25,
+    show_default=True,
+    help="Age in years after which a recency warning is emitted.",
+)
+def rewrite_command(
+    file: Path,
+    mode: str,
+    claim_index: int | None,
+    max_rewrites: int | None,
+    styles: tuple[str, ...],
+    provider: str | None,
+    model: str | None,
+    timeout: float | None,
+    max_results: int,
+    threshold: int,
+    max_claims: int | None,
+    severity: str | None,
+    no_cache: bool,
+    output_format: str,
+    output: Path | None,
+    verbose: bool,
+    offline: bool,
+    recency_max_age: int,
+) -> None:
+    """Suggest evidence-grounded rewordings for verified claims.
+
+    Runs the standard verification pipeline, then asks a remote LLM for
+    rewrite suggestions on claims with supporting evidence.  Suggestions
+    are generated text only — verification results remain authoritative.
+    The document is never modified.  Without LLM credentials every
+    request reports UNAVAILABLE and the audit still completes.
+    """
+    from .audit import AuditOptions, audit_document
+    from .config import RewriteSettings
+    from .rewrite import (
+        LLMRewriteProvider,
+        RewriteMode,
+        collect_rewrite_requests,
+    )
+
+    parsed = parse_document(file)
+    _validate_parsed(parsed)
+
+    try:
+        rewrite_settings = RewriteSettings.from_env()
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+    if not rewrite_settings.enabled:
+        raise click.ClickException(
+            "Rewrite is disabled by configuration "
+            "(CITEGUARD_REWRITE_ENABLED=0)."
+        )
+
+    if provider:
+        os.environ["CITEGUARD_REWRITE_PROVIDER"] = provider
+    rewrite_mode = RewriteMode(mode)
+
+    options = AuditOptions(
+        threshold=threshold,
+        max_results=max_results,
+        max_claims=max_claims,
+        severity=severity,
+        offline=offline,
+        no_cache=no_cache,
+        recency_max_age=recency_max_age,
+    )
+    audit = audit_document(parsed, options)
+
+    requests, insufficient = collect_rewrite_requests(
+        audit,
+        mode=rewrite_mode,
+        max_context_chars=rewrite_settings.max_context_chars,
+        style_constraints=tuple(styles),
+    )
+
+    if claim_index is not None:
+        if claim_index < 0 or claim_index >= len(requests):
+            raise click.ClickException(
+                f"claim-index {claim_index} out of range: "
+                f"{len(requests)} eligible suggestion(s)."
+            )
+        requests = [requests[claim_index]]
+    if max_rewrites is not None:
+        requests = requests[:max_rewrites]
+
+    results = list(insufficient)
+    if requests:
+        from .rewrite import RewriteResult, RewriteStatus
+
+        llm_provider = LLMRewriteProvider(
+            model=model or rewrite_settings.model,
+            timeout=(
+                timeout
+                if timeout is not None
+                else rewrite_settings.timeout
+            ),
+        )
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+            transient=not verbose,
+        ) as progress:
+            task = progress.add_task("Rewriting claims...", total=len(requests))
+            for request in requests:
+                progress.update(
+                    task,
+                    description="[dim]Rewriting: "
+                    f"{request.context.original_text[:50]}...[/dim]",
+                )
+                try:
+                    results.append(llm_provider.rewrite(request))
+                except Exception as exc:
+                    results.append(
+                        RewriteResult(
+                            original_text=request.context.original_text,
+                            rewritten_text=None,
+                            status=RewriteStatus.PROVIDER_ERROR,
+                            provider="none",
+                            model=model or rewrite_settings.model or "unknown",
+                            warnings=(f"unexpected rewrite failure: {exc}",),
+                            evidence_used=request.context.evidence_texts,
+                            citation_preserved=None,
+                            metadata={"mode": rewrite_mode.value},
+                        )
+                    )
+                progress.advance(task)
+
+    payload = _rewrite_report(file, rewrite_mode.value, results)
+
+    if output_format == "json":
+        _write_json(payload, output)
+        return
+    if output_format == "md":
+        _write_text(_rewrite_markdown(payload), output)
+        return
+    if output_format == "both":
+        json_path, md_path = _both_paths(output, file)
+        _write_json(payload, json_path)
+        _write_text(_rewrite_markdown(payload), md_path)
+        return
+
+    _print_rewrite_terminal(payload, verbose)
+
+
+def _rewrite_report(
+    file: Path, mode: str, results: list[Any]
+) -> dict[str, object]:
+    """Build the JSON-safe rewrite suggestion payload."""
+    suggestions: list[dict[str, object]] = []
+    for index, result in enumerate(results):
+        suggestions.append(
+            {
+                "index": index,
+                "original_text": result.original_text,
+                "rewritten_text": result.rewritten_text,
+                "status": result.status.value,
+                "provider": result.provider,
+                "model": result.model,
+                "warnings": list(result.warnings),
+                "evidence_used": list(result.evidence_used),
+                "citation_preserved": result.citation_preserved,
+                "metadata": dict(result.metadata),
+            }
+        )
+    by_status: dict[str, int] = {}
+    for item in suggestions:
+        status = str(item["status"])
+        by_status[status] = by_status.get(status, 0) + 1
+    return {
+        "schema_version": "1",
+        "document": str(file),
+        "mode": mode,
+        "summary": {
+            "total": len(suggestions),
+            "by_status": by_status,
+        },
+        "suggestions": suggestions,
+        "disclaimer": (
+            "Rewrite suggestions are generated text and do not constitute "
+            "citation verification. Verification results remain authoritative."
+        ),
+    }
+
+
+def _rewrite_markdown(payload: dict[str, object]) -> str:
+    """Render the rewrite payload as Markdown."""
+    lines = ["# Citeguard Rewrite Suggestions\n"]
+    lines.append(f"- Document: {payload['document']}\n")
+    lines.append(f"- Mode: {payload['mode']}\n")
+    summary = payload["summary"]
+    assert isinstance(summary, dict)
+    lines.append(f"- Total: {summary['total']}\n")
+    suggestions = payload["suggestions"]
+    assert isinstance(suggestions, list)
+    for item in suggestions:
+        assert isinstance(item, dict)
+        lines.append(f"\n## Suggestion {item['index']} ({item['status']})\n")
+        lines.append(f"**Original:** {item['original_text']}\n")
+        lines.append(f"**Rewritten:** {item['rewritten_text']}\n")
+        lines.append(f"**Provider:** {item['provider']} / {item['model']}\n")
+        lines.append(f"**Citation preserved:** {item['citation_preserved']}\n")
+        warnings = item["warnings"]
+        if isinstance(warnings, list) and warnings:
+            lines.append("**Warnings:**\n")
+            for warning in warnings:
+                lines.append(f"- {warning}\n")
+    lines.append(
+        f"\n*{payload['disclaimer']}*\n"
+    )
+    return "".join(lines)
+
+
+def _print_rewrite_terminal(payload: dict[str, object], verbose: bool) -> None:
+    """Print rewrite suggestions to the terminal."""
+    table = Table(title="Citeguard Rewrite Suggestions")
+    table.add_column("#", justify="right")
+    table.add_column("Status")
+    table.add_column("Rewritten")
+    table.add_column("Citation kept")
+    table.add_column("Warnings")
+
+    suggestions = payload["suggestions"]
+    assert isinstance(suggestions, list)
+    for item in suggestions:
+        assert isinstance(item, dict)
+        warnings = item["warnings"]
+        warning_text = (
+            "; ".join(str(w) for w in warnings)
+            if isinstance(warnings, list) and warnings
+            else "-"
+        )
+        rewritten = item["rewritten_text"]
+        table.add_row(
+            str(item["index"]),
+            str(item["status"]),
+            str(rewritten)[:80] if rewritten else "-",
+            str(item["citation_preserved"]),
+            warning_text[:80] if verbose else (warning_text[:40]),
+        )
+    console.print(table)
+    summary = payload["summary"]
+    assert isinstance(summary, dict)
+    console.print(f"[dim]Total: {summary['total']}, by status: {summary['by_status']}[/dim]")
+    console.print(f"[dim]{payload['disclaimer']}[/dim]")
+    console.print("[dim]No document changes were applied.[/dim]")
+
+
 def _print_similarity_terminal(result: SimilarityEngineResult, show_sentences: bool) -> None:
     """Print similarity results to terminal."""
     from rich.console import Console

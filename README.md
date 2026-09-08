@@ -35,6 +35,7 @@ metadata and source suggestions, and produces structured reports with determinis
 - **Evidence-aware scoring** — three-stage pipeline: metadata match → evidence → entailment → aggregate
 - **CLI evidence controls** — `--show-evidence` to display evidence passages, `--require-evidence` to filter
 - **Document similarity** — sentence-level overlap, lexical, and semantic similarity analysis against a corpus
+- **Optional rewrite suggestions** — explicit, evidence-grounded rewording proposals via remote LLM (`citeguard rewrite`); never automatic, never verification
 
 ## Installation
 
@@ -161,6 +162,7 @@ When no API key is available, citeguard falls back to the deterministic offline 
 | `citeguard init` | Create a local `.env` template for API keys |
 | `citeguard llm doctor` | Test LLM provider connectivity |
 | `citeguard llm list` | Display current LLM configuration (no secrets) |
+| `citeguard rewrite FILE` | Propose evidence-grounded rewordings (explicit opt-in, remote LLM) |
 
 ### Common options
 
@@ -251,6 +253,49 @@ does not mean claims are true; a low score does not mean they are false.
 
 Calibration details and benchmark results are available in
 [CALIBRATION.md](CALIBRATION.md) and the [`benchmarks/`](benchmarks/) directory.
+
+## Rewrite suggestions (optional, remote LLM)
+
+`citeguard rewrite FILE` proposes rewordings for verified claims — it never modifies
+your document and never reinterprets verification results.
+
+```bash
+# Rewrite with the default clarify goal
+citeguard rewrite paper.md --mode clarify --format json
+
+# Soften wording to match partial evidence
+citeguard rewrite paper.md --mode hedge --claim-index 0
+```
+
+What rewrite does and does not do:
+
+- **Does**: propose a rewording grounded strictly in already-verified evidence
+  (claim text, existing citation, matched source metadata, evidence passages).
+- **Does not**: verify citations, repair citations, create bibliography records,
+  change evidence scores, or edit any file.
+- **Rewrite suggestions are generated text and do not constitute citation
+  verification. Verification results remain authoritative.**
+
+Modes: `clarify`, `hedge`, `align_with_evidence`, `remove_unsupported_detail`,
+`citation_safe`. A rewrite is only attempted for claims with an evaluated
+source, a supporting verdict, and non-empty evidence; otherwise the result is
+`insufficient_evidence` with zero network calls.
+
+Configuration (all optional, `CITEGUARD_REWRITE_*` namespace):
+
+- Credentials come only from the standard LLM environment variables
+  (e.g. `ANTHROPIC_API_KEY`); nothing is hardcoded. Without credentials every
+  request reports `unavailable` and the audit still completes.
+- `CITEGUARD_REWRITE_PROVIDER` / `CITEGUARD_REWRITE_MODEL`: provider/model override.
+- `CITEGUARD_REWRITE_TIMEOUT`: network timeout in seconds (default: 30).
+- `CITEGUARD_REWRITE_MAX_CONTEXT`: max evidence characters per request (default: 2000).
+- `CITEGUARD_REWRITE_ENABLED=0`: disables the rewrite command.
+
+Privacy implications: only the minimum rewrite context is sent to the remote
+provider — the single claim, its citation token, the matched source metadata
+(title, authors, year, DOI), and bounded evidence passages. The full document,
+bibliography, and unrelated claims are never sent. Document and evidence text
+is treated as data, never as instructions.
 
 ## Privacy
 
