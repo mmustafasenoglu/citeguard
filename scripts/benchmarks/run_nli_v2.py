@@ -96,12 +96,12 @@ def _english_pair(category: str, subject: str, value: int, year: int) -> tuple[s
     source = f"In study {value}, {subject}"
     pairs = {
         "safe_paraphrase": (
-            f"{source} improved after treatment.",
-            f"After treatment, {subject} improved.",
+            f"{source}, some participants improved after treatment.",
+            f"In study {value}, a subset of participants improved following treatment.",
         ),
         "citation_preserving_safe_rewrite": (
-            f"{source} improved after treatment {citation}.",
-            f"Following treatment, {subject} showed improvement {citation}.",
+            f"{source}, some participants improved after treatment {citation}.",
+            f"In study {value}, a subset of participants improved following treatment {citation}.",
         ),
         "neutral_addition": (
             f"{source} was measured.",
@@ -142,12 +142,13 @@ def _turkish_pair(category: str, subject: str, value: int, year: int) -> tuple[s
     source = f"{value}. çalışmada {subject}"
     pairs = {
         "safe_paraphrase": (
-            f"{source} tedavi sonrasında iyileşti.",
-            f"Tedaviyi takiben {subject} iyileşme gösterdi.",
+            f"{source} arasında bazı katılımcılar tedavi sonrasında iyileşti.",
+            f"{value}. çalışmada katılımcıların bir bölümü tedaviyi takiben iyileşme gösterdi.",
         ),
         "citation_preserving_safe_rewrite": (
-            f"{source} tedavi sonrasında iyileşti {citation}.",
-            f"Tedaviden sonra {subject} iyileşme gösterdi {citation}.",
+            f"{source} arasında bazı katılımcılar tedavi sonrasında iyileşti {citation}.",
+            f"{value}. çalışmada katılımcıların bir bölümü tedaviyi takiben "
+            f"iyileşme gösterdi {citation}.",
         ),
         "neutral_addition": (f"{source} ölçüldü.", f"{source} ölçüldü ve yaşam süresi arttı."),
         "contradiction": (f"{source} iyileşti.", f"{source} iyileşmedi."),
@@ -708,7 +709,12 @@ def main() -> None:
                 for model in args.models
             },
         }
-    output = args.output_dir / f"meaning_{args.phase}.json"
+    output_name = (
+        f"external_{args.external_split}.json"
+        if args.external_only
+        else f"meaning_{args.phase}.json"
+    )
+    output = args.output_dir / output_name
     output.write_text(json.dumps(results, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(
         json.dumps(
