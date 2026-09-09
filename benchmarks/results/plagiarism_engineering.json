@@ -1,0 +1,84 @@
+{
+  "attribution": {
+    "f1": 1.0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "cases": 8,
+  "dataset": "benchmarks/plagiarism/engineering.json",
+  "exact": {
+    "f1": 1.0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "lexical": {
+    "f1": 1.0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "limitations": "Synthetic engineering evidence; not Turnitin equivalence or real-world accuracy.",
+  "passage_localization_recall": 1.0,
+  "rows": [
+    {
+      "expected_attribution": "unattributed_exact",
+      "expected_family": "exact",
+      "id": "en-exact-unattributed",
+      "predicted_attribution": "unattributed_exact",
+      "predicted_family": "exact"
+    },
+    {
+      "expected_attribution": "unattributed_near_exact",
+      "expected_family": "lexical",
+      "id": "en-lexical-unattributed",
+      "predicted_attribution": "unattributed_near_exact",
+      "predicted_family": "lexical"
+    },
+    {
+      "expected_attribution": "none",
+      "expected_family": "none",
+      "id": "en-unrelated",
+      "predicted_attribution": "none",
+      "predicted_family": "none"
+    },
+    {
+      "expected_attribution": "quoted_and_attributed",
+      "expected_family": "exact",
+      "id": "en-quoted-cited",
+      "predicted_attribution": "quoted_and_attributed",
+      "predicted_family": "exact"
+    },
+    {
+      "expected_attribution": "cited_but_verbatim",
+      "expected_family": "lexical",
+      "id": "en-cited-verbatim",
+      "predicted_attribution": "cited_but_verbatim",
+      "predicted_family": "lexical"
+    },
+    {
+      "expected_attribution": "unattributed_exact",
+      "expected_family": "exact",
+      "id": "tr-exact-unattributed",
+      "predicted_attribution": "unattributed_exact",
+      "predicted_family": "exact"
+    },
+    {
+      "expected_attribution": "unattributed_near_exact",
+      "expected_family": "lexical",
+      "id": "tr-lexical-unattributed",
+      "predicted_attribution": "unattributed_near_exact",
+      "predicted_family": "lexical"
+    },
+    {
+      "expected_attribution": "none",
+      "expected_family": "none",
+      "id": "tr-unrelated",
+      "predicted_attribution": "none",
+      "predicted_family": "none"
+    }
+  ],
+  "schema_version": "1",
+  "semantic_retrieval": {
+    "reason": "optional model evaluated by the existing multilingual retrieval benchmark",
+    "status": "not_run"
+  }
+}

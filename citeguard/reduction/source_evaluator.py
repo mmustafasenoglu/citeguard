@@ -41,10 +41,7 @@ def evaluate_source_overlap(
     improved = (
         after_exact <= before_exact + epsilon
         and after_lexical <= before_lexical + epsilon
-        and (
-            after_exact < before_exact - epsilon
-            or after_lexical < before_lexical - epsilon
-        )
+        and (after_exact < before_exact - epsilon or after_lexical < before_lexical - epsilon)
     )
     before = max(before_exact, before_lexical)
     after = max(after_exact, after_lexical)

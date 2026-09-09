@@ -6,12 +6,27 @@ from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
 from .metrics import ReductionMetrics
-from .models import FixPlan, MeaningVerdict, PassageRisk, RewriteCandidate
+from .models import FixAction, FixPlan, MeaningVerdict, PassageRisk, RewriteCandidate
 
 if TYPE_CHECKING:
     from .service import ReductionResult
 
 REDUCTION_SCHEMA_VERSION = "2"
+
+
+def _academic_action(action: FixAction, risk_type: str | None = None) -> str:
+    """Expose the product action while retaining legacy action values."""
+    if risk_type == "exact_copy":
+        return FixAction.QUOTE_AND_CITE.value
+    if risk_type == "missing_citation" and action == FixAction.ADD_CITATION:
+        return FixAction.PARAPHRASE_WITH_CITATION.value
+    return {
+        FixAction.ADD_CITATION: FixAction.ADD_CITATION.value,
+        FixAction.ADD_QUOTATION: FixAction.QUOTE_AND_CITE.value,
+        FixAction.PARAPHRASE: FixAction.PARAPHRASE_WITH_CITATION.value,
+        FixAction.MANUAL_REVIEW: FixAction.MANUAL_REVIEW.value,
+        FixAction.LEAVE: "no_change",
+    }.get(action, action.value)
 
 
 def reduction_report(
@@ -22,6 +37,7 @@ def reduction_report(
 ) -> dict[str, Any]:
     """Serialize reduction planning and candidate evidence."""
     candidate_map = candidates or {}
+    risk_types = {risk.passage_id: risk.risk_type.value for risk in risks}
     return {
         "schema_version": REDUCTION_SCHEMA_VERSION,
         "risks": [
@@ -49,6 +65,7 @@ def reduction_report(
             {
                 "passage_id": plan.passage_id,
                 "action": plan.action.value,
+                "academic_action": _academic_action(plan.action, risk_types.get(plan.passage_id)),
                 "reason": plan.reason,
                 "preserve_citations": list(plan.preserve_citations),
                 "must_preserve_numbers": list(plan.must_preserve_numbers),
@@ -66,6 +83,7 @@ def reduction_report(
                         not candidate.rejection_reasons
                         and candidate.citations_preserved is True
                         and candidate.numeric_integrity is True
+                        and candidate.named_entity_integrity is True
                         and candidate.factual_integrity is True
                         and candidate.meaning_verdict == MeaningVerdict.PRESERVED
                         and not candidate.introduced_claims
@@ -76,26 +94,21 @@ def reduction_report(
                     "source_support_score": candidate.source_support_score,
                     "citations_preserved": candidate.citations_preserved,
                     "numeric_integrity": candidate.numeric_integrity,
+                    "named_entity_integrity": candidate.named_entity_integrity,
                     "factual_integrity": candidate.factual_integrity,
-                    "semantic_similarity_to_original": (
-                        candidate.semantic_similarity_to_original
-                    ),
+                    "semantic_similarity_to_original": (candidate.semantic_similarity_to_original),
                     "source_exact_overlap_before": candidate.source_exact_overlap_before,
                     "source_exact_overlap_after": candidate.source_exact_overlap_after,
                     "source_lexical_similarity_before": (
                         candidate.source_lexical_similarity_before
                     ),
-                    "source_lexical_similarity_after": (
-                        candidate.source_lexical_similarity_after
-                    ),
+                    "source_lexical_similarity_after": (candidate.source_lexical_similarity_after),
                     "source_overlap_improved": candidate.source_overlap_improved,
                     "source_overlap_delta": candidate.source_overlap_delta,
                     "forward_entailment_score": candidate.forward_entailment_score,
                     "backward_entailment_score": candidate.backward_entailment_score,
                     "meaning_verdict": (
-                        candidate.meaning_verdict.value
-                        if candidate.meaning_verdict
-                        else None
+                        candidate.meaning_verdict.value if candidate.meaning_verdict else None
                     ),
                 }
                 for candidate in values
@@ -125,10 +138,17 @@ def metrics_report(metrics: ReductionMetrics) -> dict[str, Any]:
         "meaning_preservation_avg": metrics.meaning_preservation_avg,
         "citation_integrity_passed": metrics.citation_integrity_passed,
         "numeric_integrity_passed": metrics.numeric_integrity_passed,
+        "named_entity_integrity_passed": metrics.named_entity_integrity_passed,
         "new_unsupported_claims": metrics.new_unsupported_claims,
         "iterations_completed": metrics.iterations_completed,
         "stop_reason": metrics.stop_reason,
         "application_format": metrics.application_format,
+        "before_exact_overlap_pct": metrics.before_exact_overlap_pct,
+        "after_exact_overlap_pct": metrics.after_exact_overlap_pct,
+        "before_lexical_overlap_pct": metrics.before_lexical_overlap_pct,
+        "after_lexical_overlap_pct": metrics.after_lexical_overlap_pct,
+        "before_semantic_matches": metrics.before_semantic_matches,
+        "after_semantic_matches": metrics.after_semantic_matches,
     }
 
 
@@ -178,7 +198,8 @@ def reduction_result_markdown(result: ReductionResult) -> str:
     metrics = result.metrics
     relative = (
         f"{metrics.relative_reduction_pct:.1f}%"
-        if metrics.relative_reduction_pct is not None else "n/a"
+        if metrics.relative_reduction_pct is not None
+        else "n/a"
     )
     return "\n".join(
         [
@@ -193,11 +214,15 @@ def reduction_result_markdown(result: ReductionResult) -> str:
             "",
             f"- Textual similarity: {metrics.before_textual_similarity_pct:.1f}% → "
             f"{metrics.after_textual_similarity_pct:.1f}%",
-            f"- Absolute reduction: {metrics.absolute_reduction_points:.1f} "
-            "percentage points",
+            f"- Absolute reduction: {metrics.absolute_reduction_points:.1f} percentage points",
             f"- Relative reduction from baseline: {relative}",
-            f"- High attribution risk: {metrics.before_high_risk} → "
-            f"{metrics.after_high_risk}",
+            f"- High attribution risk: {metrics.before_high_risk} → {metrics.after_high_risk}",
+            f"- Exact overlap: {metrics.before_exact_overlap_pct:.1f}% → "
+            f"{metrics.after_exact_overlap_pct:.1f}%",
+            f"- Lexical overlap: {metrics.before_lexical_overlap_pct:.1f}% → "
+            f"{metrics.after_lexical_overlap_pct:.1f}%",
+            f"- Semantic matches: {metrics.before_semantic_matches} → "
+            f"{metrics.after_semantic_matches}",
             f"- Validated rewrites: {metrics.rewritten_passages}",
             f"- Manual review passages: {metrics.manual_review_passages}",
             f"- Rejected candidates: {metrics.rejected_candidates}",
@@ -206,6 +231,7 @@ def reduction_result_markdown(result: ReductionResult) -> str:
             "",
             f"- Citation integrity: {metrics.citation_integrity_passed}",
             f"- Numeric integrity: {metrics.numeric_integrity_passed}",
+            f"- Named-entity integrity: {metrics.named_entity_integrity_passed}",
             f"- Unsupported new claims: {metrics.new_unsupported_claims}",
             "",
             "Textual overlap reduction is not a plagiarism verdict.",

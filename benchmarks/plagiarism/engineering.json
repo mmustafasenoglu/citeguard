@@ -1,0 +1,62 @@
+{
+  "schema_version": "1",
+  "description": "Synthetic bilingual source-aware plagiarism review smoke set",
+  "cases": [
+    {
+      "id": "en-exact-unattributed",
+      "source": "Large language models can produce plausible references that do not correspond to real publications.",
+      "document": "Large language models can produce plausible references that do not correspond to real publications.",
+      "expected_family": "exact",
+      "expected_attribution": "unattributed_exact"
+    },
+    {
+      "id": "en-lexical-unattributed",
+      "source": "Researchers must independently verify every generated citation before using it in academic work.",
+      "document": "Researchers should independently verify each generated citation before including it in scholarly work.",
+      "expected_family": "lexical",
+      "expected_attribution": "unattributed_near_exact"
+    },
+    {
+      "id": "en-unrelated",
+      "source": "Transformer attention permits parallel processing of token sequences during model training.",
+      "document": "Volcanic minerals cool into crystalline structures beneath the ocean floor.",
+      "expected_family": "none",
+      "expected_attribution": "none"
+    },
+    {
+      "id": "en-quoted-cited",
+      "source": "Citation verification remains necessary when generated references appear credible.",
+      "document": "“Citation verification remains necessary when generated references appear credible.” (Smith, 2020).",
+      "expected_family": "exact",
+      "expected_attribution": "quoted_and_attributed"
+    },
+    {
+      "id": "en-cited-verbatim",
+      "source": "Citation verification remains necessary when generated references appear credible.",
+      "document": "Citation verification remains necessary when generated references appear credible (Smith, 2020).",
+      "expected_family": "lexical",
+      "expected_attribution": "cited_but_verbatim"
+    },
+    {
+      "id": "tr-exact-unattributed",
+      "source": "Üretken dil modellerinin oluşturduğu kaynaklar bağımsız olarak doğrulanmalıdır.",
+      "document": "Üretken dil modellerinin oluşturduğu kaynaklar bağımsız olarak doğrulanmalıdır.",
+      "expected_family": "exact",
+      "expected_attribution": "unattributed_exact"
+    },
+    {
+      "id": "tr-lexical-unattributed",
+      "source": "Akademik çalışmalarda kullanılan her kaynak dikkatli biçimde doğrulanmalıdır.",
+      "document": "Akademik metinlerde kullanılan bütün kaynaklar dikkatli bir şekilde doğrulanmalıdır.",
+      "expected_family": "lexical",
+      "expected_attribution": "unattributed_near_exact"
+    },
+    {
+      "id": "tr-unrelated",
+      "source": "Atıf doğrulaması akademik güvenilirliği destekleyen önemli bir süreçtir.",
+      "document": "Deniz seviyesindeki değişimler kıyı ekosistemlerinin yapısını etkiler.",
+      "expected_family": "none",
+      "expected_attribution": "none"
+    }
+  ]
+}

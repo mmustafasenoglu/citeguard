@@ -23,11 +23,15 @@ from .audit import (
     suggest_document,
     verify_document,
 )
+from .plagiarism import PlagiarismConfig, PlagiarismResult, scan_document
 
 __all__ = [
     "AuditOptions",
     "AuditResult",
+    "PlagiarismConfig",
+    "PlagiarismResult",
     "audit_document",
     "suggest_document",
+    "scan_document",
     "verify_document",
 ]

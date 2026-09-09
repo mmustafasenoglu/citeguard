@@ -36,6 +36,26 @@ citeguard uses a fixed JSON fixture-based benchmark suite with **6 categories** 
 | Strong retrieval | 80 | `STRONG_MATCH_THRESHOLD` |
 | Health pass (exit code) | 80 | `HEALTH_PASS_THRESHOLD` |
 
+### Plagiarism review defaults
+
+| Setting | Default | Meaning |
+|---|---:|---|
+| Fingerprint shingle | 5 characters | Deterministic winnowing input |
+| Winnowing window | 4 shingles | Stable exact-overlap fingerprint |
+| Minimum match | 6 words | Suppresses short incidental overlap |
+| Exact threshold | 0.90 | Exact fingerprint classification |
+| Near-exact threshold | 0.70 | High fingerprint overlap with limited edits |
+| Lexical threshold | 0.55 | Candidate TF-IDF/lexical classification |
+| Semantic threshold | 0.82 | Conservative optional embedding classification |
+| Quotes | excluded from review score | Still visible in raw score and matches |
+| Bibliography | excluded from review score | Still visible in raw score and matches |
+| Critical exact passage | 20 matched words | Substantial unattributed exact copying |
+| Common phrase | at least 3 sources and at most 12 words | Low-information suppression |
+
+These values are centralized in `PlagiarismConfig`. Raw and review scores are not model-generated:
+they are unique covered document-word counts divided by the document word count. Exact, lexical,
+and semantic breakdowns use mutually exclusive coverage precedence in that order.
+
 ---
 
 ## 3. Calibration Methodology

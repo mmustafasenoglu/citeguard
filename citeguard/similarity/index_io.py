@@ -139,9 +139,7 @@ def _validate_temp_index(
         loaded = IndexManifest.from_dict(json.load(f))
 
     if loaded.schema_version != SCHEMA_VERSION:
-        raise ValueError(
-            f"Temp index schema version mismatch: {loaded.schema_version}"
-        )
+        raise ValueError(f"Temp index schema version mismatch: {loaded.schema_version}")
 
     if loaded.entry_count != manifest.entry_count:
         raise ValueError(
@@ -175,16 +173,13 @@ def _validate_temp_index(
         vec_path = tmp_dir / "tfidf_vectorizer.pkl"
         if not vec_path.exists():
             raise ValueError(
-                "Temp index missing tfidf_vectorizer.pkl "
-                "(tfidf_config_hash is non-empty)"
+                "Temp index missing tfidf_vectorizer.pkl (tfidf_config_hash is non-empty)"
             )
         mat_path = tmp_dir / "tfidf_matrix.npz"
         if not mat_path.exists():
-            raise ValueError(
-                "Temp index missing tfidf_matrix.npz "
-                "(tfidf_config_hash is non-empty)"
-            )
+            raise ValueError("Temp index missing tfidf_matrix.npz (tfidf_config_hash is non-empty)")
         from scipy import sparse
+
         matrix = sparse.load_npz(str(mat_path))
         if matrix.shape[0] != manifest.entry_count:
             raise ValueError(
@@ -198,6 +193,7 @@ def _validate_temp_index(
             raise ValueError("Temp index missing embeddings.npy (embedding_enabled=True)")
 
         import numpy as np
+
         embeddings = np.load(str(emb_path))
 
         if embeddings.shape[0] != manifest.entry_count:
@@ -215,8 +211,7 @@ def _validate_temp_index(
             if not np.allclose(norms, 1.0, rtol=1e-3, atol=1e-3):
                 bad = np.sum(~np.isclose(norms, 1.0, rtol=1e-3, atol=1e-3))
                 raise ValueError(
-                    f"Embedding normalization contract violated: "
-                    f"{bad} vectors have non-unit norm"
+                    f"Embedding normalization contract violated: {bad} vectors have non-unit norm"
                 )
 
 
@@ -367,6 +362,7 @@ def _is_directory_usable(directory: Path) -> bool:
         # Validate TF-IDF matrix row count
         try:
             from scipy import sparse
+
             matrix = sparse.load_npz(str(tfidf_mat_path))
             if matrix.shape[0] != manifest.entry_count:
                 return False
@@ -381,11 +377,14 @@ def _is_directory_usable(directory: Path) -> bool:
 
         try:
             import numpy as np
+
             embeddings = np.load(str(emb_path))
             if embeddings.shape[0] != manifest.entry_count:
                 return False
-            if (manifest.embedding_dimension > 0
-                    and embeddings.shape[1] != manifest.embedding_dimension):
+            if (
+                manifest.embedding_dimension > 0
+                and embeddings.shape[1] != manifest.embedding_dimension
+            ):
                 return False
             # Normalization contract
             if manifest.embedding_normalized and embeddings.shape[0] > 0:
@@ -599,8 +598,9 @@ def _rebuild_entries_from_dicts(
         # Reconstruct Fingerprint
         fp_data = d.get("fingerprint", {})
         fp_points = [
-            FingerprintPoint(hash=p["hash"], position=p["position"],
-                             start=p.get("start", 0), end=p.get("end", 0))
+            FingerprintPoint(
+                hash=p["hash"], position=p["position"], start=p.get("start", 0), end=p.get("end", 0)
+            )
             for p in fp_data.get("points", [])
         ]
         fingerprint = Fingerprint(
@@ -621,9 +621,7 @@ def _rebuild_entries_from_dicts(
                     year=metadata_dict.get("year"),
                     language=metadata_dict.get("language", ""),
                     license=metadata_dict.get("license", ""),
-                    similarity_index_allowed=metadata_dict.get(
-                        "similarity_index_allowed", True
-                    ),
+                    similarity_index_allowed=metadata_dict.get("similarity_index_allowed", True),
                     doi=metadata_dict.get("doi"),
                     url=metadata_dict.get("url"),
                 )
@@ -635,19 +633,22 @@ def _rebuild_entries_from_dicts(
             original_text=d.get("original_text", ""),
             normalized_text=d.get("normalized_text", ""),
             offset_map=d.get("offset_map", []),
+            char_offset=d.get("char_offset", 0),
         )
 
         doc_id = d.get("passage_id", d.get("doc_id", ""))
         normalized_text = d.get("normalized_text", "")
 
-        result.append((
-            doc_id,
-            normalized_text,
-            fingerprint,
-            metadata,
-            d.get("source_entry_index", 0),
-            passage_source,
-        ))
+        result.append(
+            (
+                doc_id,
+                normalized_text,
+                fingerprint,
+                metadata,
+                d.get("source_entry_index", 0),
+                passage_source,
+            )
+        )
     return result
 
 
@@ -660,12 +661,18 @@ class _PassageSource:
         - ``.offset_map`` → normalized→original offset map
     """
 
-    __slots__ = ("text", "offset_map")
+    __slots__ = ("text", "offset_map", "char_offset")
 
-    def __init__(self, original_text: str, normalized_text: str,
-                 offset_map: list[int]) -> None:
+    def __init__(
+        self,
+        original_text: str,
+        normalized_text: str,
+        offset_map: list[int],
+        char_offset: int = 0,
+    ) -> None:
         self.text = original_text
         self.offset_map = offset_map
+        self.char_offset = char_offset
 
 
 def is_index_valid(
@@ -707,6 +714,7 @@ def is_index_valid(
             return False
         try:
             from scipy import sparse
+
             matrix = sparse.load_npz(str(tfidf_mat_path))
             if matrix.shape[0] != actual.entry_count:
                 return False
@@ -720,11 +728,11 @@ def is_index_valid(
             return False
         try:
             import numpy as np
+
             embeddings = np.load(str(emb_path))
             if embeddings.shape[0] != actual.entry_count:
                 return False
-            if (actual.embedding_dimension > 0
-                    and embeddings.shape[1] != actual.embedding_dimension):
+            if actual.embedding_dimension > 0 and embeddings.shape[1] != actual.embedding_dimension:
                 return False
             if actual.embedding_normalized and embeddings.shape[0] > 0:
                 norms = np.linalg.norm(embeddings, axis=1)

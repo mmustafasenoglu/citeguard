@@ -42,13 +42,10 @@ def apply_text_replacements(
             raise ValueError(f"Replacement {item.passage_id} has empty original text.")
         start = output.find(item.original, cursor)
         if start < 0:
-            raise ValueError(
-                f"Original passage for {item.passage_id} was not found unchanged."
-            )
+            raise ValueError(f"Original passage for {item.passage_id} was not found unchanged.")
         if output.find(item.original, start + 1) >= 0:
             raise ValueError(
-                f"Original passage for {item.passage_id} is ambiguous; "
-                "manual review is required."
+                f"Original passage for {item.passage_id} is ambiguous; manual review is required."
             )
         end = start + len(item.original)
         output = output[:start] + item.replacement + output[end:]

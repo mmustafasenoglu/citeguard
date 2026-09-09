@@ -11,12 +11,14 @@ for the authoritative option list installed with your version.
 | `citeguard inspect FILE` | Inspect parsing and bibliography detection without network calls |
 | `citeguard suggest FILE` | Search academic providers for sources for uncited claims |
 | `citeguard verify FILE` | Verify bibliography metadata with Crossref |
+| `citeguard plagiarism FILE` | Run source-aware similarity and attribution review |
 | `citeguard similarity FILE` | Analyze document similarity against a licensed corpus |
 | `citeguard rewrite FILE` | Propose evidence-grounded wording for a verified claim |
 | `citeguard improve-attribution FILE` | Preview or apply validated attribution-risk reductions |
 | `citeguard init` | Create a local `.env` template |
 | `citeguard llm doctor` | Test configured LLM connectivity |
 | `citeguard llm list` | Show LLM configuration without secrets |
+| `citeguard corpus index PATH` | Build a versioned local fingerprint/TF-IDF index |
 
 Common `check` options:
 
@@ -83,6 +85,50 @@ connectivity. These commands do not print API keys.
 Provider failures do not end the whole scan. Requests use per-provider rate limiting; HTTP 429 and
 5xx responses are retried with exponential backoff.
 
+## Plagiarism review
+
+`citeguard plagiarism` compares Markdown, TXT, or DOCX prose with actual text in supplied local
+corpora, explicit files, or explicit URLs. Academic metadata alone never contributes to a
+similarity score.
+
+```bash
+citeguard plagiarism thesis.docx \
+  --corpus sources/ \
+  --source appendix-source.txt \
+  --offline \
+  --format both --output thesis.plagiarism
+```
+
+Important options:
+
+| Option | Purpose |
+|---|---|
+| `--corpus PATH` | Compare every supported file in a corpus directory; repeatable |
+| `--source PATH` | Add a distinct explicit source; repeatable |
+| `--source-url URL --online` | Fetch a bounded textual web source with redirect/type/size checks |
+| `--discover-sources --online` | Search with bibliography metadata; compare returned abstracts only |
+| `--include-quotes` | Include quoted overlap in the review-relevant score |
+| `--include-bibliography` | Include bibliography overlap in the review-relevant score |
+| `--exclude-small-matches N` | Ignore matches covering fewer than N words |
+| `--exact-threshold`, `--lexical-threshold`, `--semantic-threshold` | Override centralized thresholds |
+| `--semantic` | Enable the optional sentence-transformer candidate and classification pass |
+| `--max-sources`, `--max-matches` | Bound source ingestion and report size |
+| `--no-cache` | Disable URL and corpus-index cache reads and writes |
+
+JSON reports use schema `1.0` and preserve passage/source offsets, separate exact/lexical/semantic
+signals, quote/citation/bibliography state, attribution status, severity, source contribution, and
+the exact configuration. Percentages derive from unique covered document words. A semantic match
+covers a detected passage but is never represented as word-for-word alignment.
+
+Build an explicit reusable index with:
+
+```bash
+citeguard corpus index sources/ --output sources.ctac
+```
+
+See [Plagiarism review methodology](PLAGIARISM.md) for scoring, calibration, safety, and corpus
+limitations.
+
 ## Rewrite and attribution improvement
 
 `citeguard rewrite FILE` returns a proposal only when a claim already has evaluated supporting
@@ -103,6 +149,9 @@ and a rescan:
 ```bash
 citeguard improve-attribution paper.md \
   --corpus corpus.txt --corpus-license CC0 --dry-run
+
+citeguard improve-attribution paper.md \
+  --from-report paper.plagiarism.json --dry-run
 
 citeguard improve-attribution paper.md \
   --corpus corpus.txt --corpus-license CC0 \
@@ -127,7 +176,9 @@ result: AuditResult = audit_document(
 ```
 
 The module also exports `suggest_document` and `verify_document` for focused workflows. Internal
-modules can change without compatibility guarantees.
+modules can change without compatibility guarantees. Source-aware review is also available as
+`scan_document(path, sources=[...], config=PlagiarismConfig(...))`; it returns a
+`PlagiarismResult` and performs no network access with the default configuration.
 
 ## Network and privacy
 
@@ -136,6 +187,8 @@ modules can change without compatibility guarantees.
 | `--offline` | Zero network calls; API keys are not read; required uncached local models fail closed |
 | Default | Academic providers receive derived claim queries and bibliography metadata |
 | LLM configured | Relevant paragraphs or bounded claim/evidence context may be sent to that provider |
+| Plagiarism with local sources | Document text remains local |
+| `plagiarism --source-url --online` | Only the explicit URL is fetched; the document is not uploaded |
 
 The full document and bibliography are not included in LLM entailment prompts. Rewrite requests
 send one claim, its citation token, matched source metadata, and bounded evidence passages. CiteGuard

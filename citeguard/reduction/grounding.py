@@ -15,9 +15,7 @@ from .models import FixPlan, PassageRisk
 def _contained(left: str, right: str) -> bool:
     left_norm = normalize_turkish(left).strip(" .")
     right_norm = normalize_turkish(right).strip(" .")
-    return bool(left_norm and right_norm) and (
-        left_norm in right_norm or right_norm in left_norm
-    )
+    return bool(left_norm and right_norm) and (left_norm in right_norm or right_norm in left_norm)
 
 
 def build_grounded_reduction_requests(

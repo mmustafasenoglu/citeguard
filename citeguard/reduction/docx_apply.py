@@ -89,9 +89,7 @@ def write_revised_docx(
             if replacement.original in run.text
         ]
         if len(run_matches) != 1:
-            raise UnsafeDocxStructureError(
-                f"{replacement.passage_id}: replacement crosses runs"
-            )
+            raise UnsafeDocxStructureError(f"{replacement.passage_id}: replacement crosses runs")
         run_index, run = run_matches[0]
         if run.text.count(replacement.original) != 1:
             raise UnsafeDocxStructureError(

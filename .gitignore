@@ -10,6 +10,7 @@ build/
 *.egg-info/
 .env
 .citeguard_cache/
+.local/
 .DS_Store
 .opencode/
 artifacts/

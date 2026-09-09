@@ -100,6 +100,7 @@ class ReductionChange:
     meaning_verdict: str | None = None
     citation_preserved: bool | None = None
     numeric_integrity: bool | None = None
+    named_entity_integrity: bool | None = None
     factual_integrity: bool | None = None
     unsupported_new_claims: tuple[str, ...] = ()
     application_status: str = "planned"
@@ -241,24 +242,26 @@ def _change(
                 candidate.source_exact_overlap_before or 0.0,
                 candidate.source_lexical_similarity_before or 0.0,
             )
-            if candidate else None
+            if candidate
+            else None
         ),
         source_overlap_after=(
             max(
                 candidate.source_exact_overlap_after or 0.0,
                 candidate.source_lexical_similarity_after or 0.0,
             )
-            if candidate else None
+            if candidate
+            else None
         ),
         meaning_score=candidate.meaning_score if candidate else None,
         forward_entailment_score=(candidate.forward_entailment_score if candidate else None),
         backward_entailment_score=(candidate.backward_entailment_score if candidate else None),
         meaning_verdict=(
-            candidate.meaning_verdict.value
-            if candidate and candidate.meaning_verdict else None
+            candidate.meaning_verdict.value if candidate and candidate.meaning_verdict else None
         ),
         citation_preserved=candidate.citations_preserved if candidate else None,
         numeric_integrity=candidate.numeric_integrity if candidate else None,
+        named_entity_integrity=(candidate.named_entity_integrity if candidate else None),
         factual_integrity=candidate.factual_integrity if candidate else None,
         unsupported_new_claims=(tuple(candidate.introduced_claims) if candidate else ()),
         application_status=status,
@@ -293,6 +296,7 @@ def improve_attribution(
 
     llm_log_start = len(get_audit_log())
     from ..corpus.loader import load_similarity_corpus
+
     if options.corpus is not None:
         options.corpus = Path(options.corpus)
     if options.output is not None:
@@ -374,7 +378,8 @@ def improve_attribution(
             if options.severity:
                 levels = {"low": 1, "medium": 2, "high": 3}
                 risks = [
-                    risk for risk in risks
+                    risk
+                    for risk in risks
                     if levels[risk.attribution_risk.value] >= levels[options.severity]
                 ]
             plans = build_fix_plans(risks)
@@ -392,9 +397,7 @@ def improve_attribution(
                 audit, risks, plans, mode=RewriteMode.CLARIFY
             )
             manual.update(grounding_manual)
-            backend = EvidenceGroundedReductionBackend(
-                provider, grounded, offline=options.offline
-            )
+            backend = EvidenceGroundedReductionBackend(provider, grounded, offline=options.offline)
             risk_map = {risk.passage_id: risk for risk in risks}
             source_texts = _source_texts(current_scan)
             replacements: list[TextReplacement] = []
@@ -407,12 +410,9 @@ def improve_attribution(
                 candidates = generate_candidates(backend, request)
                 generated += len(candidates)
                 grounded_request = grounded.get(plan.passage_id)
-                evidence = (
-                    grounded_request.context.evidence_texts if grounded_request else ()
-                )
+                evidence = grounded_request.context.evidence_texts if grounded_request else ()
                 supported_verdict = (
-                    Verdict(grounded_request.context.verdict)
-                    if grounded_request else None
+                    Verdict(grounded_request.context.verdict) if grounded_request else None
                 )
                 for candidate in candidates:
                     evaluate_candidate(risk.text, candidate)
@@ -513,13 +513,9 @@ def improve_attribution(
                 break
 
             _revised_enriched, revised_scan = _scan(next_path, index)
-            improved = (
-                revised_scan.high_risk_count <= current_scan.high_risk_count
-                and (
-                    revised_scan.high_risk_count < current_scan.high_risk_count
-                    or revised_scan.overall_similarity_pct
-                    < current_scan.overall_similarity_pct - 1e-9
-                )
+            improved = revised_scan.high_risk_count <= current_scan.high_risk_count and (
+                revised_scan.high_risk_count < current_scan.high_risk_count
+                or revised_scan.overall_similarity_pct < current_scan.overall_similarity_pct - 1e-9
             )
             if not improved:
                 for item in selected_changes:
@@ -568,12 +564,15 @@ def improve_attribution(
         accepted_candidates=accepted,
         meaning_scores=meaning_scores,
         citation_integrity_passed=(
-            all(c.citation_preserved is True for c in applied_changes)
-            if applied_changes else None
+            all(c.citation_preserved is True for c in applied_changes) if applied_changes else None
         ),
         numeric_integrity_passed=(
-            all(c.numeric_integrity is True for c in applied_changes)
-            if applied_changes else None
+            all(c.numeric_integrity is True for c in applied_changes) if applied_changes else None
+        ),
+        named_entity_integrity_passed=(
+            all(c.named_entity_integrity is True for c in applied_changes)
+            if applied_changes
+            else None
         ),
         new_unsupported_claims=sum(len(c.unsupported_new_claims) for c in changes),
         iterations_completed=iterations,
