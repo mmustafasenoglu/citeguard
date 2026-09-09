@@ -1,4 +1,5 @@
 """Hard integrity gates for rewrite candidates."""
+# ruff: noqa: E501
 
 from __future__ import annotations
 
@@ -16,6 +17,10 @@ def _strengthens_claim(original: str, candidate: str) -> bool:
     """Detect explicit English or Turkish epistemic-strength escalation."""
     original_norm = normalize_turkish(original)
     candidate_norm = normalize_turkish(candidate)
+    # A negated strong phrase does not assert the stronger claim.
+    negation_markers = ("değil", "değildir", "değildi", "gösterilmemiş", "kanıtlanmamış", "kurulamaz", "görülmedi")
+    if any(marker in candidate_norm for marker in negation_markers):
+        return False
     transitions = (
         (("associated with",), ("caused", "causes")),
         (("may ",), ("definitely", "certainly")),

@@ -1,6 +1,6 @@
 {
   "kind": "turkish_engineering_not_external_accuracy",
-  "cases": 210,
+  "cases": 280,
   "safe_acceptance_precision": 1.0,
   "safe_acceptance_recall": 1.0,
   "safe_acceptance_f1": 1.0,

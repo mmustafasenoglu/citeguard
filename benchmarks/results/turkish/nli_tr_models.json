@@ -1,0 +1,5 @@
+{
+  "status": "UNAVAILABLE",
+  "models": [],
+  "reason": "Official NLI-TR bundle was not present locally; no raw corpus is committed."
+}

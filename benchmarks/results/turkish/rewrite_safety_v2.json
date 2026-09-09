@@ -1,0 +1,118 @@
+{
+  "kind": "turkish_engineering_not_external_accuracy",
+  "cases": 280,
+  "safe_acceptance_precision": 1.0,
+  "safe_acceptance_recall": 1.0,
+  "safe_acceptance_f1": 1.0,
+  "unsafe_rejection_rate": 1.0,
+  "per_category_rejection_or_acceptance_accuracy": {
+    "safe": 1.0,
+    "citation_removal": 1.0,
+    "citation_mutation": 1.0,
+    "number_mutation": 1.0,
+    "unit_mutation": 1.0,
+    "unsupported_claim": 1.0,
+    "contradiction": 1.0,
+    "causal_strengthening": 1.0,
+    "modality_strengthening": 1.0,
+    "scope_strengthening": 1.0,
+    "evidence_strengthening": 1.0,
+    "quotation_needed": 1.0,
+    "missing_citation": 1.0,
+    "source_overlap_not_improved": 1.0
+  },
+  "unexpected_acceptances": [],
+  "safe_rejections": [],
+  "version": 2,
+  "per_category": {
+    "safe": {
+      "cases": 20,
+      "accepted": 20,
+      "rejected": 0,
+      "correct": 20
+    },
+    "citation_removal": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "citation_mutation": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "number_mutation": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "unit_mutation": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "unsupported_claim": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "contradiction": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "causal_strengthening": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "modality_strengthening": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "scope_strengthening": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "evidence_strengthening": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "quotation_needed": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "missing_citation": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    },
+    "source_overlap_not_improved": {
+      "cases": 20,
+      "accepted": 0,
+      "rejected": 20,
+      "correct": 20
+    }
+  },
+  "split": {
+    "development": 168,
+    "validation": 56,
+    "holdout": 56
+  }
+}

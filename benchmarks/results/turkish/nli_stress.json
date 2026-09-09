@@ -1,0 +1,7 @@
+{
+  "status": "fixture_ready",
+  "cases": 200,
+  "accuracy": null,
+  "contradiction_recall": null,
+  "categories": ["entailment", "neutral", "contradiction", "negation", "association_to_causation", "possibility_to_certainty", "scope_strengthening", "evidence_strengthening", "numeric_change", "unit_change"]
+}

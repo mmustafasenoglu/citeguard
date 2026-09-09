@@ -1,0 +1,6 @@
+{
+  "status": "not_run",
+  "reason": "External SentenceTransformer downloads are benchmark-only and were not available in the offline CI environment.",
+  "models": [],
+  "textual_baseline": "citeguard_char_3gram_textual_baseline"
+}

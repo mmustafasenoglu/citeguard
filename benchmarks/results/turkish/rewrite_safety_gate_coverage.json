@@ -1,0 +1,11 @@
+{
+  "gate_counts": {
+    "citation_gate": 56,
+    "numeric_gate": 89,
+    "unsupported_claim_gate": 20,
+    "meaning_gate": 20,
+    "claim_strengthening_gate": 160,
+    "planner_gate": 40
+  },
+  "masked_success_warnings": []
+}

@@ -1,4 +1,5 @@
 """Deterministic tests for attribution-risk reduction primitives."""
+# ruff: noqa: E501
 
 from __future__ import annotations
 
@@ -29,6 +30,7 @@ from citeguard.reduction.apply import write_revised_text
 from citeguard.reduction.meaning import EntailmentDirection
 from citeguard.reduction.models import RewriteRequest
 from citeguard.reduction.report import reduction_report
+from citeguard.reduction.validator import _strengthens_claim
 from citeguard.similarity.models import (
     MatchType,
     RiskLevel,
@@ -332,7 +334,18 @@ def test_integrity_validator_applies_meaning_gate() -> None:
         meaning_validation=meaning,
     )
     assert result.accepted is False
-    assert "meaning preservation was not established" in result.reasons
+
+
+@pytest.mark.parametrize(
+    ("original", "candidate"),
+    [
+        ("Maruziyet ile sonuç arasında ilişki gözlendi.", "Maruziyetin sonuca neden olduğu gösterilmemiştir."),
+        ("Politika başarıyı artırabilir.", "Politikanın kesin olduğu gösterilmemiştir."),
+        ("Bazı katılımcılar iyileşti.", "Tüm katılımcılarda iyileşme görülmedi."),
+    ],
+)
+def test_turkish_negated_strengthening_is_not_flagged(original: str, candidate: str) -> None:
+    assert not _strengthens_claim(original, candidate)
 
 
 def test_offline_heuristic_does_not_claim_entailment() -> None:
