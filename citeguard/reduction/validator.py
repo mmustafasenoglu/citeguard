@@ -30,15 +30,37 @@ _NEGATION_MARKERS = (
     "söylenemez",
     "doğrulanmamış",
 )
-_NAMED_ENTITY_RE = re.compile(
-    r"\b(?:[A-ZÇĞİÖŞÜ]{2,}|[A-ZÇĞİÖŞÜ][a-zçğıöşü]+(?:[A-ZÇĞİÖŞÜ][A-Za-zÇĞİÖŞÜçğıöşü]+)+|"
-    r"[A-ZÇĞİÖŞÜ][a-zçğıöşü]+(?:\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü]+)+)\b"
-)
+_ENTITY_TOKEN_RE = re.compile(r"\b[^\W_]+\b", re.UNICODE)
 
 
 def _named_entities(text: str) -> tuple[str, ...]:
-    """Extract conservative proper-name/acronym tokens for preservation."""
-    return tuple(dict.fromkeys(match.group(0) for match in _NAMED_ENTITY_RE.finditer(text)))
+    """Extract conservative proper names with a linear token scan."""
+    tokens = list(_ENTITY_TOKEN_RE.finditer(text))
+    entities: list[str] = []
+    title_run: list[re.Match[str]] = []
+
+    def flush_title_run() -> None:
+        if len(title_run) >= 2:
+            entities.append(text[title_run[0].start() : title_run[-1].end()])
+        title_run.clear()
+
+    for match in tokens:
+        token = match.group(0)
+        is_acronym = len(token) >= 2 and token.isupper()
+        is_camel = any(char.isupper() for char in token[1:])
+        is_title = token[:1].isupper() and token[1:].islower()
+        if is_acronym or is_camel:
+            flush_title_run()
+            entities.append(token)
+            continue
+        if is_title:
+            if title_run and text[title_run[-1].end() : match.start()].strip():
+                flush_title_run()
+            title_run.append(match)
+            continue
+        flush_title_run()
+    flush_title_run()
+    return tuple(dict.fromkeys(entities))
 
 
 def _contains_asserted_phrase(text: str, phrases: tuple[str, ...]) -> bool:
