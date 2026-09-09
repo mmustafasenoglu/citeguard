@@ -422,8 +422,10 @@ def score_external(
     latencies: list[float] = []
     buckets: dict[int, list[tuple[int, dict[str, str]]]] = {}
     for index, row in enumerate(rows):
-        words = len(row["original"].split()) + len(row["candidate"].split()) + 3
-        length = min(512, max(32, ((words + 31) // 32) * 32))
+        token_count = len(
+            tokenizer(row["original"], row["candidate"], truncation=False)["input_ids"]
+        )
+        length = min(512, max(32, ((token_count + 31) // 32) * 32))
         buckets.setdefault(length, []).append((index, row))
     started = time.perf_counter()
     for length, bucket in sorted(buckets.items()):
