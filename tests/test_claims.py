@@ -104,6 +104,46 @@ def test_skips_instruction_paragraphs() -> None:
     assert claims[0].paragraph_index == 1
 
 
+def test_skips_turkish_form_instructions_but_keeps_research_prose() -> None:
+    paragraphs = [
+        "Başvuru formunun verilen açıklamalara göre hazırlanması beklenir.",
+        "Bu bölümün başvuru tamamlanmadan önce yazılması önerilir.",
+        "Uydu görüntüleri eğitim sürecinde karşılaştırmalı olarak kullanılacaktır.",
+    ]
+
+    claims = extract_claims(paragraphs, [], bibliography_start=None)
+
+    assert [claim.paragraph_index for claim in claims] == [2]
+
+
+def test_skips_uppercase_form_headings_and_identity_fields() -> None:
+    paragraphs = [
+        "ARAŞTIRMA ÖNERİSİNİN BİLİMSEL NİTELİĞİ",
+        "Başvuru Sahibinin Adı Soyadı: Example Student",
+        "Model performs consistently across independent evaluation regions.",
+    ]
+
+    claims = extract_claims(paragraphs, [], bibliography_start=None)
+
+    assert [claim.paragraph_index for claim in claims] == [2]
+
+
+def test_paragraph_offset_preserves_global_index_and_citation_link() -> None:
+    paragraph = "Transformers were introduced in 2017 (Vaswani et al., 2017)."
+    citations = extract_citations(["placeholder"] * 7 + [paragraph])
+
+    claims = extract_claims(
+        [paragraph],
+        citations,
+        bibliography_start=None,
+        paragraph_offset=7,
+    )
+
+    assert len(claims) == 1
+    assert claims[0].paragraph_index == 7
+    assert claims[0].has_existing_citation is True
+
+
 def test_skips_bibliography_section() -> None:
     paragraphs = [
         "Transformers achieve state-of-the-art results across many NLP benchmarks.",

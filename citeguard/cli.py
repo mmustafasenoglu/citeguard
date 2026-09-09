@@ -974,6 +974,7 @@ def _extract_claims_hybrid(
                 parsed.citations,
                 bibliography_start=parsed.bibliography_start_index,
                 max_claims=None,
+                paragraph_offset=index,
             )
             claims.extend(det_claims)
 
