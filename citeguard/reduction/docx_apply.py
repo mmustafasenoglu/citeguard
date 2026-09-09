@@ -57,6 +57,10 @@ def write_revised_docx(
     """Apply unique single-run edits and atomically write a separate DOCX."""
     if source.resolve() == output.resolve():
         raise ValueError("DOCX output must differ from the source path.")
+    if source.suffix.lower() != output.suffix.lower():
+        raise ValueError("DOCX output format must match the source format.")
+    if output.exists():
+        raise ValueError("output already exists; choose a new output path")
     document = Document(source)
     paragraphs = _content_paragraphs(document)
     texts = [paragraph.text.strip() for paragraph in paragraphs]

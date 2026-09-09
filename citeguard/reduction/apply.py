@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -68,12 +70,29 @@ def write_revised_text(
     output: Path,
     replacements: list[TextReplacement],
 ) -> list[AppliedReplacement]:
-    """Write a revised Markdown/TXT document and refuse other formats."""
+    """Write a revised Markdown/TXT document without replacing the source."""
     if source.suffix.lower() not in {".md", ".txt"}:
         raise ValueError("Automatic application supports only .md and .txt files.")
+    if source.resolve() == output.resolve():
+        raise ValueError("Text output must differ from the source path.")
+    if source.suffix.lower() != output.suffix.lower():
+        raise ValueError("Text output format must match the source format.")
+    if output.exists():
+        raise ValueError("output already exists; choose a new output path")
     original = source.read_text(encoding="utf-8")
     revised, applied = apply_text_replacements(original, replacements)
-    output.write_text(revised, encoding="utf-8")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{output.stem}-", suffix=output.suffix, dir=output.parent
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            handle.write(revised)
+        os.replace(temporary, output)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
     return applied
 
 
@@ -81,12 +100,22 @@ def restore_text(
     revised: str,
     applied: list[AppliedReplacement],
 ) -> str:
-    """Restore applied replacements in reverse order using the audit trail."""
+    """Restore replacements only when their recorded locations remain intact.
+
+    ``AppliedReplacement.start_offset`` is relative to the document state just
+    after that replacement was made.  Reversing the audit trail restores that
+    same state for each record.  Do not fall back to a global text search:
+    after a user edit or when replacement text is duplicated, that could
+    silently restore an unrelated passage.
+    """
     output = revised
     for item in reversed(applied):
-        start = output.find(item.replacement)
-        if start < 0:
-            raise ValueError(f"Replacement for {item.passage_id} was not found.")
+        start = item.start_offset
         end = start + len(item.replacement)
+        if start < 0 or output[start:end] != item.replacement:
+            raise ValueError(
+                f"Replacement for {item.passage_id} is missing or has changed; "
+                "refusing an ambiguous restore."
+            )
         output = output[:start] + item.original + output[end:]
     return output

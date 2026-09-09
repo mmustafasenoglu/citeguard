@@ -363,6 +363,20 @@ def test_docx_single_run_preserves_formatting_and_source(tmp_path: Path) -> None
     assert records[0].formatting_preserved is True
 
 
+def test_docx_writer_refuses_existing_output(tmp_path: Path) -> None:
+    source = tmp_path / "paper.docx"
+    output = tmp_path / "existing.docx"
+    document = Document()
+    document.add_paragraph(ORIGINAL)
+    document.save(source)
+    document.save(output)
+
+    with pytest.raises(ValueError, match="already exists"):
+        write_revised_docx(
+            source, output, [TextReplacement(ORIGINAL, REWRITE, "p0s0")]
+        )
+
+
 def test_docx_cross_run_target_fails_closed(tmp_path: Path) -> None:
     source = tmp_path / "complex.docx"
     output = tmp_path / "complex.revised.docx"

@@ -23,6 +23,7 @@ from citeguard.reduction import (
     validate_meaning,
 )
 from citeguard.reduction.analyzer import analyze_passage_risks
+from citeguard.reduction.apply import write_revised_text
 from citeguard.reduction.meaning import EntailmentDirection
 from citeguard.reduction.models import RewriteRequest
 from citeguard.reduction.report import reduction_report
@@ -321,6 +322,38 @@ def test_text_patch_rejects_ambiguous_original() -> None:
             "Same sentence. Same sentence.",
             [TextReplacement("Same sentence.", "Changed.", "p0s0")],
         )
+
+
+def test_text_writer_refuses_source_overwrite_and_existing_output(tmp_path) -> None:
+    source = tmp_path / "paper.md"
+    source.write_text("Original claim.", encoding="utf-8")
+    replacement = [TextReplacement("Original claim.", "Revised claim.", "p0s0")]
+    from pytest import raises
+
+    with raises(ValueError, match="differ"):
+        write_revised_text(source, source, replacement)
+
+    output = tmp_path / "existing.md"
+    output.write_text("Do not overwrite.", encoding="utf-8")
+    with raises(ValueError, match="already exists"):
+        write_revised_text(source, output, replacement)
+    assert source.read_text(encoding="utf-8") == "Original claim."
+    assert output.read_text(encoding="utf-8") == "Do not overwrite."
+
+
+def test_restore_text_refuses_duplicate_replacement_at_wrong_recorded_offset() -> None:
+    original = "First claim. Second claim."
+    revised, applied = apply_text_replacements(
+        original,
+        [TextReplacement("Second claim.", "Rewritten claim.", "p0s1")],
+    )
+
+    # The same replacement text elsewhere must not be chosen by a global find.
+    edited = "Rewritten claim. " + revised
+    from pytest import raises
+
+    with raises(ValueError, match="refusing an ambiguous restore"):
+        restore_text(edited, applied)
 
 
 def test_reduction_metrics_use_absolute_and_relative_overlap() -> None:
