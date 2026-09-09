@@ -92,6 +92,9 @@ citeguard check examples/example-paper.md --offline
 # Save machine-readable and human-readable reports
 citeguard check paper.md --format both --output report
 
+# Review exact, lexical, and optional semantic overlap against known sources
+citeguard plagiarism paper.md --corpus licensed-sources/ --format both --output review
+
 # Inspect the evidence attached to source matches
 citeguard check paper.md --show-evidence
 ```
@@ -104,6 +107,7 @@ The core commands follow the questions reviewers ask:
 | Which findings need review? | `citeguard check FILE` |
 | Can an uncited claim be matched to a source? | `citeguard suggest FILE` |
 | Does bibliography metadata match a published record? | `citeguard verify FILE` |
+| Which passages overlap available sources, and is attribution adequate? | `citeguard plagiarism FILE --corpus PATH` |
 | Where does this document overlap a licensed corpus? | `citeguard similarity FILE --corpus PATH` |
 | Can attribution be improved without overwriting the source? | `citeguard improve-attribution FILE --corpus PATH` |
 
@@ -128,11 +132,30 @@ heuristic, not a grade for scientific correctness or writing quality.
 
 ## Safe attribution workflow
 
+Start with an auditable plagiarism review. Local comparison is the default and makes no network
+calls:
+
+```bash
+citeguard plagiarism paper.md \
+  --corpus licensed-sources/ --offline \
+  --format both --output paper.plagiarism
+```
+
+The raw score covers all matched document words. The review-relevant score excludes generic
+phrases and, by default, quoted material and bibliography entries. Source contributions allocate
+each covered word once, so duplicate sources do not multiply the score. Use `--source` for
+individual files, `--source-url ... --online` for explicit web sources, and `--semantic` for the
+optional local embedding pass.
+
 Preview is the default:
 
 ```bash
 citeguard improve-attribution paper.md \
   --corpus licensed-corpus.txt --corpus-license CC-BY --dry-run
+
+# Or reuse the local sources recorded by the plagiarism JSON report
+citeguard improve-attribution paper.md \
+  --from-report paper.plagiarism.json --dry-run
 ```
 
 Applying a validated candidate always requires a different output path:
@@ -170,7 +193,8 @@ They are engineering evidence, not scientific validation or real-world plagiaris
 - Default provider searches send derived queries and citation metadata, not the full document.
 - LLM-backed features are optional and only run with a configured provider.
 - CiteGuard has no telemetry and does not put secrets in reports or caches.
-- Rewrite suggestions never change verification results and never edit a file automatically.
+- Rewrite suggestions never change verification results; `--apply` writes only to an explicit,
+  different output path and never overwrites the source.
 
 Exact network behavior and provider configuration are documented in the
 [CLI reference](docs/CLI.md#network-and-privacy).
@@ -182,8 +206,12 @@ CiteGuard assists human review. It does **not**:
 - prove that a claim is true or scientifically valid;
 - treat an unresolved citation as fake;
 - replace a reference manager;
-- detect plagiarism or estimate a detector score;
+- issue a definitive plagiarism verdict or estimate a proprietary detector score;
 - guarantee that an LLM classification or rewrite is correct.
+
+CiteGuard provides source-aware document similarity and plagiarism-review signals over the
+corpora and sources available to it. It does not reproduce Turnitin's proprietary corpus or
+guarantee equivalence to commercial plagiarism scores.
 
 Evidence is currently abstract-level, provider coverage varies, and Turkish production NLI is less
 capable than English. Human review remains required.

@@ -2,6 +2,29 @@
 
 All notable changes to citeguard will be documented here.
 
+## Unreleased
+
+### Added
+
+- Added first-class `citeguard plagiarism` review for distinct local corpus files, explicit
+  sources, and safely bounded explicit URLs.
+- Added versioned JSON, Markdown, and terminal reports with unique token-coverage raw/review
+  scores, exact/lexical/semantic evidence, attribution states, exclusions, and per-source unique
+  contributions.
+- Added content-addressed fingerprint/TF-IDF caching and `citeguard corpus index`.
+- Added `improve-attribution --from-report` so the safe complete-document rewrite/rescan workflow
+  can reuse sources from a plagiarism report.
+
+### Security
+
+- Explicit URL sources reject local/private/reserved addresses, excessive redirects, unsupported
+  content types, and oversized responses. Offline review performs no network calls.
+
+### Limitations
+
+- Similarity is measured only against supplied textual sources/corpora. It is not a Turnitin score
+  and does not reproduce or predict a proprietary corpus or algorithm.
+
 ## [1.1.0] - 2026-09-09
 
 ### Added
