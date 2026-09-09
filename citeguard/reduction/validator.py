@@ -1,7 +1,8 @@
 """Hard integrity gates for rewrite candidates."""
-# ruff: noqa: E501
 
 from __future__ import annotations
+
+import re
 
 from ..models import Verdict
 from ..similarity.lexical import normalize_turkish
@@ -13,14 +14,30 @@ def _contains_any(text: str, phrases: tuple[str, ...]) -> bool:
     return any(phrase in text for phrase in phrases)
 
 
+_CLAUSE_SPLIT_RE = re.compile(r"[;.!?]+")
+_NEGATION_MARKERS = (
+    "değil",
+    "gösterilmemiş",
+    "kanıtlanmamış",
+    "kurulamaz",
+    "görülmedi",
+    "söylenemez",
+    "doğrulanmamış",
+)
+
+
+def _contains_asserted_phrase(text: str, phrases: tuple[str, ...]) -> bool:
+    """Return whether a strong phrase occurs outside a locally negated clause."""
+    for clause in _CLAUSE_SPLIT_RE.split(text):
+        if _contains_any(clause, phrases) and not _contains_any(clause, _NEGATION_MARKERS):
+            return True
+    return False
+
+
 def _strengthens_claim(original: str, candidate: str) -> bool:
     """Detect explicit English or Turkish epistemic-strength escalation."""
     original_norm = normalize_turkish(original)
     candidate_norm = normalize_turkish(candidate)
-    # A negated strong phrase does not assert the stronger claim.
-    negation_markers = ("değil", "değildir", "değildi", "gösterilmemiş", "kanıtlanmamış", "kurulamaz", "görülmedi")
-    if any(marker in candidate_norm for marker in negation_markers):
-        return False
     transitions = (
         (("associated with",), ("caused", "causes")),
         (("may ",), ("definitely", "certainly")),
@@ -28,7 +45,14 @@ def _strengthens_claim(original: str, candidate: str) -> bool:
         (("some ",), ("all ", "every ")),
         (
             ("ilişkili", "bağlantılı", "korelasyon", "birlikte değişim"),
-            ("neden oldu", "neden olur", "sebep oldu", "sebep olur", "yol açtı"),
+            (
+                "neden oldu",
+                "neden olur",
+                "neden olduğu",
+                "sebep oldu",
+                "sebep olur",
+                "yol açtı",
+            ),
         ),
         (
             (
@@ -53,7 +77,7 @@ def _strengthens_claim(original: str, candidate: str) -> bool:
         ),
     )
     return any(
-        _contains_any(original_norm, weak) and _contains_any(candidate_norm, strong)
+        _contains_any(original_norm, weak) and _contains_asserted_phrase(candidate_norm, strong)
         for weak, strong in transitions
     )
 

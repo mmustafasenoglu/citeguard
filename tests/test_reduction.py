@@ -232,6 +232,18 @@ def test_validator_requires_exact_citation_text() -> None:
         ("Politika yararlı olabilir.", "Politika kesin olarak yararlıdır."),
         ("Bazı katılımcılar iyileşti.", "Tüm katılımcılar iyileşti."),
         ("Ön bulgular ilişkiye işaret etmektedir.", "İlişki kanıtlanmıştır."),
+        (
+            "Maruziyet sonuçla ilişkili bulundu.",
+            "Maruziyet sonuca neden oldu; ekonomik etkisi kanıtlanmamıştır.",
+        ),
+        (
+            "Politika etkili olabilir.",
+            "Politika kesin olarak etkilidir; yan etkileri gösterilmemiştir.",
+        ),
+        (
+            "Bazı öğrenciler iyileşti.",
+            "Tüm öğrenciler iyileşti; nedenleri bilinmemektedir.",
+        ),
     ],
 )
 def test_validator_rejects_turkish_claim_strengthening(original: str, candidate: str) -> None:
@@ -339,9 +351,13 @@ def test_integrity_validator_applies_meaning_gate() -> None:
 @pytest.mark.parametrize(
     ("original", "candidate"),
     [
-        ("Maruziyet ile sonuç arasında ilişki gözlendi.", "Maruziyetin sonuca neden olduğu gösterilmemiştir."),
+        (
+            "Maruziyet ile sonuç arasında ilişki gözlendi.",
+            "Maruziyetin sonuca neden olduğu gösterilmemiştir.",
+        ),
         ("Politika başarıyı artırabilir.", "Politikanın kesin olduğu gösterilmemiştir."),
         ("Bazı katılımcılar iyileşti.", "Tüm katılımcılarda iyileşme görülmedi."),
+        ("Bazı öğrenciler iyileşti.", "Tüm öğrenciler iyileştiği söylenemez."),
     ],
 )
 def test_turkish_negated_strengthening_is_not_flagged(original: str, candidate: str) -> None:
