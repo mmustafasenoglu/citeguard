@@ -2,8 +2,30 @@ import json
 
 from click.testing import CliRunner
 
-from citeguard.cli import main
-from citeguard.models import SourceCandidate
+from citeguard.cli import _extract_claims_hybrid, main
+from citeguard.extractor import extract_citations
+from citeguard.models import ParsedDocument, SourceCandidate
+
+
+def test_offline_hybrid_claims_keep_global_paragraph_and_citation_link() -> None:
+    paragraphs = [
+        "Introductory context without a citation appears in this paragraph.",
+        "Transformers were introduced in 2017 (Vaswani et al., 2017).",
+    ]
+    parsed = ParsedDocument(
+        path="paper.txt",
+        paragraphs=paragraphs,
+        citations=extract_citations(paragraphs),
+        bibliography_entries=[],
+        bibliography_start_index=None,
+    )
+
+    claims = _extract_claims_hybrid(parsed, offline=True)
+
+    cited = [claim for claim in claims if claim.has_existing_citation]
+    assert len(cited) == 1
+    assert cited[0].paragraph_index == 1
+    assert cited[0].linked_citation is parsed.citations[0]
 
 
 def test_inspect_shows_citation_locations_and_match_status(tmp_path) -> None:

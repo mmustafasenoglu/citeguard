@@ -48,6 +48,26 @@ _INSTRUCTION_PATTERNS = re.compile(
     r"|please|ensure|make sure|do not|never|always|must|should|shall)\b",
     re.IGNORECASE,
 )
+_TURKISH_FORM_CONTEXT = re.compile(
+    r"\b(?:başvuru formu(?:nun|nda|na)?|bu bölüm(?:ün|de|e)?"
+    r"|araştırma önerisi(?:nin|nde|ne)?|anahtar kelimeler"
+    r"|çalışma takvimi(?:nin|nde|ne)?|risk yönetimi tablosu(?:nun|nda|na)?"
+    r"|çizelge(?:deki|nin)?|satır(?:lar|ların)?|sütun(?:daki|lar|ların)?)\b",
+    re.IGNORECASE,
+)
+_TURKISH_DIRECTIVE_SIGNALS = re.compile(
+    r"\b(?:beklenir|önerilir|istenir|yazılmalı(?:dır)?|hazırlanmalı(?:dır)?"
+    r"|doldurulmalı(?:dır)?|açıklanmalı(?:dır)?|belirtilmeli(?:dir)?"
+    r"|sunulmalı(?:dır)?|gösterilmemeli(?:dir)?|ortaya konulur"
+    r"|ifade edilir|belirtilir|eklenebilir|yazılır)\b",
+    re.IGNORECASE,
+)
+_FORM_FIELD_LABEL = re.compile(
+    r"^(?:başvuru sahibinin adı soyadı|danışmanın adı soyadı"
+    r"|araştırma önerisinin başlığı|araştırmanın yürütüleceği kurum(?:/kuruluş)?"
+    r"|anahtar kelimeler)\s*:",
+    re.IGNORECASE,
+)
 _DECISION_PATTERNS = re.compile(
     r"\b(?:we (?:decided|chose|selected|opted|will use|plan to)"
     r"|the (?:goal|purpose|aim) (?:of this|is to))\b",
@@ -61,17 +81,20 @@ def extract_claims(
     *,
     bibliography_start: int | None = None,
     max_claims: int | None = None,
+    paragraph_offset: int = 0,
 ) -> list[Claim]:
     """Extract citation-worthy claims from non-bibliography paragraphs.
 
     This is a deterministic offline baseline. Claim extraction quality improves
     significantly with an optional LLM integration, but the deterministic rules
-    ensure the tool remains functional without API keys.
+    ensure the tool remains functional without API keys. ``paragraph_offset``
+    preserves document-global coordinates when a caller supplies a paragraph slice.
     """
     limit: int | float = max_claims if max_claims is not None else float("inf")
     claims: list[Claim] = []
 
-    for index, paragraph in enumerate(paragraphs):
+    for local_index, paragraph in enumerate(paragraphs):
+        index = local_index + paragraph_offset
         if len(claims) >= limit:
             break
         if bibliography_start is not None and index >= bibliography_start:
@@ -104,7 +127,17 @@ def _is_non_claim_paragraph(paragraph: str) -> bool:
         return True
     if stripped.startswith("#"):
         return True
+    letters = [character for character in stripped if character.isalpha()]
+    if len(letters) >= 4 and all(character.isupper() for character in letters):
+        return True
+    if _FORM_FIELD_LABEL.match(stripped):
+        return True
     if _INSTRUCTION_PATTERNS.match(stripped):
+        return True
+    if (
+        _TURKISH_FORM_CONTEXT.search(stripped)
+        and _TURKISH_DIRECTIVE_SIGNALS.search(stripped)
+    ):
         return True
     if _DECISION_PATTERNS.search(stripped):
         return True
