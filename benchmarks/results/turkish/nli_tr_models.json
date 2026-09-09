@@ -1,5 +1,32 @@
 {
-  "status": "UNAVAILABLE",
-  "models": [],
-  "reason": "Official NLI-TR bundle was not present locally; no raw corpus is committed."
+  "cases": 9824,
+  "accuracy": 0.5071254071661238,
+  "macro_precision": 0.5144632053842689,
+  "macro_recall": 0.504144450620707,
+  "macro_f1": 0.4898106639417998,
+  "per_class": {
+    "entailment": {
+      "precision": 0.49765927132098514,
+      "recall": 0.7259501187648456,
+      "f1-score": 0.5905083927061949,
+      "support": 3368.0
+    },
+    "neutral": {
+      "precision": 0.5009499683343889,
+      "recall": 0.4914569742155949,
+      "f1-score": 0.4961580680570801,
+      "support": 3219.0
+    },
+    "contradiction": {
+      "precision": 0.5447803764974329,
+      "recall": 0.29502625888168055,
+      "f1-score": 0.38276553106212424,
+      "support": 3237.0
+    }
+  },
+  "status": "AVAILABLE",
+  "dataset": "NLI-TR SNLI-TR official test",
+  "model": "cross-encoder/nli-deberta-v3-base",
+  "archive_sha256": "c8ecee6c532ada2a1a6f7b9c29f618c6737662dde12d18f21c437682b2bdd851",
+  "runtime_seconds": 250.973
 }

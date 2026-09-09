@@ -1,7 +1,41 @@
 {
-  "status": "fixture_ready",
   "cases": 200,
-  "accuracy": null,
-  "contradiction_recall": null,
-  "categories": ["entailment", "neutral", "contradiction", "negation", "association_to_causation", "possibility_to_certainty", "scope_strengthening", "evidence_strengthening", "numeric_change", "unit_change"]
+  "accuracy": 0.4,
+  "macro_precision": 0.38888888888888884,
+  "macro_recall": 0.3,
+  "macro_f1": 0.3333333333333333,
+  "per_class": {
+    "entailment": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 20.0
+    },
+    "neutral": {
+      "precision": 0.6666666666666666,
+      "recall": 0.4,
+      "f1-score": 0.5,
+      "support": 100.0
+    },
+    "contradiction": {
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1-score": 0.5,
+      "support": 80.0
+    }
+  },
+  "model": "cross-encoder/nli-deberta-v3-base",
+  "runtime_seconds": 3.184,
+  "category_accuracy": {
+    "entailment": 0.0,
+    "neutral": 0.0,
+    "contradiction": 0.0,
+    "negation": 0.0,
+    "association_to_causation": 0.0,
+    "possibility_to_certainty": 1.0,
+    "scope_strengthening": 1.0,
+    "evidence_strengthening": 0.0,
+    "numeric_change": 1.0,
+    "unit_change": 1.0
+  }
 }

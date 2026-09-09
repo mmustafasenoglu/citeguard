@@ -1,5 +1,12 @@
 {
-  "status": "deferred",
-  "model": null,
-  "reason": "NLI-TR external evaluation unavailable in this checkout"
+  "status": "production_model_retained_pending_safe_migration",
+  "model": "cross-encoder/nli-deberta-v3-base",
+  "snli_tr_test_accuracy": 0.5071254071661238,
+  "snli_tr_test_macro_f1": 0.4898106639417998,
+  "snli_tr_test_contradiction_recall": 0.29502625888168055,
+  "alternative_development_model": "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
+  "alternative_development_accuracy": 0.7299329404592563,
+  "alternative_development_macro_f1": 0.7252532534105525,
+  "alternative_development_contradiction_recall": 0.6159243441122636,
+  "reason": "The multilingual alternative is materially better on Turkish development data, but production remains unchanged pending external English regression validation."
 }

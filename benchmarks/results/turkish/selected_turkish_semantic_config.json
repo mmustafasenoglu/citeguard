@@ -1,6 +1,9 @@
 {
-  "status": "deferred",
-  "model": null,
+  "status": "selected_on_development",
+  "model": "intfloat/multilingual-e5-small",
+  "embedding_dimension": 384,
+  "official_test_pearson": 0.7676692286964831,
+  "official_test_spearman": 0.7627554498136034,
   "textual_semantic_separation": "PASS",
   "holdout_touched_before_selection": "NO"
 }

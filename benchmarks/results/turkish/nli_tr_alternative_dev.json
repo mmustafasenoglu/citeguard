@@ -1,0 +1,32 @@
+{
+  "cases": 9842,
+  "accuracy": 0.7299329404592563,
+  "macro_precision": 0.7401266602742606,
+  "macro_recall": 0.728773689503104,
+  "macro_f1": 0.7252532534105525,
+  "per_class": {
+    "entailment": {
+      "precision": 0.7068518954556158,
+      "recall": 0.9017723039951937,
+      "f1-score": 0.7925026399155227,
+      "support": 3329.0
+    },
+    "neutral": {
+      "precision": 0.6847103513770181,
+      "recall": 0.6686244204018548,
+      "f1-score": 0.6765717860494214,
+      "support": 3235.0
+    },
+    "contradiction": {
+      "precision": 0.8288177339901478,
+      "recall": 0.6159243441122636,
+      "f1-score": 0.7066853342667133,
+      "support": 3278.0
+    }
+  },
+  "status": "AVAILABLE",
+  "dataset": "NLI-TR SNLI-TR official dev",
+  "model": "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
+  "archive_sha256": "c8ecee6c532ada2a1a6f7b9c29f618c6737662dde12d18f21c437682b2bdd851",
+  "runtime_seconds": 180.139
+}

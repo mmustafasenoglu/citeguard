@@ -16,6 +16,15 @@
       "type": "small_human_annotated_sts",
       "cases": 81,
       "raw_data_committed": false
+    },
+    {
+      "name": "NLI-TR SNLI-TR 1.0",
+      "source": "https://nli-tr.s3.eu-central-1.amazonaws.com/snli_tr_1.0.zip",
+      "publisher": "Boğaziçi University TULAP / BOUN TABI",
+      "license": "dataset card lists CC-family licenses; original components retain their licenses",
+      "archive_sha256": "c8ecee6c532ada2a1a6f7b9c29f618c6737662dde12d18f21c437682b2bdd851",
+      "splits": ["train", "development", "test"],
+      "raw_data_committed": false
     }
   ]
 }

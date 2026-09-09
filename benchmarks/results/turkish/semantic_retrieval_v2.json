@@ -1,0 +1,11 @@
+{
+  "kind": "semantic_candidate_retrieval_not_textual_overlap",
+  "model": "intfloat/multilingual-e5-small",
+  "cases": 60,
+  "recall_at_1": 0.7166666666666667,
+  "recall_at_3": 0.95,
+  "recall_at_5": 0.9833333333333333,
+  "mrr": 0.836111111111111,
+  "runtime_seconds": 0.628,
+  "textual_overlap_modified": false
+}

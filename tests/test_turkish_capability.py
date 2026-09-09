@@ -1,4 +1,5 @@
 """Turkish capability regression tests."""
+
 # ruff: noqa: E501
 import importlib.util
 import json
@@ -26,7 +27,10 @@ def test_turkish_engineering_suites_meet_minimum_sizes() -> None:
 
 
 def test_rewrite_safety_cases_are_category_pure() -> None:
-    spec = importlib.util.spec_from_file_location("rewrite_safety", Path(__file__).parents[1] / "scripts/benchmarks/run_turkish_rewrite_safety.py")
+    spec = importlib.util.spec_from_file_location(
+        "rewrite_safety",
+        Path(__file__).parents[1] / "scripts/benchmarks/run_turkish_rewrite_safety.py",
+    )
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -37,7 +41,10 @@ def test_rewrite_safety_cases_are_category_pure() -> None:
 
 
 def test_group_aware_split_has_no_source_leakage() -> None:
-    spec = importlib.util.spec_from_file_location("rewrite_safety", Path(__file__).parents[1] / "scripts/benchmarks/run_turkish_rewrite_safety.py")
+    spec = importlib.util.spec_from_file_location(
+        "rewrite_safety",
+        Path(__file__).parents[1] / "scripts/benchmarks/run_turkish_rewrite_safety.py",
+    )
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -47,3 +54,19 @@ def test_group_aware_split_has_no_source_leakage() -> None:
     splits = module.group_aware_split(cases)
     groups = [set(case["group"] for case in values) for values in splits.values()]
     assert not (groups[0] & groups[1] or groups[0] & groups[2] or groups[1] & groups[2])
+
+
+def test_detection_v2_is_large_and_group_isolated() -> None:
+    root = Path(__file__).parents[1]
+    fixture = json.loads(
+        (root / "benchmarks/turkish/detection_v2.json").read_text(encoding="utf-8")
+    )
+    result = json.loads(
+        (root / "benchmarks/results/turkish/engineering_detection_v2.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert len(fixture) >= 800
+    assert len({case["group"] for case in fixture}) == 60
+    assert result["group_aware"] is True
+    assert result["holdout_touched_before_selection"] is False

@@ -1,6 +1,40 @@
 {
-  "status": "not_run",
-  "reason": "External SentenceTransformer downloads are benchmark-only and were not available in the offline CI environment.",
-  "models": [],
-  "textual_baseline": "citeguard_char_3gram_textual_baseline"
+  "kind": "external_sts_semantic_capability_not_plagiarism_accuracy",
+  "selection_data": "train+development only",
+  "holdout_touched_before_selection": false,
+  "selected_model": "intfloat/multilingual-e5-small",
+  "models": [
+    {
+      "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "dimension": 384,
+      "development": {
+        "cases": 7249,
+        "pearson": 0.7870517026104227,
+        "spearman": 0.7714742595031312,
+        "runtime_seconds": 15.256
+      }
+    },
+    {
+      "model": "intfloat/multilingual-e5-small",
+      "dimension": 384,
+      "development": {
+        "cases": 7249,
+        "pearson": 0.7946293545873833,
+        "spearman": 0.7803208694793975,
+        "runtime_seconds": 10.339
+      },
+      "official_test": {
+        "cases": 1379,
+        "pearson": 0.7676692286964831,
+        "spearman": 0.7627554498136034,
+        "runtime_seconds": 2.571
+      },
+      "human_sanity": {
+        "cases": 81,
+        "pearson": 0.8222962015983158,
+        "spearman": 0.8076237136624795,
+        "runtime_seconds": 0.347
+      }
+    }
+  ]
 }
