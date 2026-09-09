@@ -9,17 +9,17 @@ from __future__ import annotations
 from pathlib import Path
 
 
-def test_package_version_is_1_0_1():
-    """Package version must be 1.0.1."""
+def test_package_version_is_1_1_0():
+    """Package version must be 1.1.0."""
     text = Path("pyproject.toml").read_text()
-    assert 'version = "1.0.1"' in text
+    assert 'version = "1.1.0"' in text
 
 
 def test_python_api_version():
     """Python API must report correct version."""
     from citeguard import __version__
 
-    assert __version__ == "1.0.1"
+    assert __version__ == "1.1.0"
 
 
 def test_stable_api_imports():

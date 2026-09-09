@@ -3,7 +3,7 @@
     "cross-encoder/nli-deberta-v3-base": {
       "model_id": "cross-encoder/nli-deberta-v3-base",
       "revision": "6c749ce3425cd33b46d187e45b92bbf96ee12ec7",
-      "license": null,
+      "license": "Apache-2.0",
       "id2label": {
         "0": "contradiction",
         "1": "entailment",
@@ -27,7 +27,7 @@
     "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli": {
       "model_id": "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
       "revision": "8adb042d524ecd5c26d3e3ba0e3fbcf7e2d0864c",
-      "license": null,
+      "license": "MIT",
       "id2label": {
         "0": "entailment",
         "1": "neutral",
@@ -51,7 +51,7 @@
     "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli": {
       "model_id": "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli",
       "revision": "0a71e92a985b6e1ad1828cf67ce9c459639c1dca",
-      "license": null,
+      "license": "MIT",
       "id2label": {
         "0": "entailment",
         "1": "neutral",
@@ -75,7 +75,7 @@
     "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7": {
       "model_id": "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7",
       "revision": "b5113eb38ab63efdd7f280f8c144ea8b13f978ce",
-      "license": null,
+      "license": "MIT",
       "id2label": {
         "0": "entailment",
         "1": "neutral",

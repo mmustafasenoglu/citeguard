@@ -21,8 +21,18 @@ not be described as a generic "plagiarism accuracy".
   stated in the acquired repository, so raw data is not redistributed.
 - **Turkish STS Dataset**: 81 human-rated pairs, CC BY-SA 4.0, used only as a
   small independent STS sanity check; raw data is not committed.
-- **Turkish detection engineering**: 324 CiteGuard-authored cases across nine
-  academic domains, split deterministically with seed 20260909. It measures
-  regression behavior, not real-world plagiarism accuracy.
-- **Turkish rewrite safety**: 210 deterministic cases exercising independent
-  safety gates. It is an engineering suite, not population-level evidence.
+- **Turkish detection engineering v2**: 840 CiteGuard-authored cases across nine
+  academic domains, split by source/template group with seed 20260909. The locked
+  168-case engineering holdout achieved precision 1.000, recall 0.875, and F1
+  0.933 for textual overlap. It measures regression behavior, not real-world
+  plagiarism accuracy.
+- **Turkish rewrite safety v2**: 280 valid deterministic cases exercising independent
+  safety gates, with 168 development, 56 validation, and 56 holdout cases. It is an
+  engineering suite, not population-level evidence.
+- **Turkish semantic retrieval**: the selected
+  `intfloat/multilingual-e5-small` model (MIT) achieved Recall@1 0.717, Recall@3 0.950,
+  Recall@5 0.983, and MRR 0.836 on 60 close-paraphrase queries. Semantic candidates
+  never create textual spans or increase textual-overlap percentages.
+- **NLI v2**: production retains `cross-encoder/nli-deberta-v3-base` (Apache-2.0);
+  the evaluated MoritzLaurer alternatives are MIT-licensed and were not promoted
+  because they exceeded English regression budgets.

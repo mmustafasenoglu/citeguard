@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "citeguard"
-version = "1.0.1"
+version = "1.1.0"
 description = "Find missing citations, verify existing references, and audit academic writing from your terminal."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -26,7 +26,6 @@ dependencies = [
   "python-docx>=1.1,<2",
   "rich>=13.7,<16",
   "python-dotenv>=1.0,<2",
-  "nltk>=3.8",
   "scikit-learn>=1.4",
   "numpy>=1.24",
   "scipy>=1.10",

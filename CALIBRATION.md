@@ -145,3 +145,27 @@ This calibration document records the results of an internal benchmark suite des
 **This is not a scientific validation.** The benchmark fixtures are synthetic, the evaluation is deterministic, and the results do not generalize to arbitrary real-world documents. No claims of academic rigor, statistical significance, or cross-domain applicability are made or implied.
 
 Users should perform their own evaluation on representative documents before relying on citeguard for any consequential purpose.
+
+---
+
+## v1.1.0 capability evidence
+
+The v1.0 calibration above remains the frozen core report-schema-v4 release benchmark. CiteGuard
+v1.1.0 adds separate attribution-reduction and Turkish capability evaluations; their machine-readable
+results are under `benchmarks/results/turkish/` and `benchmarks/results/nli_v2/`.
+
+- The Turkish detection v2 locked engineering holdout contains 168 of 840 grouped cases and reports
+  precision 1.000, recall 0.875, and F1 0.933 for textual overlap.
+- The 280-case Turkish rewrite-safety v2 engineering suite contains no invalid or no-op cases and
+  matched all constructed safe/unsafe expectations.
+- Turkish semantic close-paraphrase retrieval with the selected
+  `intfloat/multilingual-e5-small` model reports Recall@1 0.717, Recall@3 0.950, Recall@5 0.983,
+  and MRR 0.836. The translated official STS test reports Pearson 0.768 and Spearman 0.763; the
+  81-pair human-rated sanity set reports Pearson 0.822 and Spearman 0.808.
+- Production NLI remains `cross-encoder/nli-deberta-v3-base`. Multilingual alternatives were not
+  promoted because they exceeded English regression budgets. Production NLI remains much stronger
+  in English than Turkish, and raw Turkish NLI is only partially calibrated.
+
+These are task-specific engineering or semantic/NLI measurements. They are not generic plagiarism
+accuracy, scientific correctness validation, detector-evasion evidence, or a guarantee that rewriting
+is safe. Deterministic validation gates fail closed when required evidence or local models are missing.

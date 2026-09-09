@@ -2,7 +2,7 @@
 
 All notable changes to citeguard will be documented here.
 
-## [Unreleased] — Attribution reduction
+## [1.1.0] - 2026-09-09
 
 ### Added
 
@@ -19,6 +19,13 @@ All notable changes to citeguard will be documented here.
   percentage semantics.
 - Added a deterministic engineering reduction benchmark. This is not scientific
   plagiarism validation and there is no detector-evasion target mode.
+- Added Turkish-aware normalization, an 840-case textual-overlap engineering suite,
+  a 280-case rewrite-safety suite, and external semantic-similarity evaluations.
+- Selected `intfloat/multilingual-e5-small` for Turkish semantic retrieval based on
+  development evaluation while preserving textual/semantic evidence separation.
+- Evaluated multilingual NLI alternatives and retained
+  `cross-encoder/nli-deberta-v3-base` because the alternatives exceeded English
+  regression budgets.
 
 ### Fixed
 
@@ -28,6 +35,17 @@ All notable changes to citeguard will be documented here.
   still pass every attribution-reduction validation gate.
 - Ensured application is transactional, never overwrites the source, and protects
   bibliography and unsafe DOCX structures.
+- Strengthened English and Turkish citation, numeric, causality, modality, scope,
+  evidence-strength, and clause-local negation validation.
+- Removed the unused NLTK runtime dependency, reducing the core installation and
+  avoiding exposure to NLTK APIs CiteGuard does not use.
+
+### Limitations
+
+- Turkish benchmark results are engineering and task-specific semantic/NLI evidence,
+  not generic plagiarism accuracy or population-level rewrite-safety estimates.
+- Production NLI remains much stronger in English than Turkish. Turkish semantic
+  retrieval is strong, but raw Turkish NLI remains only partially calibrated.
 
 ## [1.0.1] - 2026-09-08
 

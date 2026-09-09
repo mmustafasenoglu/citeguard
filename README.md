@@ -1,4 +1,4 @@
-# citeguard v1.0.1
+# citeguard v1.1.0
 
 **Audit citations in academic documents. Detect uncited claims, verify bibliography metadata, and estimate source support — from your terminal.**
 
@@ -59,6 +59,16 @@ For development:
 ```bash
 pip install -e ".[dev]"
 ```
+
+Semantic similarity and local NLI are optional so the core installation stays lightweight:
+
+```bash
+pip install "citeguard[semantic]"  # sentence-transformer similarity
+pip install "citeguard[nli]"       # local transformer NLI
+```
+
+Models must already be cached when these features are used with `--offline`; CiteGuard will not
+download them in offline mode and fails closed when a required local model is unavailable.
 
 ## Quick start
 
@@ -385,6 +395,11 @@ citeguard is a local CLI. Network behavior depends on mode:
 - Human review is required for all results.
 - Full-text evidence verification is not supported; only source abstracts are used.
 - Citation Health Score is a review heuristic, not a measure of writing quality.
+- Turkish textual-overlap detection and semantic retrieval have strong engineering benchmark
+  results, but those results are not real-world plagiarism accuracy.
+- Production NLI remains substantially stronger in English than Turkish. Turkish semantic
+  retrieval is strong, while raw Turkish NLI is only partially calibrated; safety-critical
+  attribution changes remain subject to deterministic fail-closed gates.
 
 ## Post-1.0 roadmap
 
