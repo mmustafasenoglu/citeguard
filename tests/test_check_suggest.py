@@ -1,5 +1,7 @@
 import json
+import socket
 
+import pytest
 from click.testing import CliRunner
 
 from citeguard.cli import main
@@ -9,6 +11,46 @@ _CR = "citeguard.providers.crossref.CrossrefProvider.search"
 _AR = "citeguard.providers.arxiv.ArxivProvider.search"
 _OA = "citeguard.providers.openalex.OpenAlexProvider.search"
 
+_ACADEMIC_PROVIDER_SEARCHES = {
+    "semantic_scholar": _SS,
+    "crossref": _CR,
+    "arxiv": _AR,
+    "openalex": _OA,
+}
+
+
+@pytest.fixture(autouse=True)
+def stub_academic_providers(monkeypatch):
+    """Keep CLI tests hermetic while allowing shared or provider-specific responses."""
+
+    def empty_search(_self, _query, max_results=5):
+        return []
+
+    def apply(shared_handler=None, **overrides):
+        unknown = set(overrides) - set(_ACADEMIC_PROVIDER_SEARCHES)
+        if unknown:
+            raise ValueError(f"Unknown academic providers: {sorted(unknown)}")
+        default_handler = shared_handler or empty_search
+        for name, target in _ACADEMIC_PROVIDER_SEARCHES.items():
+            monkeypatch.setattr(target, overrides.get(name, default_handler))
+
+    apply()
+    return apply
+
+
+@pytest.fixture
+def network_attempts(monkeypatch):
+    """Count and reject socket connections in tests that must remain hermetic."""
+    attempts = []
+
+    def fail_on_network(*args, **kwargs):
+        attempts.append((args, kwargs))
+        pytest.fail("Hermetic CLI test attempted a network connection")
+
+    monkeypatch.setattr(socket, "create_connection", fail_on_network)
+    monkeypatch.setattr(socket.socket, "connect", fail_on_network)
+    return attempts
+
 
 def _doc(tmp_path, text=""):
     path = tmp_path / "paper.txt"
@@ -16,19 +58,12 @@ def _doc(tmp_path, text=""):
     return path
 
 
-def test_check_runs_end_to_end(tmp_path, monkeypatch) -> None:
+def test_check_runs_end_to_end(tmp_path) -> None:
     path = _doc(
         tmp_path,
         "Over 70% of models use dropout (Smith, 2020).\n\n"
         "References\n\nSmith, J. (2020). Paper.",
     )
-
-    def fake_search(_self, _query, max_results=5):
-        return []
-
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["check", str(path), "--format", "json"])
     payload = json.loads(result.output)
@@ -40,38 +75,24 @@ def test_check_runs_end_to_end(tmp_path, monkeypatch) -> None:
     assert "priority_review" in payload
 
 
-def test_check_terminal_output(tmp_path, monkeypatch) -> None:
+def test_check_terminal_output(tmp_path) -> None:
     path = _doc(
         tmp_path,
         "Over 70% of models use dropout.\n\n"
         "References\n\nSmith, J. (2020). Paper.",
     )
-
-    def fake_search(_self, _query, max_results=5):
-        return []
-
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["check", str(path)])
     assert "Citation Health Score" in result.output
     assert "Audit Summary" in result.output
 
 
-def test_check_markdown_output(tmp_path, monkeypatch) -> None:
+def test_check_markdown_output(tmp_path) -> None:
     path = _doc(
         tmp_path,
         "Over 70% of models use dropout.\n\n"
         "References\n\nSmith, J. (2020). Paper.",
     )
-
-    def fake_search(_self, _query, max_results=5):
-        return []
-
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
 
     output = tmp_path / "report.md"
     result = CliRunner().invoke(
@@ -84,18 +105,11 @@ def test_check_markdown_output(tmp_path, monkeypatch) -> None:
     assert "Citation Health Score" in content
 
 
-def test_suggest_runs_end_to_end(tmp_path, monkeypatch) -> None:
+def test_suggest_runs_end_to_end(tmp_path) -> None:
     path = _doc(
         tmp_path,
         "Over 70% of models use dropout regularization techniques.",
     )
-
-    def fake_search(_self, _query, max_results=5):
-        return []
-
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["suggest", str(path), "--format", "json"])
     payload = json.loads(result.output)
@@ -106,36 +120,22 @@ def test_suggest_runs_end_to_end(tmp_path, monkeypatch) -> None:
     assert payload["summary"]["total_claims"] >= 1
 
 
-def test_suggest_terminal_output(tmp_path, monkeypatch) -> None:
+def test_suggest_terminal_output(tmp_path) -> None:
     path = _doc(
         tmp_path,
         "Over 70% of models use dropout regularization.",
     )
 
-    def fake_search(_self, _query, max_results=5):
-        return []
-
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
-
     result = CliRunner().invoke(main, ["suggest", str(path)])
     assert "Source Suggestions" in result.output
 
 
-def test_check_respects_severity_filter(tmp_path, monkeypatch) -> None:
+def test_check_respects_severity_filter(tmp_path) -> None:
     path = _doc(
         tmp_path,
         "Over 70% of models use dropout.\n\n"
         "Some general observation about the field.",
     )
-
-    def fake_search(_self, _query, max_results=5):
-        return []
-
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(
         main, ["check", str(path), "--severity", "high", "--format", "json"]
@@ -145,20 +145,13 @@ def test_check_respects_severity_filter(tmp_path, monkeypatch) -> None:
         assert claim["severity"] == "high"
 
 
-def test_check_respects_max_claims(tmp_path, monkeypatch) -> None:
+def test_check_respects_max_claims(tmp_path) -> None:
     path = _doc(
         tmp_path,
         "Over 70% of models use dropout.\n\n"
         "Research shows 80% accuracy on benchmarks.\n\n"
         "Experiments demonstrate 90% improvement.",
     )
-
-    def fake_search(_self, _query, max_results=5):
-        return []
-
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(
         main, ["check", str(path), "--max-claims", "1", "--format", "json"]
@@ -177,7 +170,7 @@ def test_inspect_still_works(tmp_path) -> None:
     assert "Detected citations" in result.output
 
 
-def test_verify_still_works(tmp_path, monkeypatch) -> None:
+def test_verify_still_works(tmp_path, stub_academic_providers) -> None:
     from citeguard.models import SourceCandidate
 
     path = _doc(
@@ -200,25 +193,18 @@ def test_verify_still_works(tmp_path, monkeypatch) -> None:
             )
         ][:max_results]
 
-    monkeypatch.setattr(_CR, fake_search)
+    stub_academic_providers(crossref=fake_search)
     result = CliRunner().invoke(main, ["verify", str(path)])
     assert result.exit_code == 0
     assert "verified" in result.output
 
 
-def test_check_format_both(tmp_path, monkeypatch) -> None:
+def test_check_format_both(tmp_path) -> None:
     path = _doc(
         tmp_path,
         "Over 70% of models use dropout.\n\n"
         "References\n\nSmith, J. (2020). Paper.",
     )
-
-    def fake_search(_self, _query, max_results=5):
-        return []
-
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["check", str(path), "--format", "both"])
     assert result.exit_code in (0, 1)
@@ -235,19 +221,12 @@ def test_check_format_both(tmp_path, monkeypatch) -> None:
     assert "# citeguard Check Report" in md_content
 
 
-def test_check_format_both_with_output(tmp_path, monkeypatch) -> None:
+def test_check_format_both_with_output(tmp_path) -> None:
     path = _doc(
         tmp_path,
         "Over 70% of models use dropout.\n\n"
         "References\n\nSmith, J. (2020). Paper.",
     )
-
-    def fake_search(_self, _query, max_results=5):
-        return []
-
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
 
     out = tmp_path / "report"
     result = CliRunner().invoke(
@@ -258,18 +237,11 @@ def test_check_format_both_with_output(tmp_path, monkeypatch) -> None:
     assert (tmp_path / "report.md").exists()
 
 
-def test_suggest_format_both(tmp_path, monkeypatch) -> None:
+def test_suggest_format_both(tmp_path) -> None:
     path = _doc(
         tmp_path,
         "Over 70% of models use dropout regularization techniques.",
     )
-
-    def fake_search(_self, _query, max_results=5):
-        return []
-
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
 
     result = CliRunner().invoke(main, ["suggest", str(path), "--format", "both"])
     assert result.exit_code == 0
@@ -306,7 +278,7 @@ def test_inspect_format_both(tmp_path) -> None:
     assert "# citeguard Inspection Report" in md_content
 
 
-def test_verify_format_both(tmp_path, monkeypatch) -> None:
+def test_verify_format_both(tmp_path, stub_academic_providers) -> None:
     from citeguard.models import SourceCandidate
 
     path = _doc(
@@ -329,7 +301,7 @@ def test_verify_format_both(tmp_path, monkeypatch) -> None:
             )
         ][:max_results]
 
-    monkeypatch.setattr(_CR, fake_search)
+    stub_academic_providers(crossref=fake_search)
     result = CliRunner().invoke(main, ["verify", str(path), "--format", "both"])
     assert result.exit_code == 0
 
@@ -355,6 +327,11 @@ def test_check_empty_file_rejected(tmp_path) -> None:
     assert "empty" in result.output.lower() or "whitespace" in result.output.lower()
 
 
+def test_check_missing_file_exits_2(tmp_path) -> None:
+    result = CliRunner().invoke(main, ["check", str(tmp_path / "missing.txt")])
+    assert result.exit_code == 2
+
+
 def test_suggest_empty_file_rejected(tmp_path) -> None:
     path = tmp_path / "empty.txt"
     path.write_text("", encoding="utf-8")
@@ -371,7 +348,7 @@ def test_verify_empty_file_rejected(tmp_path) -> None:
     assert "empty" in result.output.lower() or "whitespace" in result.output.lower()
 
 
-def test_check_exits_1_on_findings(tmp_path, monkeypatch) -> None:
+def test_check_exits_1_on_findings(tmp_path, network_attempts) -> None:
     """Health score < 80 should produce exit code 1."""
     path = _doc(
         tmp_path,
@@ -379,18 +356,12 @@ def test_check_exits_1_on_findings(tmp_path, monkeypatch) -> None:
         "References\n\nSmith, J. (2020). Paper.",
     )
 
-    def fake_search(_self, _query, max_results=5):
-        return []
-
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
-
-    result = CliRunner().invoke(main, ["check", str(path)])
+    result = CliRunner().invoke(main, ["check", str(path), "--no-cache"])
     assert result.exit_code == 1
+    assert network_attempts == []
 
 
-def test_check_evidence_pipeline_integration(tmp_path, monkeypatch) -> None:
+def test_check_evidence_pipeline_integration(tmp_path, stub_academic_providers) -> None:
     """Integration test: full pipeline with evidence extraction and entailment."""
     from citeguard.models import SourceCandidate
 
@@ -418,10 +389,7 @@ def test_check_evidence_pipeline_integration(tmp_path, monkeypatch) -> None:
             )
         ][:max_results]
 
-    monkeypatch.setattr(_SS, fake_search)
-    monkeypatch.setattr(_CR, fake_search)
-    monkeypatch.setattr(_AR, fake_search)
-    monkeypatch.setattr(_OA, fake_search)
+    stub_academic_providers(fake_search)
 
     result = CliRunner().invoke(
         main, ["check", str(path), "--format", "json", "--threshold", "0"]
@@ -446,7 +414,7 @@ def test_check_evidence_pipeline_integration(tmp_path, monkeypatch) -> None:
     assert "verdict" in evidence[0]
 
 
-def test_check_require_evidence_filter(tmp_path, monkeypatch) -> None:
+def test_check_require_evidence_filter(tmp_path, stub_academic_providers) -> None:
     """--require-evidence filters out claims without evidence."""
     from citeguard.models import SourceCandidate
 
@@ -476,10 +444,7 @@ def test_check_require_evidence_filter(tmp_path, monkeypatch) -> None:
             ][:max_results]
         return []
 
-    monkeypatch.setattr(_SS, fake_search_transformers)
-    monkeypatch.setattr(_CR, fake_search_transformers)
-    monkeypatch.setattr(_AR, fake_search_transformers)
-    monkeypatch.setattr(_OA, fake_search_transformers)
+    stub_academic_providers(fake_search_transformers)
 
     # Without --require-evidence: both claims should appear
     result_all = CliRunner().invoke(
