@@ -418,28 +418,36 @@ def score_external(
     id2label = {int(key): str(value) for key, value in model.config.id2label.items()}
     label_indices = _label_indices(id2label)
     labels = ["entailment", "neutral", "contradiction"]
-    predictions: list[str] = []
+    predictions: list[str] = ["neutral"] * len(rows)
     latencies: list[float] = []
+    buckets: dict[int, list[tuple[int, dict[str, str]]]] = {}
+    for index, row in enumerate(rows):
+        words = len(row["original"].split()) + len(row["candidate"].split()) + 3
+        length = min(512, max(32, ((words + 31) // 32) * 32))
+        buckets.setdefault(length, []).append((index, row))
     started = time.perf_counter()
-    for offset in range(0, len(rows), batch_size):
-        started_batch = time.perf_counter()
-        batch = rows[offset : offset + batch_size]
-        encoded = tokenizer(
-            [row["original"] for row in batch],
-            [row["candidate"] for row in batch],
-            padding=True,
-            truncation=True,
-            max_length=512,
-            return_tensors="pt",
-        )
-        encoded = {name: value.to(device) for name, value in encoded.items()}
-        with torch.no_grad():
-            probabilities = torch.softmax(model(**encoded).logits, dim=-1).detach().cpu().numpy()
-        predictions.extend(
-            labels[int(np.argmax(row[[label_indices[label] for label in labels]]))]
-            for row in probabilities
-        )
-        latencies.extend([(time.perf_counter() - started_batch) / len(batch)] * len(batch))
+    for length, bucket in sorted(buckets.items()):
+        for offset in range(0, len(bucket), batch_size):
+            started_batch = time.perf_counter()
+            batch = bucket[offset : offset + batch_size]
+            encoded = tokenizer(
+                [row["original"] for _, row in batch],
+                [row["candidate"] for _, row in batch],
+                padding="max_length",
+                truncation=True,
+                max_length=length,
+                return_tensors="pt",
+            )
+            encoded = {name: value.to(device) for name, value in encoded.items()}
+            with torch.no_grad():
+                probabilities = (
+                    torch.softmax(model(**encoded).logits, dim=-1).detach().cpu().numpy()
+                )
+            for (index, _), probability in zip(batch, probabilities, strict=True):
+                predictions[index] = labels[
+                    int(np.argmax(probability[[label_indices[label] for label in labels]]))
+                ]
+            latencies.extend([(time.perf_counter() - started_batch) / len(batch)] * len(batch))
     report = classification_report(
         [row["label"] for row in rows],
         predictions,
