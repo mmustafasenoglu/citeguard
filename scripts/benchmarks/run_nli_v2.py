@@ -598,13 +598,19 @@ def main() -> None:
     parser.add_argument("--models", nargs="+", default=list(DEFAULT_MODELS))
     parser.add_argument("--current", default=DEFAULT_MODELS[0])
     parser.add_argument("--primary", default=DEFAULT_MODELS[1])
-    parser.add_argument("--threshold", type=float, default=0.70)
+    parser.add_argument(
+        "--thresholds",
+        type=float,
+        nargs="+",
+        default=(0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90),
+    )
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--allow-download", action="store_true")
     parser.add_argument("--cache-dir", type=Path)
     parser.add_argument("--english-archive", type=Path)
     parser.add_argument("--turkish-archive", type=Path)
     parser.add_argument("--external-split", choices=("dev", "test"), default="dev")
+    parser.add_argument("--external-only", action="store_true")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     if args.current not in args.models or args.primary not in args.models:
@@ -617,8 +623,16 @@ def main() -> None:
         language: [row for row in cases if row["split"] == args.phase]
         for language, cases in all_cases.items()
     }
+    if args.external_only:
+        selected = {}
     model_metadata: dict[str, Any] = {}
-    results: dict[str, Any] = {"phase": args.phase, "seed": SEED, "models": {}, "architectures": {}}
+    results: dict[str, Any] = {
+        "phase": args.phase,
+        "seed": SEED,
+        "models": {},
+        "model_meaning": {},
+        "architectures": {},
+    }
     for language, cases in selected.items():
         outputs: dict[str, list[tuple[Direction, Direction]]] = {}
         for model in args.models:
@@ -629,6 +643,20 @@ def main() -> None:
                 batch_size=args.batch_size,
                 cache_dir=args.cache_dir,
             )
+        results["model_meaning"][language] = {
+            model: [
+                score_architecture(
+                    cases,
+                    outputs,
+                    "B_multilingual_global",
+                    current=args.current,
+                    primary=model,
+                    threshold=threshold,
+                )
+                for threshold in args.thresholds
+            ]
+            for model in args.models
+        }
         results["architectures"][language] = [
             score_architecture(
                 cases,
@@ -636,8 +664,9 @@ def main() -> None:
                 architecture,
                 current=args.current,
                 primary=args.primary,
-                threshold=args.threshold,
+                threshold=threshold,
             )
+            for threshold in args.thresholds
             for architecture in (
                 "A_current_global",
                 "B_multilingual_global",
