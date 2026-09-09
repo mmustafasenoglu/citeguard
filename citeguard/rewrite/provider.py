@@ -164,16 +164,31 @@ class LLMRewriteProvider:
         model: str | None = None,
         timeout: float = 30.0,
         max_tokens: int = 1024,
+        offline: bool = False,
     ) -> None:
         self._model = model
         self._timeout = timeout
         self._max_tokens = max_tokens
+        self._offline = offline
 
     def rewrite(self, request: RewriteRequest) -> RewriteResult:
         """Generate a rewrite suggestion, or a deterministic error result."""
+        original = request.context.original_text
+        if self._offline:
+            return RewriteResult(
+                original_text=original,
+                rewritten_text=None,
+                status=RewriteStatus.UNAVAILABLE,
+                provider="none",
+                model=self._model or "unknown",
+                warnings=("rewrite unavailable in offline mode.",),
+                evidence_used=request.context.evidence_texts,
+                citation_preserved=None,
+                metadata={"mode": request.mode.value, "offline": True},
+            )
+
         from ..llm import _call_llm_detailed, _parse_json_response, _resolve
 
-        original = request.context.original_text
         resolved = _resolve(model=self._model, task="rewrite")
         if resolved is None:
             return RewriteResult(

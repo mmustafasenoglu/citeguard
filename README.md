@@ -281,6 +281,13 @@ Modes: `clarify`, `hedge`, `align_with_evidence`, `remove_unsupported_detail`,
 source, a supporting verdict, and non-empty evidence; otherwise the result is
 `insufficient_evidence` with zero network calls.
 
+`--offline` also disables the rewrite provider itself, even when credentials
+are configured, so rewrite execution makes zero remote LLM calls. A provider's
+successful response is only a proposal, not verification or acceptance. When
+used in attribution reduction, proposals remain unvalidated candidates until
+they pass citation, numeric, factual, semantic, and bidirectional-entailment
+gates and deterministic ranking.
+
 Configuration (all optional, `CITEGUARD_REWRITE_*` namespace):
 
 - Credentials come only from the standard LLM environment variables

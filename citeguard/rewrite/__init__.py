@@ -16,6 +16,7 @@ from .models import (
     RewriteStatus,
 )
 from .provider import LLMRewriteProvider
+from .reduction_adapter import EvidenceGroundedReductionBackend
 from .service import (
     build_context,
     collect_rewrite_requests,
@@ -24,6 +25,7 @@ from .service import (
 
 __all__ = [
     "LLMRewriteProvider",
+    "EvidenceGroundedReductionBackend",
     "RewriteContext",
     "RewriteMode",
     "RewriteProvider",

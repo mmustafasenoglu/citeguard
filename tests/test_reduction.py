@@ -142,6 +142,7 @@ def test_ranker_prefers_meaning_and_support_over_lower_overlap() -> None:
         citations_preserved=True,
         numeric_integrity=True,
         factual_integrity=True,
+        meaning_verdict=MeaningVerdict.PRESERVED,
     )
     drifted = RewriteCandidate(
         "The experiment transformed the field.",
@@ -153,6 +154,7 @@ def test_ranker_prefers_meaning_and_support_over_lower_overlap() -> None:
         citations_preserved=True,
         numeric_integrity=True,
         factual_integrity=True,
+        meaning_verdict=MeaningVerdict.PRESERVED,
     )
     assert rank_candidates([drifted, safe])[0] is safe
 

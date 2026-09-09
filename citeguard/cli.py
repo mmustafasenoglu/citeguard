@@ -1372,6 +1372,7 @@ def rewrite_command(
 
         llm_provider = LLMRewriteProvider(
             model=model or rewrite_settings.model,
+            offline=offline,
             timeout=(
                 timeout
                 if timeout is not None

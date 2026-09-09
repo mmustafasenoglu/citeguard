@@ -172,6 +172,22 @@ def test_no_credentials_means_unavailable_with_zero_network() -> None:
     call_mock.assert_not_called()
 
 
+def test_offline_provider_is_unavailable_with_zero_network(monkeypatch) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "configured-but-forbidden")
+    resolve_mock = MagicMock(side_effect=AssertionError("must not resolve provider"))
+    call_mock = MagicMock(side_effect=AssertionError("NETWORK MUST NOT BE CALLED"))
+    provider = LLMRewriteProvider(offline=True)
+    with (
+        patch("citeguard.llm._resolve", resolve_mock),
+        patch("citeguard.llm._call_llm_detailed", call_mock),
+    ):
+        result = provider.rewrite(_make_request())
+    assert result.status == RewriteStatus.UNAVAILABLE
+    assert result.metadata == {"mode": "clarify", "offline": True}
+    resolve_mock.assert_not_called()
+    call_mock.assert_not_called()
+
+
 def test_exhausted_providers_means_provider_error() -> None:
     error_resp = LLMResponse(
         text=None, provider="none", model="test", latency_ms=5.0,
@@ -638,6 +654,15 @@ def test_cli_without_credentials_reports_unavailable(tmp_path, monkeypatch) -> N
         "Transformers were introduced in 2017. "
         "They achieve state-of-the-art results in NLP.",
     )
+    for target in (
+        "citeguard.providers.semantic_scholar.SemanticScholarProvider.search",
+        "citeguard.providers.crossref.CrossrefProvider.search",
+        "citeguard.providers.openalex.OpenAlexProvider.search",
+        "citeguard.providers.arxiv.ArxivProvider.search",
+    ):
+        monkeypatch.setattr(
+            target, lambda _self, _query, max_results=5: []
+        )
     result = CliRunner().invoke(
         main, ["rewrite", str(path), "--format", "json", "--no-cache"]
     )
@@ -649,6 +674,44 @@ def test_cli_without_credentials_reports_unavailable(tmp_path, monkeypatch) -> N
     for item in payload["suggestions"]:
         assert item["status"] in ("unavailable", "insufficient_evidence")
         assert item["rewritten_text"] is None
+
+
+def test_cli_offline_with_credentials_makes_zero_network_calls(
+    tmp_path, monkeypatch
+) -> None:
+    from click.testing import CliRunner
+
+    from citeguard.cli import main
+
+    _strip_llm_keys(monkeypatch)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    path = _doc(tmp_path, "Transformers were introduced in 2017.")
+    academic_network = MagicMock(
+        side_effect=AssertionError("ACADEMIC NETWORK MUST NOT BE CALLED")
+    )
+    rewrite_network = MagicMock(
+        side_effect=AssertionError("REWRITE NETWORK MUST NOT BE CALLED")
+    )
+    for target in (
+        "citeguard.providers.semantic_scholar.SemanticScholarProvider.search",
+        "citeguard.providers.crossref.CrossrefProvider.search",
+        "citeguard.providers.openalex.OpenAlexProvider.search",
+        "citeguard.providers.arxiv.ArxivProvider.search",
+    ):
+        monkeypatch.setattr(target, academic_network)
+    monkeypatch.setattr("citeguard.llm._call_llm_detailed", rewrite_network)
+
+    result = CliRunner().invoke(
+        main,
+        ["rewrite", str(path), "--offline", "--format", "json", "--no-cache"],
+    )
+
+    assert result.exit_code == 0, result.output
+    suggestions = json.loads(result.output)["suggestions"]
+    assert suggestions
+    assert all(item["status"] == "insufficient_evidence" for item in suggestions)
+    academic_network.assert_not_called()
+    rewrite_network.assert_not_called()
 
 
 def test_cli_json_output_shape_with_mocked_provider(tmp_path, monkeypatch) -> None:
@@ -803,6 +866,10 @@ def test_normal_analysis_makes_zero_rewrite_requests(tmp_path, monkeypatch) -> N
     )
     monkeypatch.setattr(
         "citeguard.providers.arxiv.ArxivProvider.search",
+        lambda _self, _query, max_results=5: [],
+    )
+    monkeypatch.setattr(
+        "citeguard.providers.openalex.OpenAlexProvider.search",
         lambda _self, _query, max_results=5: [],
     )
     result = CliRunner().invoke(

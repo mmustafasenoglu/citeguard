@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .models import RewriteCandidate
+from .models import MeaningVerdict, RewriteCandidate
 
 
 def rank_candidates(candidates: list[RewriteCandidate]) -> list[RewriteCandidate]:
@@ -14,9 +14,10 @@ def rank_candidates(candidates: list[RewriteCandidate]) -> list[RewriteCandidate
     eligible = [
         candidate for candidate in candidates
         if not candidate.rejection_reasons
-        and candidate.citations_preserved is not False
-        and candidate.numeric_integrity is not False
-        and candidate.factual_integrity is not False
+        and candidate.citations_preserved is True
+        and candidate.numeric_integrity is True
+        and candidate.factual_integrity is True
+        and candidate.meaning_verdict == MeaningVerdict.PRESERVED
     ]
 
     def score(candidate: RewriteCandidate) -> float:

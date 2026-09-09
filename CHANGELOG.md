@@ -12,6 +12,13 @@ All notable changes to citeguard will be documented here.
 - Added local deterministic tests for citation, numeric, support, and preview-only
   invariants.
 
+### Fixed
+
+- Made rewrite tests hermetic across all academic providers, including OpenAlex.
+- Enforced a strict offline gate in the remote rewrite provider and CLI.
+- Added a fail-closed, evidence-grounded rewrite-provider adapter whose proposals
+  still pass every attribution-reduction validation gate.
+
 ## [1.0.1] - 2026-09-08
 
 ### Fixed
