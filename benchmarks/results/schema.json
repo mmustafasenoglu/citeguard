@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["benchmark", "citeguard_commit", "dataset", "split", "cases"],
+  "properties": {
+    "benchmark": {"type": "string"},
+    "citeguard_commit": {"type": "string"},
+    "dataset": {"type": "string"},
+    "split": {"type": "string"},
+    "cases": {"type": "integer", "minimum": 0},
+    "precision": {"type": ["number", "null"]},
+    "recall": {"type": ["number", "null"]},
+    "f1": {"type": ["number", "null"]}
+  }
+}
