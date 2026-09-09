@@ -17,35 +17,35 @@
         "neutral": 2
       },
       "cases": 9842,
-      "accuracy": 0.4544807965860597,
-      "macro_precision": 0.4739915456035333,
-      "macro_recall": 0.4553710589708458,
-      "macro_f1": 0.4453032272636783,
+      "accuracy": 0.50467384677911,
+      "macro_precision": 0.5111195973129777,
+      "macro_recall": 0.5034456294144731,
+      "macro_f1": 0.4886937811427959,
       "per_class": {
         "entailment": {
-          "precision": 0.5345773874862788,
-          "recall": 0.43887053169119855,
-          "f1-score": 0.48201913559881227,
+          "precision": 0.4930583911800735,
+          "recall": 0.7254430759987984,
+          "f1-score": 0.5870912847939711,
           "support": 3329.0
         },
         "neutral": {
-          "precision": 0.3998067632850242,
-          "recall": 0.6395672333848532,
-          "f1-score": 0.4920332936979786,
+          "precision": 0.5048200514138818,
+          "recall": 0.4856259659969088,
+          "f1-score": 0.4950370253663148,
           "support": 3235.0
         },
         "contradiction": {
-          "precision": 0.4875904860392968,
-          "recall": 0.28767541183648565,
-          "f1-score": 0.36185725249424405,
+          "precision": 0.5354803493449781,
+          "recall": 0.299267846247712,
+          "f1-score": 0.38395303326810176,
           "support": 3278.0
         }
       },
-      "runtime_seconds": 62.198,
-      "single_pair_latency_ms_estimate": 6.051,
-      "p95_pair_latency_ms_estimate": 8.504,
+      "runtime_seconds": 140.86,
+      "single_pair_latency_ms_estimate": 13.048,
+      "p95_pair_latency_ms_estimate": 30.453,
       "batch_size": 64,
-      "peak_rss_bytes": 958283776,
+      "peak_rss_bytes": 947699712,
       "cached_disk_bytes": 1497701074,
       "device": "mps"
     },
@@ -64,35 +64,35 @@
         "contradiction": 2
       },
       "cases": 9842,
-      "accuracy": 0.6844137370453159,
-      "macro_precision": 0.7006068552480033,
-      "macro_recall": 0.683957800529572,
-      "macro_f1": 0.6830948612129243,
+      "accuracy": 0.7299329404592563,
+      "macro_precision": 0.7401266602742606,
+      "macro_recall": 0.728773689503104,
+      "macro_f1": 0.7252532534105525,
       "per_class": {
         "entailment": {
-          "precision": 0.7084461288576069,
-          "recall": 0.7861219585461099,
-          "f1-score": 0.7452655560301865,
+          "precision": 0.7068518954556158,
+          "recall": 0.9017723039951937,
+          "f1-score": 0.7925026399155227,
           "support": 3329.0
         },
         "neutral": {
-          "precision": 0.589903721051262,
-          "recall": 0.7007727975270479,
-          "f1-score": 0.6405764340209099,
+          "precision": 0.6847103513770181,
+          "recall": 0.6686244204018548,
+          "f1-score": 0.6765717860494214,
           "support": 3235.0
         },
         "contradiction": {
-          "precision": 0.803470715835141,
-          "recall": 0.5649786455155583,
-          "f1-score": 0.6634425935876769,
+          "precision": 0.8288177339901478,
+          "recall": 0.6159243441122636,
+          "f1-score": 0.7066853342667133,
           "support": 3278.0
         }
       },
-      "runtime_seconds": 63.14,
-      "single_pair_latency_ms_estimate": 6.152,
-      "p95_pair_latency_ms_estimate": 6.937,
+      "runtime_seconds": 131.439,
+      "single_pair_latency_ms_estimate": 14.304,
+      "p95_pair_latency_ms_estimate": 20.447,
       "batch_size": 64,
-      "peak_rss_bytes": 958283776,
+      "peak_rss_bytes": 947699712,
       "cached_disk_bytes": 1156582236,
       "device": "mps"
     },
@@ -111,35 +111,35 @@
         "contradiction": 2
       },
       "cases": 9842,
-      "accuracy": 0.5840276366592156,
-      "macro_precision": 0.5846872014384805,
-      "macro_recall": 0.5828650015766031,
-      "macro_f1": 0.5744172228159146,
+      "accuracy": 0.5983539930908351,
+      "macro_precision": 0.6024327472274612,
+      "macro_recall": 0.5968430581159216,
+      "macro_f1": 0.5861854265688632,
       "per_class": {
         "entailment": {
-          "precision": 0.58782094978414,
-          "recall": 0.7771102433163112,
-          "f1-score": 0.6693402328589909,
+          "precision": 0.5856447173406732,
+          "recall": 0.8308801441874437,
+          "f1-score": 0.6870342771982116,
           "support": 3329.0
         },
         "neutral": {
-          "precision": 0.5682182985553772,
-          "recall": 0.5471406491499228,
-          "f1-score": 0.5574803149606299,
+          "precision": 0.6038135593220338,
+          "recall": 0.5285935085007728,
+          "f1-score": 0.5637052909180814,
           "support": 3235.0
         },
         "contradiction": {
-          "precision": 0.5980223559759243,
-          "recall": 0.4243441122635753,
-          "f1-score": 0.4964311206281228,
+          "precision": 0.6178399650196764,
+          "recall": 0.4310555216595485,
+          "f1-score": 0.5078167115902965,
           "support": 3278.0
         }
       },
-      "runtime_seconds": 7.517,
-      "single_pair_latency_ms_estimate": 0.607,
-      "p95_pair_latency_ms_estimate": 0.67,
+      "runtime_seconds": 12.321,
+      "single_pair_latency_ms_estimate": 0.794,
+      "p95_pair_latency_ms_estimate": 2.05,
       "batch_size": 64,
-      "peak_rss_bytes": 958283776,
+      "peak_rss_bytes": 947699712,
       "cached_disk_bytes": 900301456,
       "device": "mps"
     },
@@ -158,35 +158,35 @@
         "contradiction": 2
       },
       "cases": 9842,
-      "accuracy": 0.6587075797602113,
-      "macro_precision": 0.7134757794727209,
-      "macro_recall": 0.659440991845876,
-      "macro_f1": 0.6587865353283991,
+      "accuracy": 0.7053444421865475,
+      "macro_precision": 0.7440935011299343,
+      "macro_recall": 0.7055091478828762,
+      "macro_f1": 0.7035031679896143,
       "per_class": {
         "entailment": {
-          "precision": 0.8220402084884587,
-          "recall": 0.6632622409131872,
-          "f1-score": 0.7341645885286783,
+          "precision": 0.8294325104200064,
+          "recall": 0.7771102433163112,
+          "f1-score": 0.8024193548387096,
           "support": 3329.0
         },
         "neutral": {
-          "precision": 0.5204022432798299,
-          "recall": 0.831839258114374,
-          "f1-score": 0.6402569593147751,
+          "precision": 0.568186638388123,
+          "recall": 0.8281298299845441,
+          "f1-score": 0.6739622641509434,
           "support": 3235.0
         },
         "contradiction": {
-          "precision": 0.7979848866498741,
-          "recall": 0.48322147651006714,
-          "f1-score": 0.6019380581417443,
+          "precision": 0.8346613545816733,
+          "recall": 0.511287370347773,
+          "f1-score": 0.6341278849791903,
           "support": 3278.0
         }
       },
-      "runtime_seconds": 61.756,
-      "single_pair_latency_ms_estimate": 6.018,
-      "p95_pair_latency_ms_estimate": 6.898,
+      "runtime_seconds": 129.762,
+      "single_pair_latency_ms_estimate": 12.326,
+      "p95_pair_latency_ms_estimate": 19.659,
       "batch_size": 64,
-      "peak_rss_bytes": 969097216,
+      "peak_rss_bytes": 971358208,
       "cached_disk_bytes": 1156549996,
       "device": "mps"
     }
