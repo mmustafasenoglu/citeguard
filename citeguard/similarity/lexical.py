@@ -9,6 +9,7 @@ entry point.
 from __future__ import annotations
 
 import re
+import unicodedata
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -19,17 +20,22 @@ from citeguard.similarity.models import MatchType
 # Turkish-aware normalization (retrieval-only, never replaces original text)
 # ---------------------------------------------------------------------------
 
+
 def normalize_turkish(text: str) -> str:
     """Lowercase + whitespace normalize with Turkish dotless/i handling.
 
     Transformations:
+    - Unicode composed form (NFC)
     - ``İ`` → ``i``, ``I`` → ``ı``
+    - typographic apostrophes/dashes → ASCII equivalents
     - ``str.lower()`` for remaining Unicode (ç, ğ, ö, ş, ü are correct)
     - Whitespace collapsed to single space
 
     This is *intentionaly* used only for retrieval / matching.
     Original text is never replaced in the model.
     """
+    text = unicodedata.normalize("NFC", text)
+    text = text.translate(str.maketrans({"’": "'", "‘": "'", "–": "-", "—": "-"}))
     text = text.replace("İ", "i").replace("I", "ı")
     lowered = text.lower()
     collapsed = re.sub(r"\s+", " ", lowered).strip()
@@ -39,6 +45,7 @@ def normalize_turkish(text: str) -> str:
 # ---------------------------------------------------------------------------
 # TF-IDF index building
 # ---------------------------------------------------------------------------
+
 
 def build_tfidf_index(
     documents: list[str],
@@ -110,6 +117,7 @@ def compute_cosine_similarity(
 # Character-n-gram Jaccard
 # ---------------------------------------------------------------------------
 
+
 def char_ngram_jaccard(text1: str, text2: str, n: int = 3) -> float:
     """Jaccard similarity on character n-grams.
 
@@ -152,6 +160,7 @@ def char_ngram_jaccard(text1: str, text2: str, n: int = 3) -> float:
 # ---------------------------------------------------------------------------
 # Match-type classification
 # ---------------------------------------------------------------------------
+
 
 def classify_match_type(
     exact_overlap: float,

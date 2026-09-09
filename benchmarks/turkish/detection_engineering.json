@@ -1,0 +1,2594 @@
+[
+  {
+    "id": "tr-00-00",
+    "domain": "medicine",
+    "category": "exact_copy",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-00-01",
+    "domain": "medicine",
+    "category": "near_copy",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Müdahale randomize çalışmada ölüm oranını %12.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-00-02",
+    "domain": "medicine",
+    "category": "punctuation_case",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "MÜDAHALE RANDOMIZE ÇALIŞMADA ÖLÜM ORANINI %12 AZALTTI!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-00-03",
+    "domain": "medicine",
+    "category": "word_reordering",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "çalışmada ölüm oranını %12 azalttı Müdahale randomize.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-00-04",
+    "domain": "medicine",
+    "category": "morphological_variation",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Müdahale randomize çalışmanın kapsamında ölüm oranını %12 azalttı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-00-05",
+    "domain": "medicine",
+    "category": "light_lexical_substitution",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-00-06",
+    "domain": "medicine",
+    "category": "close_paraphrase",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Tedavi sonrasında ölüm oranında yüzde on iki düşüş gözlendi. Müdahale randomize çalışmada ölüm",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-00-07",
+    "domain": "medicine",
+    "category": "citation_present",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Müdahale randomize çalışmada ölüm oranını %12 azalttı. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-00-08",
+    "domain": "medicine",
+    "category": "missing_citation",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-00-09",
+    "domain": "medicine",
+    "category": "quotation_needed",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "\"Müdahale randomize çalışmada ölüm oranını %12 azalttı.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-00-10",
+    "domain": "medicine",
+    "category": "legitimate_paraphrase",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Tedavi sonrasında ölüm oranında yüzde on iki düşüş gözlendi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-00-11",
+    "domain": "medicine",
+    "category": "semantic_related_not_copy",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Tedavi sonrasında ölüm oranında yüzde on iki düşüş gözlendi; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-00-12",
+    "domain": "medicine",
+    "category": "unrelated",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Hastane yeni bir görüntüleme cihazı satın aldı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-00-13",
+    "domain": "medicine",
+    "category": "common_academic_phrase",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-00-14",
+    "domain": "medicine",
+    "category": "technical_term_overlap",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-00-15",
+    "domain": "medicine",
+    "category": "short_generic_phrase",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-00-16",
+    "domain": "medicine",
+    "category": "near_copy",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Müdahale randomize çalışmada ölüm oranını %12.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-00-17",
+    "domain": "medicine",
+    "category": "legitimate_paraphrase",
+    "source": "Müdahale randomize çalışmada ölüm oranını %12 azalttı.",
+    "candidate": "Tedavi sonrasında ölüm oranında yüzde on iki düşüş gözlendi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-01-00",
+    "domain": "medicine",
+    "category": "exact_copy",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-01-01",
+    "domain": "medicine",
+    "category": "near_copy",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Düzenli egzersiz uyku kalitesiyle ilişkili.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-01-02",
+    "domain": "medicine",
+    "category": "punctuation_case",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "DÜZENLI EGZERSIZ UYKU KALITESIYLE ILIŞKILI BULUNDU!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-01-03",
+    "domain": "medicine",
+    "category": "word_reordering",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "uyku kalitesiyle ilişkili bulundu Düzenli egzersiz.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-01-04",
+    "domain": "medicine",
+    "category": "morphological_variation",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-01-05",
+    "domain": "medicine",
+    "category": "light_lexical_substitution",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Düzenli egzersiz uyku kalitesiyle ilişkili gözlendi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-01-06",
+    "domain": "medicine",
+    "category": "close_paraphrase",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Sık fiziksel aktivite yapanlar daha iyi uyku bildirdi. Düzenli egzersiz uyku kalitesiyle",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-01-07",
+    "domain": "medicine",
+    "category": "citation_present",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-01-08",
+    "domain": "medicine",
+    "category": "missing_citation",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-01-09",
+    "domain": "medicine",
+    "category": "quotation_needed",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "\"Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-01-10",
+    "domain": "medicine",
+    "category": "legitimate_paraphrase",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Sık fiziksel aktivite yapanlar daha iyi uyku bildirdi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-01-11",
+    "domain": "medicine",
+    "category": "semantic_related_not_copy",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Sık fiziksel aktivite yapanlar daha iyi uyku bildirdi; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-01-12",
+    "domain": "medicine",
+    "category": "unrelated",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Aşının saklama sıcaklığı yeniden düzenlendi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-01-13",
+    "domain": "medicine",
+    "category": "common_academic_phrase",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-01-14",
+    "domain": "medicine",
+    "category": "technical_term_overlap",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-01-15",
+    "domain": "medicine",
+    "category": "short_generic_phrase",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-01-16",
+    "domain": "medicine",
+    "category": "near_copy",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Düzenli egzersiz uyku kalitesiyle ilişkili.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-01-17",
+    "domain": "medicine",
+    "category": "legitimate_paraphrase",
+    "source": "Düzenli egzersiz uyku kalitesiyle ilişkili bulundu.",
+    "candidate": "Sık fiziksel aktivite yapanlar daha iyi uyku bildirdi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-02-00",
+    "domain": "engineering",
+    "category": "exact_copy",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-02-01",
+    "domain": "engineering",
+    "category": "near_copy",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Kompozit malzeme kiriş dayanımını önemli ölçüde.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-02-02",
+    "domain": "engineering",
+    "category": "punctuation_case",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "KOMPOZIT MALZEME KIRIŞ DAYANIMINI ÖNEMLI ÖLÇÜDE ARTIRDI!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-02-03",
+    "domain": "engineering",
+    "category": "word_reordering",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "kiriş dayanımını önemli ölçüde artırdı Kompozit malzeme.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-02-04",
+    "domain": "engineering",
+    "category": "morphological_variation",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-02-05",
+    "domain": "engineering",
+    "category": "light_lexical_substitution",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Kompozit malzeme kiriş dayanımını belirgin biçimde artırdı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-02-06",
+    "domain": "engineering",
+    "category": "close_paraphrase",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Yeni kompozit kullanıldığında kirişler daha yüksek yük taşıdı. Kompozit malzeme kiriş dayanımını",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-02-07",
+    "domain": "engineering",
+    "category": "citation_present",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-02-08",
+    "domain": "engineering",
+    "category": "missing_citation",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-02-09",
+    "domain": "engineering",
+    "category": "quotation_needed",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "\"Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-02-10",
+    "domain": "engineering",
+    "category": "legitimate_paraphrase",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Yeni kompozit kullanıldığında kirişler daha yüksek yük taşıdı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-02-11",
+    "domain": "engineering",
+    "category": "semantic_related_not_copy",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Yeni kompozit kullanıldığında kirişler daha yüksek yük taşıdı; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-02-12",
+    "domain": "engineering",
+    "category": "unrelated",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Rüzgâr tüneli laboratuvarın kuzeyindedir.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-02-13",
+    "domain": "engineering",
+    "category": "common_academic_phrase",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-02-14",
+    "domain": "engineering",
+    "category": "technical_term_overlap",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-02-15",
+    "domain": "engineering",
+    "category": "short_generic_phrase",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-02-16",
+    "domain": "engineering",
+    "category": "near_copy",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Kompozit malzeme kiriş dayanımını önemli ölçüde.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-02-17",
+    "domain": "engineering",
+    "category": "legitimate_paraphrase",
+    "source": "Kompozit malzeme kiriş dayanımını önemli ölçüde artırdı.",
+    "candidate": "Yeni kompozit kullanıldığında kirişler daha yüksek yük taşıdı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-03-00",
+    "domain": "engineering",
+    "category": "exact_copy",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-03-01",
+    "domain": "engineering",
+    "category": "near_copy",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-03-02",
+    "domain": "engineering",
+    "category": "punctuation_case",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "SENSÖR 10 MG/KG DÜZEYINDEKI DEĞIŞIMI GÜVENILIR BIÇIMDE ÖLÇTÜ!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-03-03",
+    "domain": "engineering",
+    "category": "word_reordering",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü Sensör 10.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-03-04",
+    "domain": "engineering",
+    "category": "morphological_variation",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-03-05",
+    "domain": "engineering",
+    "category": "light_lexical_substitution",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-03-06",
+    "domain": "engineering",
+    "category": "close_paraphrase",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Algılayıcı kilogram başına 10 mg değişime duyarlıydı. Sensör 10 mg/kg düzeyindeki",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-03-07",
+    "domain": "engineering",
+    "category": "citation_present",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-03-08",
+    "domain": "engineering",
+    "category": "missing_citation",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-03-09",
+    "domain": "engineering",
+    "category": "quotation_needed",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "\"Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-03-10",
+    "domain": "engineering",
+    "category": "legitimate_paraphrase",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Algılayıcı kilogram başına 10 mg değişime duyarlıydı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-03-11",
+    "domain": "engineering",
+    "category": "semantic_related_not_copy",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Algılayıcı kilogram başına 10 mg değişime duyarlıydı; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-03-12",
+    "domain": "engineering",
+    "category": "unrelated",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Köprü projesinin bütçesi onaylandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-03-13",
+    "domain": "engineering",
+    "category": "common_academic_phrase",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-03-14",
+    "domain": "engineering",
+    "category": "technical_term_overlap",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-03-15",
+    "domain": "engineering",
+    "category": "short_generic_phrase",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-03-16",
+    "domain": "engineering",
+    "category": "near_copy",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-03-17",
+    "domain": "engineering",
+    "category": "legitimate_paraphrase",
+    "source": "Sensör 10 mg/kg düzeyindeki değişimi güvenilir biçimde ölçtü.",
+    "candidate": "Algılayıcı kilogram başına 10 mg değişime duyarlıydı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-04-00",
+    "domain": "computer_science",
+    "category": "exact_copy",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-04-01",
+    "domain": "computer_science",
+    "category": "near_copy",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Model değerlendirme kümesinde doğruluğu 6,4 puan.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-04-02",
+    "domain": "computer_science",
+    "category": "punctuation_case",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "MODEL DEĞERLENDIRME KÜMESINDE DOĞRULUĞU 6,4 PUAN ARTIRDI!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-04-03",
+    "domain": "computer_science",
+    "category": "word_reordering",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "kümesinde doğruluğu 6,4 puan artırdı Model değerlendirme.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-04-04",
+    "domain": "computer_science",
+    "category": "morphological_variation",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-04-05",
+    "domain": "computer_science",
+    "category": "light_lexical_substitution",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-04-06",
+    "domain": "computer_science",
+    "category": "close_paraphrase",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Sistem test verilerinde 6,4 puanlık doğruluk kazancı sağladı. Model değerlendirme kümesinde doğruluğu",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-04-07",
+    "domain": "computer_science",
+    "category": "citation_present",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-04-08",
+    "domain": "computer_science",
+    "category": "missing_citation",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-04-09",
+    "domain": "computer_science",
+    "category": "quotation_needed",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "\"Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-04-10",
+    "domain": "computer_science",
+    "category": "legitimate_paraphrase",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Sistem test verilerinde 6,4 puanlık doğruluk kazancı sağladı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-04-11",
+    "domain": "computer_science",
+    "category": "semantic_related_not_copy",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Sistem test verilerinde 6,4 puanlık doğruluk kazancı sağladı; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-04-12",
+    "domain": "computer_science",
+    "category": "unrelated",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Sunucu bakım penceresi gece başladı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-04-13",
+    "domain": "computer_science",
+    "category": "common_academic_phrase",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-04-14",
+    "domain": "computer_science",
+    "category": "technical_term_overlap",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-04-15",
+    "domain": "computer_science",
+    "category": "short_generic_phrase",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-04-16",
+    "domain": "computer_science",
+    "category": "near_copy",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Model değerlendirme kümesinde doğruluğu 6,4 puan.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-04-17",
+    "domain": "computer_science",
+    "category": "legitimate_paraphrase",
+    "source": "Model değerlendirme kümesinde doğruluğu 6,4 puan artırdı.",
+    "candidate": "Sistem test verilerinde 6,4 puanlık doğruluk kazancı sağladı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-05-00",
+    "domain": "computer_science",
+    "category": "exact_copy",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-05-01",
+    "domain": "computer_science",
+    "category": "near_copy",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Sürüm 1.2 sorgu gecikmesini.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-05-02",
+    "domain": "computer_science",
+    "category": "punctuation_case",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "SÜRÜM 1!2 SORGU GECIKMESINI AZALTABILIR!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-05-03",
+    "domain": "computer_science",
+    "category": "word_reordering",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "sorgu gecikmesini azaltabilir Sürüm 1.2.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-05-04",
+    "domain": "computer_science",
+    "category": "morphological_variation",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-05-05",
+    "domain": "computer_science",
+    "category": "light_lexical_substitution",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-05-06",
+    "domain": "computer_science",
+    "category": "close_paraphrase",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Yazılımın 1.2 sürümü daha kısa sorgu süreleri sağlayabilir. Sürüm 1.2 sorgu gecikmesini",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-05-07",
+    "domain": "computer_science",
+    "category": "citation_present",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Sürüm 1.2 sorgu gecikmesini azaltabilir. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-05-08",
+    "domain": "computer_science",
+    "category": "missing_citation",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-05-09",
+    "domain": "computer_science",
+    "category": "quotation_needed",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "\"Sürüm 1.2 sorgu gecikmesini azaltabilir.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-05-10",
+    "domain": "computer_science",
+    "category": "legitimate_paraphrase",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Yazılımın 1.2 sürümü daha kısa sorgu süreleri sağlayabilir.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-05-11",
+    "domain": "computer_science",
+    "category": "semantic_related_not_copy",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Yazılımın 1; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-05-12",
+    "domain": "computer_science",
+    "category": "unrelated",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Veri merkezi farklı bir şehirde kuruludur.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-05-13",
+    "domain": "computer_science",
+    "category": "common_academic_phrase",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-05-14",
+    "domain": "computer_science",
+    "category": "technical_term_overlap",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-05-15",
+    "domain": "computer_science",
+    "category": "short_generic_phrase",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-05-16",
+    "domain": "computer_science",
+    "category": "near_copy",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Sürüm 1.2 sorgu gecikmesini.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-05-17",
+    "domain": "computer_science",
+    "category": "legitimate_paraphrase",
+    "source": "Sürüm 1.2 sorgu gecikmesini azaltabilir.",
+    "candidate": "Yazılımın 1.2 sürümü daha kısa sorgu süreleri sağlayabilir.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-06-00",
+    "domain": "economics",
+    "category": "exact_copy",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-06-01",
+    "domain": "economics",
+    "category": "near_copy",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Faiz oranı yatırımlarla negatif ilişkili.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-06-02",
+    "domain": "economics",
+    "category": "punctuation_case",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "FAIZ ORANI YATIRIMLARLA NEGATIF ILIŞKILI BULUNDU!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-06-03",
+    "domain": "economics",
+    "category": "word_reordering",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "yatırımlarla negatif ilişkili bulundu Faiz oranı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-06-04",
+    "domain": "economics",
+    "category": "morphological_variation",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-06-05",
+    "domain": "economics",
+    "category": "light_lexical_substitution",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Faiz oranı yatırımlarla negatif ilişkili gözlendi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-06-06",
+    "domain": "economics",
+    "category": "close_paraphrase",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Faiz yükseldiğinde yatırımların azalma eğiliminde olduğu görüldü. Faiz oranı yatırımlarla negatif",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-06-07",
+    "domain": "economics",
+    "category": "citation_present",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Faiz oranı yatırımlarla negatif ilişkili bulundu. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-06-08",
+    "domain": "economics",
+    "category": "missing_citation",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-06-09",
+    "domain": "economics",
+    "category": "quotation_needed",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "\"Faiz oranı yatırımlarla negatif ilişkili bulundu.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-06-10",
+    "domain": "economics",
+    "category": "legitimate_paraphrase",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Faiz yükseldiğinde yatırımların azalma eğiliminde olduğu görüldü.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-06-11",
+    "domain": "economics",
+    "category": "semantic_related_not_copy",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Faiz yükseldiğinde yatırımların azalma eğiliminde olduğu görüldü; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-06-12",
+    "domain": "economics",
+    "category": "unrelated",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "İhracat raporu cuma günü yayımlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-06-13",
+    "domain": "economics",
+    "category": "common_academic_phrase",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-06-14",
+    "domain": "economics",
+    "category": "technical_term_overlap",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-06-15",
+    "domain": "economics",
+    "category": "short_generic_phrase",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-06-16",
+    "domain": "economics",
+    "category": "near_copy",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Faiz oranı yatırımlarla negatif ilişkili.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-06-17",
+    "domain": "economics",
+    "category": "legitimate_paraphrase",
+    "source": "Faiz oranı yatırımlarla negatif ilişkili bulundu.",
+    "candidate": "Faiz yükseldiğinde yatırımların azalma eğiliminde olduğu görüldü.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-07-00",
+    "domain": "economics",
+    "category": "exact_copy",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Politika küçük işletmelerin gelirini artırabilir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-07-01",
+    "domain": "economics",
+    "category": "near_copy",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Politika küçük işletmelerin gelirini.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-07-02",
+    "domain": "economics",
+    "category": "punctuation_case",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "POLITIKA KÜÇÜK IŞLETMELERIN GELIRINI ARTIRABILIR!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-07-03",
+    "domain": "economics",
+    "category": "word_reordering",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "işletmelerin gelirini artırabilir Politika küçük.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-07-04",
+    "domain": "economics",
+    "category": "morphological_variation",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Politika küçük işletmelerin gelirini artırabilir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-07-05",
+    "domain": "economics",
+    "category": "light_lexical_substitution",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Politika küçük işletmelerin gelirini artırabilir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-07-06",
+    "domain": "economics",
+    "category": "close_paraphrase",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Uygulamanın küçük firmaların kazancına katkı sunması mümkündür. Politika küçük işletmelerin gelirini",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-07-07",
+    "domain": "economics",
+    "category": "citation_present",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Politika küçük işletmelerin gelirini artırabilir. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-07-08",
+    "domain": "economics",
+    "category": "missing_citation",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Politika küçük işletmelerin gelirini artırabilir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-07-09",
+    "domain": "economics",
+    "category": "quotation_needed",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "\"Politika küçük işletmelerin gelirini artırabilir.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-07-10",
+    "domain": "economics",
+    "category": "legitimate_paraphrase",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Uygulamanın küçük firmaların kazancına katkı sunması mümkündür.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-07-11",
+    "domain": "economics",
+    "category": "semantic_related_not_copy",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Uygulamanın küçük firmaların kazancına katkı sunması mümkündür; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-07-12",
+    "domain": "economics",
+    "category": "unrelated",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Merkez bankası binası restore edildi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-07-13",
+    "domain": "economics",
+    "category": "common_academic_phrase",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-07-14",
+    "domain": "economics",
+    "category": "technical_term_overlap",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-07-15",
+    "domain": "economics",
+    "category": "short_generic_phrase",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-07-16",
+    "domain": "economics",
+    "category": "near_copy",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Politika küçük işletmelerin gelirini.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-07-17",
+    "domain": "economics",
+    "category": "legitimate_paraphrase",
+    "source": "Politika küçük işletmelerin gelirini artırabilir.",
+    "candidate": "Uygulamanın küçük firmaların kazancına katkı sunması mümkündür.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-08-00",
+    "domain": "education",
+    "category": "exact_copy",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-08-01",
+    "domain": "education",
+    "category": "near_copy",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Geri bildirim öğrencilerin başarılarıyla bağlantılı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-08-02",
+    "domain": "education",
+    "category": "punctuation_case",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "GERI BILDIRIM ÖĞRENCILERIN BAŞARILARIYLA BAĞLANTILI BULUNDU!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-08-03",
+    "domain": "education",
+    "category": "word_reordering",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "öğrencilerin başarılarıyla bağlantılı bulundu Geri bildirim.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-08-04",
+    "domain": "education",
+    "category": "morphological_variation",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-08-05",
+    "domain": "education",
+    "category": "light_lexical_substitution",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Geri bildirim öğrencilerin başarılarıyla bağlantılı gözlendi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-08-06",
+    "domain": "education",
+    "category": "close_paraphrase",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Düzenli dönüt alan öğrenciler daha yüksek başarı eğilimi gösterdi. Geri bildirim öğrencilerin başarılarıyla",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-08-07",
+    "domain": "education",
+    "category": "citation_present",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-08-08",
+    "domain": "education",
+    "category": "missing_citation",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-08-09",
+    "domain": "education",
+    "category": "quotation_needed",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "\"Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-08-10",
+    "domain": "education",
+    "category": "legitimate_paraphrase",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Düzenli dönüt alan öğrenciler daha yüksek başarı eğilimi gösterdi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-08-11",
+    "domain": "education",
+    "category": "semantic_related_not_copy",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Düzenli dönüt alan öğrenciler daha yüksek başarı eğilimi gösterdi; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-08-12",
+    "domain": "education",
+    "category": "unrelated",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Okul kütüphanesi yazın kapalıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-08-13",
+    "domain": "education",
+    "category": "common_academic_phrase",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-08-14",
+    "domain": "education",
+    "category": "technical_term_overlap",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-08-15",
+    "domain": "education",
+    "category": "short_generic_phrase",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-08-16",
+    "domain": "education",
+    "category": "near_copy",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Geri bildirim öğrencilerin başarılarıyla bağlantılı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-08-17",
+    "domain": "education",
+    "category": "legitimate_paraphrase",
+    "source": "Geri bildirim öğrencilerin başarılarıyla bağlantılı bulundu.",
+    "candidate": "Düzenli dönüt alan öğrenciler daha yüksek başarı eğilimi gösterdi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-09-00",
+    "domain": "education",
+    "category": "exact_copy",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-09-01",
+    "domain": "education",
+    "category": "near_copy",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "Ön bulgular devam oranının yükselebileceğine işaret.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-09-02",
+    "domain": "education",
+    "category": "punctuation_case",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "ÖN BULGULAR DEVAM ORANININ YÜKSELEBILECEĞINE IŞARET ETMEKTEDIR!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-09-03",
+    "domain": "education",
+    "category": "word_reordering",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "devam oranının yükselebileceğine işaret etmektedir Ön bulgular.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-09-04",
+    "domain": "education",
+    "category": "morphological_variation",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-09-05",
+    "domain": "education",
+    "category": "light_lexical_substitution",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-09-06",
+    "domain": "education",
+    "category": "close_paraphrase",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "İlk sonuçlar öğrencilerin devamının artabileceğini düşündürmektedir. Ön bulgular devam oranının",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-09-07",
+    "domain": "education",
+    "category": "citation_present",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-09-08",
+    "domain": "education",
+    "category": "missing_citation",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-09-09",
+    "domain": "education",
+    "category": "quotation_needed",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "\"Ön bulgular devam oranının yükselebileceğine işaret etmektedir.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-09-10",
+    "domain": "education",
+    "category": "legitimate_paraphrase",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "İlk sonuçlar öğrencilerin devamının artabileceğini düşündürmektedir.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-09-11",
+    "domain": "education",
+    "category": "semantic_related_not_copy",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "İlk sonuçlar öğrencilerin devamının artabileceğini düşündürmektedir; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-09-12",
+    "domain": "education",
+    "category": "unrelated",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "Ders programı yönetmelikte listelenmiştir.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-09-13",
+    "domain": "education",
+    "category": "common_academic_phrase",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-09-14",
+    "domain": "education",
+    "category": "technical_term_overlap",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-09-15",
+    "domain": "education",
+    "category": "short_generic_phrase",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-09-16",
+    "domain": "education",
+    "category": "near_copy",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "Ön bulgular devam oranının yükselebileceğine işaret.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-09-17",
+    "domain": "education",
+    "category": "legitimate_paraphrase",
+    "source": "Ön bulgular devam oranının yükselebileceğine işaret etmektedir.",
+    "candidate": "İlk sonuçlar öğrencilerin devamının artabileceğini düşündürmektedir.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-10-00",
+    "domain": "psychology",
+    "category": "exact_copy",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-10-01",
+    "domain": "psychology",
+    "category": "near_copy",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Kaygı düzeyi uyku süresiyle korelasyon.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-10-02",
+    "domain": "psychology",
+    "category": "punctuation_case",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "KAYGI DÜZEYI UYKU SÜRESIYLE KORELASYON GÖSTERDI!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-10-03",
+    "domain": "psychology",
+    "category": "word_reordering",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "uyku süresiyle korelasyon gösterdi Kaygı düzeyi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-10-04",
+    "domain": "psychology",
+    "category": "morphological_variation",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-10-05",
+    "domain": "psychology",
+    "category": "light_lexical_substitution",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-10-06",
+    "domain": "psychology",
+    "category": "close_paraphrase",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Daha kaygılı katılımcılar daha kısa uyuma eğilimindeydi. Kaygı düzeyi uyku süresiyle",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-10-07",
+    "domain": "psychology",
+    "category": "citation_present",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-10-08",
+    "domain": "psychology",
+    "category": "missing_citation",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-10-09",
+    "domain": "psychology",
+    "category": "quotation_needed",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "\"Kaygı düzeyi uyku süresiyle korelasyon gösterdi.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-10-10",
+    "domain": "psychology",
+    "category": "legitimate_paraphrase",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Daha kaygılı katılımcılar daha kısa uyuma eğilimindeydi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-10-11",
+    "domain": "psychology",
+    "category": "semantic_related_not_copy",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Daha kaygılı katılımcılar daha kısa uyuma eğilimindeydi; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-10-12",
+    "domain": "psychology",
+    "category": "unrelated",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Anket odasının duvarları maviye boyandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-10-13",
+    "domain": "psychology",
+    "category": "common_academic_phrase",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-10-14",
+    "domain": "psychology",
+    "category": "technical_term_overlap",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-10-15",
+    "domain": "psychology",
+    "category": "short_generic_phrase",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-10-16",
+    "domain": "psychology",
+    "category": "near_copy",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Kaygı düzeyi uyku süresiyle korelasyon.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-10-17",
+    "domain": "psychology",
+    "category": "legitimate_paraphrase",
+    "source": "Kaygı düzeyi uyku süresiyle korelasyon gösterdi.",
+    "candidate": "Daha kaygılı katılımcılar daha kısa uyuma eğilimindeydi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-11-00",
+    "domain": "psychology",
+    "category": "exact_copy",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-11-01",
+    "domain": "psychology",
+    "category": "near_copy",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Bazı katılımcılar müdahale sonrasında iyileşme.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-11-02",
+    "domain": "psychology",
+    "category": "punctuation_case",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "BAZI KATILIMCILAR MÜDAHALE SONRASINDA IYILEŞME BILDIRDI!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-11-03",
+    "domain": "psychology",
+    "category": "word_reordering",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "müdahale sonrasında iyileşme bildirdi Bazı katılımcılar.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-11-04",
+    "domain": "psychology",
+    "category": "morphological_variation",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Bazı katılımcılarlar müdahale sonrasında iyileşme bildirdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-11-05",
+    "domain": "psychology",
+    "category": "light_lexical_substitution",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-11-06",
+    "domain": "psychology",
+    "category": "close_paraphrase",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Katılımcıların bir bölümü uygulamadan sonra iyileştiğini belirtti. Bazı katılımcılar müdahale sonrasında",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-11-07",
+    "domain": "psychology",
+    "category": "citation_present",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-11-08",
+    "domain": "psychology",
+    "category": "missing_citation",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-11-09",
+    "domain": "psychology",
+    "category": "quotation_needed",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "\"Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-11-10",
+    "domain": "psychology",
+    "category": "legitimate_paraphrase",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Katılımcıların bir bölümü uygulamadan sonra iyileştiğini belirtti.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-11-11",
+    "domain": "psychology",
+    "category": "semantic_related_not_copy",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Katılımcıların bir bölümü uygulamadan sonra iyileştiğini belirtti; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-11-12",
+    "domain": "psychology",
+    "category": "unrelated",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Araştırmacılar toplantıyı erteledi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-11-13",
+    "domain": "psychology",
+    "category": "common_academic_phrase",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-11-14",
+    "domain": "psychology",
+    "category": "technical_term_overlap",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-11-15",
+    "domain": "psychology",
+    "category": "short_generic_phrase",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-11-16",
+    "domain": "psychology",
+    "category": "near_copy",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Bazı katılımcılar müdahale sonrasında iyileşme.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-11-17",
+    "domain": "psychology",
+    "category": "legitimate_paraphrase",
+    "source": "Bazı katılımcılar müdahale sonrasında iyileşme bildirdi.",
+    "candidate": "Katılımcıların bir bölümü uygulamadan sonra iyileştiğini belirtti.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-12-00",
+    "domain": "environment",
+    "category": "exact_copy",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-12-01",
+    "domain": "environment",
+    "category": "near_copy",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Yağış miktarı toprak nemiyle ilişkili.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-12-02",
+    "domain": "environment",
+    "category": "punctuation_case",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "YAĞIŞ MIKTARI TOPRAK NEMIYLE ILIŞKILI BULUNDU!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-12-03",
+    "domain": "environment",
+    "category": "word_reordering",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "toprak nemiyle ilişkili bulundu Yağış miktarı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-12-04",
+    "domain": "environment",
+    "category": "morphological_variation",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-12-05",
+    "domain": "environment",
+    "category": "light_lexical_substitution",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Yağış miktarı toprak nemiyle ilişkili gözlendi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-12-06",
+    "domain": "environment",
+    "category": "close_paraphrase",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Daha çok yağmur alan bölgelerde zemin nemi daha yüksekti. Yağış miktarı toprak nemiyle",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-12-07",
+    "domain": "environment",
+    "category": "citation_present",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Yağış miktarı toprak nemiyle ilişkili bulundu. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-12-08",
+    "domain": "environment",
+    "category": "missing_citation",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-12-09",
+    "domain": "environment",
+    "category": "quotation_needed",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "\"Yağış miktarı toprak nemiyle ilişkili bulundu.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-12-10",
+    "domain": "environment",
+    "category": "legitimate_paraphrase",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Daha çok yağmur alan bölgelerde zemin nemi daha yüksekti.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-12-11",
+    "domain": "environment",
+    "category": "semantic_related_not_copy",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Daha çok yağmur alan bölgelerde zemin nemi daha yüksekti; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-12-12",
+    "domain": "environment",
+    "category": "unrelated",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Milli parkın giriş kapısı yenilendi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-12-13",
+    "domain": "environment",
+    "category": "common_academic_phrase",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-12-14",
+    "domain": "environment",
+    "category": "technical_term_overlap",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-12-15",
+    "domain": "environment",
+    "category": "short_generic_phrase",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-12-16",
+    "domain": "environment",
+    "category": "near_copy",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Yağış miktarı toprak nemiyle ilişkili.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-12-17",
+    "domain": "environment",
+    "category": "legitimate_paraphrase",
+    "source": "Yağış miktarı toprak nemiyle ilişkili bulundu.",
+    "candidate": "Daha çok yağmur alan bölgelerde zemin nemi daha yüksekti.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-13-00",
+    "domain": "environment",
+    "category": "exact_copy",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-13-01",
+    "domain": "environment",
+    "category": "near_copy",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Sınırlı kanıt hava kirliliğinin azalabileceğini.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-13-02",
+    "domain": "environment",
+    "category": "punctuation_case",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "SINIRLI KANIT HAVA KIRLILIĞININ AZALABILECEĞINI GÖSTERMEKTEDIR!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-13-03",
+    "domain": "environment",
+    "category": "word_reordering",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "hava kirliliğinin azalabileceğini göstermektedir Sınırlı kanıt.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-13-04",
+    "domain": "environment",
+    "category": "morphological_variation",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-13-05",
+    "domain": "environment",
+    "category": "light_lexical_substitution",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-13-06",
+    "domain": "environment",
+    "category": "close_paraphrase",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Mevcut bulgular kirlilikte olası bir düşüşe işaret ediyor. Sınırlı kanıt hava kirliliğinin",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-13-07",
+    "domain": "environment",
+    "category": "citation_present",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-13-08",
+    "domain": "environment",
+    "category": "missing_citation",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-13-09",
+    "domain": "environment",
+    "category": "quotation_needed",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "\"Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-13-10",
+    "domain": "environment",
+    "category": "legitimate_paraphrase",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Mevcut bulgular kirlilikte olası bir düşüşe işaret ediyor.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-13-11",
+    "domain": "environment",
+    "category": "semantic_related_not_copy",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Mevcut bulgular kirlilikte olası bir düşüşe işaret ediyor; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-13-12",
+    "domain": "environment",
+    "category": "unrelated",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Gözlem istasyonu deniz seviyesindedir.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-13-13",
+    "domain": "environment",
+    "category": "common_academic_phrase",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-13-14",
+    "domain": "environment",
+    "category": "technical_term_overlap",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-13-15",
+    "domain": "environment",
+    "category": "short_generic_phrase",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-13-16",
+    "domain": "environment",
+    "category": "near_copy",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Sınırlı kanıt hava kirliliğinin azalabileceğini.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-13-17",
+    "domain": "environment",
+    "category": "legitimate_paraphrase",
+    "source": "Sınırlı kanıt hava kirliliğinin azalabileceğini göstermektedir.",
+    "candidate": "Mevcut bulgular kirlilikte olası bir düşüşe işaret ediyor.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-14-00",
+    "domain": "statistics",
+    "category": "exact_copy",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-14-01",
+    "domain": "statistics",
+    "category": "near_copy",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Tahminin %95 güven aralığı 3,2 ile 4,8.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-14-02",
+    "domain": "statistics",
+    "category": "punctuation_case",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "TAHMININ %95 GÜVEN ARALIĞI 3,2 ILE 4,8 ARASINDADIR!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-14-03",
+    "domain": "statistics",
+    "category": "word_reordering",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "güven aralığı 3,2 ile 4,8 arasındadır Tahminin %95.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-14-04",
+    "domain": "statistics",
+    "category": "morphological_variation",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-14-05",
+    "domain": "statistics",
+    "category": "light_lexical_substitution",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-14-06",
+    "domain": "statistics",
+    "category": "close_paraphrase",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Kestirim için yüzde 95 güven sınırları 3,2 ve 4,8'dir. Tahminin %95 güven aralığı",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-14-07",
+    "domain": "statistics",
+    "category": "citation_present",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-14-08",
+    "domain": "statistics",
+    "category": "missing_citation",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-14-09",
+    "domain": "statistics",
+    "category": "quotation_needed",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "\"Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-14-10",
+    "domain": "statistics",
+    "category": "legitimate_paraphrase",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Kestirim için yüzde 95 güven sınırları 3,2 ve 4,8'dir.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-14-11",
+    "domain": "statistics",
+    "category": "semantic_related_not_copy",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Kestirim için yüzde 95 güven sınırları 3,2 ve 4,8'dir; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-14-12",
+    "domain": "statistics",
+    "category": "unrelated",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Tablonun başlığı ikinci sayfadadır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-14-13",
+    "domain": "statistics",
+    "category": "common_academic_phrase",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-14-14",
+    "domain": "statistics",
+    "category": "technical_term_overlap",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-14-15",
+    "domain": "statistics",
+    "category": "short_generic_phrase",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-14-16",
+    "domain": "statistics",
+    "category": "near_copy",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Tahminin %95 güven aralığı 3,2 ile 4,8.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-14-17",
+    "domain": "statistics",
+    "category": "legitimate_paraphrase",
+    "source": "Tahminin %95 güven aralığı 3,2 ile 4,8 arasındadır.",
+    "candidate": "Kestirim için yüzde 95 güven sınırları 3,2 ve 4,8'dir.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-15-00",
+    "domain": "statistics",
+    "category": "exact_copy",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-15-01",
+    "domain": "statistics",
+    "category": "near_copy",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Örneklem n=1.248 katılımcıdan.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-15-02",
+    "domain": "statistics",
+    "category": "punctuation_case",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "ÖRNEKLEM N=1!248 KATILIMCIDAN OLUŞMAKTADIR!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-15-03",
+    "domain": "statistics",
+    "category": "word_reordering",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "katılımcıdan oluşmaktadır Örneklem n=1.248.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-15-04",
+    "domain": "statistics",
+    "category": "morphological_variation",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Örneklem n=1.248 katılımcılardan oluşmaktadır.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-15-05",
+    "domain": "statistics",
+    "category": "light_lexical_substitution",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-15-06",
+    "domain": "statistics",
+    "category": "close_paraphrase",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Araştırma örnekleminde toplam 1.248 kişi yer aldı. Örneklem n=1.248 katılımcıdan oluşmaktadır",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-15-07",
+    "domain": "statistics",
+    "category": "citation_present",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Örneklem n=1.248 katılımcıdan oluşmaktadır. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-15-08",
+    "domain": "statistics",
+    "category": "missing_citation",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-15-09",
+    "domain": "statistics",
+    "category": "quotation_needed",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "\"Örneklem n=1.248 katılımcıdan oluşmaktadır.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-15-10",
+    "domain": "statistics",
+    "category": "legitimate_paraphrase",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Araştırma örnekleminde toplam 1.248 kişi yer aldı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-15-11",
+    "domain": "statistics",
+    "category": "semantic_related_not_copy",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Araştırma örnekleminde toplam 1; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-15-12",
+    "domain": "statistics",
+    "category": "unrelated",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Analiz yazılımı açık kaynaklıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-15-13",
+    "domain": "statistics",
+    "category": "common_academic_phrase",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-15-14",
+    "domain": "statistics",
+    "category": "technical_term_overlap",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-15-15",
+    "domain": "statistics",
+    "category": "short_generic_phrase",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-15-16",
+    "domain": "statistics",
+    "category": "near_copy",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Örneklem n=1.248 katılımcıdan.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-15-17",
+    "domain": "statistics",
+    "category": "legitimate_paraphrase",
+    "source": "Örneklem n=1.248 katılımcıdan oluşmaktadır.",
+    "candidate": "Araştırma örnekleminde toplam 1.248 kişi yer aldı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-16-00",
+    "domain": "social_science",
+    "category": "exact_copy",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-16-01",
+    "domain": "social_science",
+    "category": "near_copy",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Sosyal destek yaşam doyumuyla bağlantılı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-16-02",
+    "domain": "social_science",
+    "category": "punctuation_case",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "SOSYAL DESTEK YAŞAM DOYUMUYLA BAĞLANTILI BULUNDU!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-16-03",
+    "domain": "social_science",
+    "category": "word_reordering",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "yaşam doyumuyla bağlantılı bulundu Sosyal destek.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-16-04",
+    "domain": "social_science",
+    "category": "morphological_variation",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-16-05",
+    "domain": "social_science",
+    "category": "light_lexical_substitution",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Sosyal destek yaşam doyumuyla bağlantılı gözlendi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-16-06",
+    "domain": "social_science",
+    "category": "close_paraphrase",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Daha fazla destek alanların yaşam doyumu daha yüksekti. Sosyal destek yaşam doyumuyla",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-16-07",
+    "domain": "social_science",
+    "category": "citation_present",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Sosyal destek yaşam doyumuyla bağlantılı bulundu. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-16-08",
+    "domain": "social_science",
+    "category": "missing_citation",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-16-09",
+    "domain": "social_science",
+    "category": "quotation_needed",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "\"Sosyal destek yaşam doyumuyla bağlantılı bulundu.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-16-10",
+    "domain": "social_science",
+    "category": "legitimate_paraphrase",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Daha fazla destek alanların yaşam doyumu daha yüksekti.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-16-11",
+    "domain": "social_science",
+    "category": "semantic_related_not_copy",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Daha fazla destek alanların yaşam doyumu daha yüksekti; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-16-12",
+    "domain": "social_science",
+    "category": "unrelated",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Görüşmeler belediye binasında yapıldı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-16-13",
+    "domain": "social_science",
+    "category": "common_academic_phrase",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-16-14",
+    "domain": "social_science",
+    "category": "technical_term_overlap",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-16-15",
+    "domain": "social_science",
+    "category": "short_generic_phrase",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-16-16",
+    "domain": "social_science",
+    "category": "near_copy",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Sosyal destek yaşam doyumuyla bağlantılı.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-16-17",
+    "domain": "social_science",
+    "category": "legitimate_paraphrase",
+    "source": "Sosyal destek yaşam doyumuyla bağlantılı bulundu.",
+    "candidate": "Daha fazla destek alanların yaşam doyumu daha yüksekti.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-17-00",
+    "domain": "social_science",
+    "category": "exact_copy",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-17-01",
+    "domain": "social_science",
+    "category": "near_copy",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Belirli katılımcılar programa olumlu yanıt.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-17-02",
+    "domain": "social_science",
+    "category": "punctuation_case",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "BELIRLI KATILIMCILAR PROGRAMA OLUMLU YANIT VERDI!",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-17-03",
+    "domain": "social_science",
+    "category": "word_reordering",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "programa olumlu yanıt verdi Belirli katılımcılar.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-17-04",
+    "domain": "social_science",
+    "category": "morphological_variation",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Belirli katılımcılarlar programa olumlu yanıt verdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-17-05",
+    "domain": "social_science",
+    "category": "light_lexical_substitution",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-17-06",
+    "domain": "social_science",
+    "category": "close_paraphrase",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Program bazı katılımcılarda olumlu sonuç verdi. Belirli katılımcılar programa olumlu",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-17-07",
+    "domain": "social_science",
+    "category": "citation_present",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Belirli katılımcılar programa olumlu yanıt verdi. (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-17-08",
+    "domain": "social_science",
+    "category": "missing_citation",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-17-09",
+    "domain": "social_science",
+    "category": "quotation_needed",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "\"Belirli katılımcılar programa olumlu yanıt verdi.\" (Yılmaz, 2024)",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-17-10",
+    "domain": "social_science",
+    "category": "legitimate_paraphrase",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Program bazı katılımcılarda olumlu sonuç verdi.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-17-11",
+    "domain": "social_science",
+    "category": "semantic_related_not_copy",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Program bazı katılımcılarda olumlu sonuç verdi; ilişki nedensellik anlamına gelmez.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-17-12",
+    "domain": "social_science",
+    "category": "unrelated",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Proje ekibi üç kentte toplandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-17-13",
+    "domain": "social_science",
+    "category": "common_academic_phrase",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Elde edilen bulgular istatistiksel olarak anlamlıdır.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-17-14",
+    "domain": "social_science",
+    "category": "technical_term_overlap",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Çalışmada güven aralığı ve örneklem büyüklüğü raporlandı.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-17-15",
+    "domain": "social_science",
+    "category": "short_generic_phrase",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Sonuçlar değerlendirildiğinde.",
+    "label": "NEGATIVE"
+  },
+  {
+    "id": "tr-17-16",
+    "domain": "social_science",
+    "category": "near_copy",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Belirli katılımcılar programa olumlu yanıt.",
+    "label": "TEXTUAL_OVERLAP_POSITIVE"
+  },
+  {
+    "id": "tr-17-17",
+    "domain": "social_science",
+    "category": "legitimate_paraphrase",
+    "source": "Belirli katılımcılar programa olumlu yanıt verdi.",
+    "candidate": "Program bazı katılımcılarda olumlu sonuç verdi.",
+    "label": "NEGATIVE"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "benchmark": "HUMAN_STS_TR",
+  "type": "small_human_annotated_sts",
+  "cases": 81,
+  "model": "citeguard_char_3gram_textual_baseline",
+  "pearson": 0.6883441470389992,
+  "spearman": 0.7486248849373128,
+  "limitations": ["Small dataset", "Textual baseline; no cached semantic model"]
+}

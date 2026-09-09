@@ -1,0 +1,1682 @@
+[
+  {
+    "id": "safety-00-safe",
+    "category": "safe",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "ölüm oranında %12 düşüş müdahale sonrasında gözlendi (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-00-citation_removal",
+    "category": "citation_removal",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "ölüm oranında %12 düşüş müdahale sonrasında gözlendi.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "ölüm oranında %12 düşüş müdahale sonrasında gözlendi (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-number_mutation",
+    "category": "number_mutation",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "ölüm oranında %15 düşüş müdahale sonrasında gözlendi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "ölüm oranında %12 düşüş müdahale sonrasında gözlendi 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "ölüm oranında %12 düşüş müdahale sonrasında gözlendi (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-contradiction",
+    "category": "contradiction",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "ölüm oranında %12 düşüş müdahale sonrasında gözlendi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-missing_citation",
+    "category": "missing_citation",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "ölüm oranında %12 düşüş müdahale sonrasında gözlendi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-00-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Müdahale ölüm oranını %12 azalttı.",
+    "original": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "candidate": "Müdahale ölüm oranını %12 azalttı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-safe",
+    "category": "safe",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "modelin doğrulukta 6,4 puan artış sağlaması mümkündür (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-01-citation_removal",
+    "category": "citation_removal",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "modelin doğrulukta 6,4 puan artış sağlaması mümkündür.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "modelin doğrulukta 6,4 puan artış sağlaması mümkündür (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-number_mutation",
+    "category": "number_mutation",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "modelin doğrulukta 6,5 puan artış sağlaması mümkündür (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "modelin doğrulukta 6,4 puan artış sağlaması mümkündür 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "modelin doğrulukta 6,4 puan artış sağlaması mümkündür (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-contradiction",
+    "category": "contradiction",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "Model doğruluğu 6,4 puan kesin olarak artırır (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "modelin doğrulukta 6,4 puan artış sağlaması mümkündür (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-missing_citation",
+    "category": "missing_citation",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "modelin doğrulukta 6,4 puan artış sağlaması mümkündür (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-01-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Model doğruluğu 6,4 puan artırabilir.",
+    "original": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "candidate": "Model doğruluğu 6,4 puan artırabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-safe",
+    "category": "safe",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "sonuç ile maruziyet arasında ilişki gözlendi (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-02-citation_removal",
+    "category": "citation_removal",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "sonuç ile maruziyet arasında ilişki gözlendi.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "sonuç ile maruziyet arasında ilişki gözlendi (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-number_mutation",
+    "category": "number_mutation",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "sonuç ile maruziyet arasında ilişki gözlendi (Yılmaz, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "sonuç ile maruziyet arasında ilişki gözlendi 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "sonuç ile maruziyet arasında ilişki gözlendi (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-contradiction",
+    "category": "contradiction",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "Maruziyet sonuçla neden oldu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "sonuç ile maruziyet arasında ilişki gözlendi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-missing_citation",
+    "category": "missing_citation",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "sonuç ile maruziyet arasında ilişki gözlendi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-02-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Maruziyet sonuçla ilişkili bulundu.",
+    "original": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "candidate": "Maruziyet sonuçla ilişkili bulundu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-safe",
+    "category": "safe",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "program bazı öğrenciler için yararlı oldu (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-03-citation_removal",
+    "category": "citation_removal",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "program bazı öğrenciler için yararlı oldu.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "program bazı öğrenciler için yararlı oldu (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-number_mutation",
+    "category": "number_mutation",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "program bazı öğrenciler için yararlı oldu (Yılmaz, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "program bazı öğrenciler için yararlı oldu 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "program bazı öğrenciler için yararlı oldu (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-contradiction",
+    "category": "contradiction",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "Tüm öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "program bazı öğrenciler için yararlı oldu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-missing_citation",
+    "category": "missing_citation",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "program bazı öğrenciler için yararlı oldu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-03-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Bazı öğrenciler programdan yarar gördü.",
+    "original": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "candidate": "Bazı öğrenciler programdan yarar gördü (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-safe",
+    "category": "safe",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "başarı artışı ilk bulgularda görülmektedir (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-04-citation_removal",
+    "category": "citation_removal",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "başarı artışı ilk bulgularda görülmektedir.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "başarı artışı ilk bulgularda görülmektedir (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-number_mutation",
+    "category": "number_mutation",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "başarı artışı ilk bulgularda görülmektedir (Yılmaz, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "başarı artışı ilk bulgularda görülmektedir 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "başarı artışı ilk bulgularda görülmektedir (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-contradiction",
+    "category": "contradiction",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "Kesin kanıt başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "başarı artışı ilk bulgularda görülmektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-missing_citation",
+    "category": "missing_citation",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "başarı artışı ilk bulgularda görülmektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-04-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Ön bulgular başarı artışına işaret etmektedir.",
+    "original": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "candidate": "Ön bulgular başarı artışına işaret etmektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-safe",
+    "category": "safe",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "10 mg/kg tedavi dozunun uygulanması mümkündür (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-05-citation_removal",
+    "category": "citation_removal",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "10 mg/kg tedavi dozunun uygulanması mümkündür.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "10 mg/kg tedavi dozunun uygulanması mümkündür (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-number_mutation",
+    "category": "number_mutation",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "10 mg/kg tedavi dozunun uygulanması mümkündür (Yılmaz, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "10 g/kg tedavi dozunun uygulanması mümkündür (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "10 mg/kg tedavi dozunun uygulanması mümkündür (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-contradiction",
+    "category": "contradiction",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "Tedavi 10 mg/kg dozunda mutlaka uygulanır (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "10 mg/kg tedavi dozunun uygulanması mümkündür (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-missing_citation",
+    "category": "missing_citation",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "10 mg/kg tedavi dozunun uygulanması mümkündür (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-05-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Tedavi 10 mg/kg dozunda uygulanabilir.",
+    "original": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "candidate": "Tedavi 10 mg/kg dozunda uygulanabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-safe",
+    "category": "safe",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "çalışmaya n=1.248 katılımcı dahil edildi (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-06-citation_removal",
+    "category": "citation_removal",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "çalışmaya n=1.248 katılımcı dahil edildi.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "çalışmaya n=1.248 katılımcı dahil edildi (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-number_mutation",
+    "category": "number_mutation",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "çalışmaya n=1.200 katılımcı dahil edildi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "çalışmaya n=1.248 katılımcı dahil edildi 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "çalışmaya n=1.248 katılımcı dahil edildi (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-contradiction",
+    "category": "contradiction",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "çalışmaya n=1.248 katılımcı dahil edildi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-missing_citation",
+    "category": "missing_citation",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "çalışmaya n=1.248 katılımcı dahil edildi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-06-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Örneklem n=1.248 katılımcıdan oluştu.",
+    "original": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "candidate": "Örneklem n=1.248 katılımcıdan oluştu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-safe",
+    "category": "safe",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "%95 güven aralığı tahminle birlikte sunuldu (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-07-citation_removal",
+    "category": "citation_removal",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "%95 güven aralığı tahminle birlikte sunuldu.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "%95 güven aralığı tahminle birlikte sunuldu (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-number_mutation",
+    "category": "number_mutation",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "%95 güven aralığı tahminle birlikte sunuldu (Yılmaz, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "%95 güven aralığı tahminle birlikte sunuldu 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "%95 güven aralığı tahminle birlikte sunuldu (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-contradiction",
+    "category": "contradiction",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "%95 güven aralığı tahminle birlikte sunuldu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-missing_citation",
+    "category": "missing_citation",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "%95 güven aralığı tahminle birlikte sunuldu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-07-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Tahmin için %95 güven aralığı raporlandı.",
+    "original": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "candidate": "Tahmin için %95 güven aralığı raporlandı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-safe",
+    "category": "safe",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "gecikme sürüm 1.2 ile azalabilir (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-08-citation_removal",
+    "category": "citation_removal",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "gecikme sürüm 1.2 ile azalabilir.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "gecikme sürüm 1.2 ile azalabilir (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-number_mutation",
+    "category": "number_mutation",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "gecikme sürüm 1.2 ile azalabilir (Yılmaz, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "gecikme sürüm 1.2 ile azalabilir 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "gecikme sürüm 1.2 ile azalabilir (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-contradiction",
+    "category": "contradiction",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "Sürüm 1.2 gecikmeyi kesin olarak azaltır (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "gecikme sürüm 1.2 ile azalabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-missing_citation",
+    "category": "missing_citation",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "gecikme sürüm 1.2 ile azalabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-08-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Sürüm 1.2 gecikmeyi azaltabilir.",
+    "original": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "candidate": "Sürüm 1.2 gecikmeyi azaltabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-safe",
+    "category": "safe",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "gelirde yüzde 12 artış politika ile mümkün olabilir (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-09-citation_removal",
+    "category": "citation_removal",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "gelirde yüzde 12 artış politika ile mümkün olabilir.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "gelirde yüzde 12 artış politika ile mümkün olabilir (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-number_mutation",
+    "category": "number_mutation",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "gelirde yüzde 15 artış politika ile mümkün olabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "gelirde yüzde 12 artış politika ile mümkün olabilir 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "gelirde yüzde 12 artış politika ile mümkün olabilir (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-contradiction",
+    "category": "contradiction",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "Politika geliri yüzde 12 kesin olarak artırır (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "gelirde yüzde 12 artış politika ile mümkün olabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-missing_citation",
+    "category": "missing_citation",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "gelirde yüzde 12 artış politika ile mümkün olabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-09-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Politika geliri yüzde 12 artırabilir.",
+    "original": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "candidate": "Politika geliri yüzde 12 artırabilir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-safe",
+    "category": "safe",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "uyku ile düzenli egzersiz arasında bağlantı görüldü (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-10-citation_removal",
+    "category": "citation_removal",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "uyku ile düzenli egzersiz arasında bağlantı görüldü.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "uyku ile düzenli egzersiz arasında bağlantı görüldü (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-number_mutation",
+    "category": "number_mutation",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "uyku ile düzenli egzersiz arasında bağlantı görüldü (Yılmaz, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "uyku ile düzenli egzersiz arasında bağlantı görüldü 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "uyku ile düzenli egzersiz arasında bağlantı görüldü (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-contradiction",
+    "category": "contradiction",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "Düzenli egzersiz uyku ile sebep oldu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "uyku ile düzenli egzersiz arasında bağlantı görüldü (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-missing_citation",
+    "category": "missing_citation",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "uyku ile düzenli egzersiz arasında bağlantı görüldü (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-10-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Düzenli egzersiz uyku ile bağlantılı bulundu.",
+    "original": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "candidate": "Düzenli egzersiz uyku ile bağlantılı bulundu (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-safe",
+    "category": "safe",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "olumlu yanıt belirli katılımcılarda gözlendi (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-11-citation_removal",
+    "category": "citation_removal",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "olumlu yanıt belirli katılımcılarda gözlendi.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "olumlu yanıt belirli katılımcılarda gözlendi (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-number_mutation",
+    "category": "number_mutation",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "olumlu yanıt belirli katılımcılarda gözlendi (Yılmaz, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "olumlu yanıt belirli katılımcılarda gözlendi 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "olumlu yanıt belirli katılımcılarda gözlendi (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-contradiction",
+    "category": "contradiction",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "Bütün katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "olumlu yanıt belirli katılımcılarda gözlendi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-missing_citation",
+    "category": "missing_citation",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "olumlu yanıt belirli katılımcılarda gözlendi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-11-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Belirli katılımcılar olumlu yanıt verdi.",
+    "original": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "candidate": "Belirli katılımcılar olumlu yanıt verdi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-safe",
+    "category": "safe",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "kirlilikte azalma olasılığını sınırlı kanıt desteklemektedir (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-12-citation_removal",
+    "category": "citation_removal",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "kirlilikte azalma olasılığını sınırlı kanıt desteklemektedir.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "kirlilikte azalma olasılığını sınırlı kanıt desteklemektedir (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-number_mutation",
+    "category": "number_mutation",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "kirlilikte azalma olasılığını sınırlı kanıt desteklemektedir (Yılmaz, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "kirlilikte azalma olasılığını sınırlı kanıt desteklemektedir 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "kirlilikte azalma olasılığını sınırlı kanıt desteklemektedir (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-contradiction",
+    "category": "contradiction",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "Kesin kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "kirlilikte azalma olasılığını sınırlı kanıt desteklemektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-missing_citation",
+    "category": "missing_citation",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "kirlilikte azalma olasılığını sınırlı kanıt desteklemektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-12-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir.",
+    "original": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "candidate": "Sınırlı kanıt kirliliğin azalabileceğini göstermektedir (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-safe",
+    "category": "safe",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "kaydedilen ölçüm değeri 3,2 mmol/L idi (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-13-citation_removal",
+    "category": "citation_removal",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "kaydedilen ölçüm değeri 3,2 mmol/L idi.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "kaydedilen ölçüm değeri 3,2 mmol/L idi (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-number_mutation",
+    "category": "number_mutation",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "kaydedilen ölçüm değeri 3,2 mmol/L idi (Yılmaz, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "kaydedilen ölçüm değeri 3,2 mol/L idi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "kaydedilen ölçüm değeri 3,2 mmol/L idi (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-contradiction",
+    "category": "contradiction",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "kaydedilen ölçüm değeri 3,2 mmol/L idi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-missing_citation",
+    "category": "missing_citation",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "kaydedilen ölçüm değeri 3,2 mmol/L idi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-13-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Ölçüm 3,2 mmol/L olarak kaydedildi.",
+    "original": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "candidate": "Ölçüm 3,2 mmol/L olarak kaydedildi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-safe",
+    "category": "safe",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "araştırmanın tamamlandığı yıl 2024'tür (Yılmaz, 2024).",
+    "expected_accepted": true
+  },
+  {
+    "id": "safety-14-citation_removal",
+    "category": "citation_removal",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "araştırmanın tamamlandığı yıl 2024'tür.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-citation_mutation",
+    "category": "citation_mutation",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "araştırmanın tamamlandığı yıl 2024'tür (Demir, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-number_mutation",
+    "category": "number_mutation",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "araştırmanın tamamlandığı yıl 2025'tür (Yılmaz, 2025).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-unit_mutation",
+    "category": "unit_mutation",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "araştırmanın tamamlandığı yıl 2024'tür 10 g (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-unsupported_claim",
+    "category": "unsupported_claim",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "araştırmanın tamamlandığı yıl 2024'tür (Yılmaz, 2024). Ayrıca maliyetler azaldı.",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-contradiction",
+    "category": "contradiction",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "Bu sonuç gözlenmedi (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-causal_strengthening",
+    "category": "causal_strengthening",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-modality_strengthening",
+    "category": "modality_strengthening",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-scope_strengthening",
+    "category": "scope_strengthening",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-evidence_strengthening",
+    "category": "evidence_strengthening",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-quotation_needed",
+    "category": "quotation_needed",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "araştırmanın tamamlandığı yıl 2024'tür (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-missing_citation",
+    "category": "missing_citation",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "araştırmanın tamamlandığı yıl 2024'tür (Yılmaz, 2024).",
+    "expected_accepted": false
+  },
+  {
+    "id": "safety-14-source_overlap_not_improved",
+    "category": "source_overlap_not_improved",
+    "source": "Çalışma 2024 yılında tamamlandı.",
+    "original": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "candidate": "Çalışma 2024 yılında tamamlandı (Yılmaz, 2024).",
+    "expected_accepted": false
+  }
+]

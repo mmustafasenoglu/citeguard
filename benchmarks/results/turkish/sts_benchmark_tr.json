@@ -1,0 +1,10 @@
+{
+  "benchmark": "STS_BENCHMARK_TR",
+  "type": "external_translated_sts",
+  "split": "official test",
+  "cases": 1379,
+  "model": "citeguard_char_3gram_textual_baseline",
+  "pearson": 0.6298645190622196,
+  "spearman": 0.6398681377114969,
+  "limitations": ["Machine translated", "Textual baseline; no cached semantic model"]
+}

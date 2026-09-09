@@ -13,8 +13,9 @@ from ..similarity.models import (
 from .models import FixAction, PassageRisk, ReductionRiskType
 
 _NUMBER_RE = re.compile(
-    r"(?<!\w)(?:n\s*=\s*)?\d[\d,]*(?:\.\d+)?%?(?:\s*(?:mg|kg|g|ml|"
-    r"cm|mm|km|hz|mhz|ghz|°c|°f))?(?!\w)",
+    r"(?<!\w)(?:n\s*=\s*)?\d[\d,]*(?:\.\d+)?%?"
+    r"(?:\s*(?:mg(?:/kg)?|g(?:/kg)?|kg|ml|mmol/l|mol/l|cm|mm|km|"
+    r"hz|mhz|ghz|°c|°f))?(?!\w)",
     re.I,
 )
 _VERSION_RE = re.compile(r"\b(?:v(?:ersion)?\s*)?\d+(?:\.\d+){1,3}\b", re.I)
@@ -37,9 +38,9 @@ def _citation_context(
         return has_citation, None, None
 
     matching = [
-        claim for claim in claims
-        if claim.paragraph_index == item.sentence.paragraph_index
-        and claim.has_existing_citation
+        claim
+        for claim in claims
+        if claim.paragraph_index == item.sentence.paragraph_index and claim.has_existing_citation
     ]
     if not matching:
         return has_citation, None, None
@@ -63,8 +64,7 @@ def _classify(
         return ReductionRiskType.UNKNOWN, FixAction.LEAVE, 0.35
 
     quoted = any(
-        char in item.sentence.text
-        for char in ('"', "\u201c", "\u201d", "\u00ab", "\u00bb")
+        char in item.sentence.text for char in ('"', "\u201c", "\u201d", "\u00ab", "\u00bb")
     )
     if quoted and match.exact_overlap >= 0.70 and has_citation:
         return ReductionRiskType.QUOTE_NEEDED, FixAction.ADD_QUOTATION, 0.98
@@ -113,9 +113,7 @@ def analyze_passage_risks(
                 end_offset=item.sentence.end_offset,
                 exact_overlap=match.exact_overlap if match else 0.0,
                 lexical_similarity=match.lexical_similarity if match else 0.0,
-                semantic_similarity_raw=(
-                    match.semantic_similarity_raw if match else None
-                ),
+                semantic_similarity_raw=(match.semantic_similarity_raw if match else None),
                 attribution_risk=item.attribution_risk,
                 has_citation=has_citation,
                 citation_verified=citation_verified,

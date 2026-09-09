@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from citeguard.models import ExistingCitation, Sentence, Verdict
 from citeguard.reduction import (
     FixAction,
@@ -45,9 +47,7 @@ def _similarity_result(
     risk: RiskLevel = RiskLevel.HIGH,
 ) -> SimilarityEngineResult:
     citations = (
-        [ExistingCitation("(Smith, 2024)", "Smith", 2024, None, None, 0, 10)]
-        if citation
-        else []
+        [ExistingCitation("(Smith, 2024)", "Smith", 2024, None, None, 0, 10)] if citation else []
     )
     sentence = Sentence(text, text.lower(), 0, 0, 0, len(text), citations)
     match = SimilarityMatch(
@@ -132,6 +132,13 @@ def test_validator_rejects_numeric_corruption_and_contradiction() -> None:
     assert "candidate contradicts source support" in result.reasons
 
 
+def test_protected_tokens_retain_compound_units() -> None:
+    from citeguard.reduction.analyzer import extract_protected_tokens
+
+    assert "3,2 mmol/L" in extract_protected_tokens("Düzey 3,2 mmol/L ölçüldü.")
+    assert "10 mg/kg" in extract_protected_tokens("Doz 10 mg/kg olarak uygulandı.")
+
+
 def test_ranker_prefers_meaning_and_support_over_lower_overlap() -> None:
     safe = RewriteCandidate(
         "The experiment increased accuracy.",
@@ -214,6 +221,40 @@ def test_validator_requires_exact_citation_text() -> None:
     )
     assert result.accepted is False
     assert result.citations_preserved is False
+
+
+@pytest.mark.parametrize(
+    ("original", "candidate"),
+    [
+        ("Maruziyet sonuçla ilişkili bulundu.", "Maruziyet sonuca neden oldu."),
+        ("Politika yararlı olabilir.", "Politika kesin olarak yararlıdır."),
+        ("Bazı katılımcılar iyileşti.", "Tüm katılımcılar iyileşti."),
+        ("Ön bulgular ilişkiye işaret etmektedir.", "İlişki kanıtlanmıştır."),
+    ],
+)
+def test_validator_rejects_turkish_claim_strengthening(original: str, candidate: str) -> None:
+    risk = PassageRisk(
+        passage_id="p0s0",
+        text=original,
+        paragraph_index=0,
+        start_offset=0,
+        end_offset=len(original),
+        exact_overlap=0.8,
+        lexical_similarity=0.8,
+        semantic_similarity_raw=None,
+        attribution_risk=RiskLevel.HIGH,
+        has_citation=False,
+        citation_verified=None,
+        citation_support=None,
+        citation_texts=(),
+        risk_type=ReductionRiskType.TOO_CLOSE_PARAPHRASE,
+        recommended_action=FixAction.PARAPHRASE,
+        confidence=0.9,
+    )
+    plan = build_fix_plans([risk])[0]
+    result = validate_candidate(original, RewriteCandidate(candidate, "test"), plan)
+    assert result.factual_integrity is False
+    assert "candidate strengthens the claim beyond the original" in result.reasons
 
 
 def test_meaning_requires_bidirectional_entailment() -> None:

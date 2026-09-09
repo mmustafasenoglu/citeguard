@@ -13,3 +13,16 @@ Threshold selection is development-only: maximize F1 subject to precision at
 least 0.90.  The holdout is run only after selected thresholds are recorded.
 PAN scores must state the dataset, split, sample size, and metric; they must
 not be described as a generic "plagiarism accuracy".
+
+## Turkish capability
+
+- **STS Benchmark Turkish**: external machine translation of STS Benchmark;
+  official train/dev/test files; semantic-similarity labels; license was not
+  stated in the acquired repository, so raw data is not redistributed.
+- **Turkish STS Dataset**: 81 human-rated pairs, CC BY-SA 4.0, used only as a
+  small independent STS sanity check; raw data is not committed.
+- **Turkish detection engineering**: 324 CiteGuard-authored cases across nine
+  academic domains, split deterministically with seed 20260909. It measures
+  regression behavior, not real-world plagiarism accuracy.
+- **Turkish rewrite safety**: 210 deterministic cases exercising independent
+  safety gates. It is an engineering suite, not population-level evidence.

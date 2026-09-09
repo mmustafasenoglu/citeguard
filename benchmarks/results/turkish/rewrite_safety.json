@@ -1,0 +1,26 @@
+{
+  "kind": "turkish_engineering_not_external_accuracy",
+  "cases": 210,
+  "safe_acceptance_precision": 1.0,
+  "safe_acceptance_recall": 1.0,
+  "safe_acceptance_f1": 1.0,
+  "unsafe_rejection_rate": 1.0,
+  "per_category_rejection_or_acceptance_accuracy": {
+    "safe": 1.0,
+    "citation_removal": 1.0,
+    "citation_mutation": 1.0,
+    "number_mutation": 1.0,
+    "unit_mutation": 1.0,
+    "unsupported_claim": 1.0,
+    "contradiction": 1.0,
+    "causal_strengthening": 1.0,
+    "modality_strengthening": 1.0,
+    "scope_strengthening": 1.0,
+    "evidence_strengthening": 1.0,
+    "quotation_needed": 1.0,
+    "missing_citation": 1.0,
+    "source_overlap_not_improved": 1.0
+  },
+  "unexpected_acceptances": [],
+  "safe_rejections": []
+}

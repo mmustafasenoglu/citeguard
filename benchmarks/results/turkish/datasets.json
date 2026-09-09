@@ -1,0 +1,21 @@
+{
+  "datasets": [
+    {
+      "name": "STS Benchmark Turkish",
+      "source": "https://github.com/emrecncelik/sts-benchmark-tr",
+      "revision": "4234c7132e3228d60f7a93f746b42dc30df1f0ce",
+      "license": "not stated in acquired repository",
+      "type": "external_translated_sts",
+      "raw_data_committed": false
+    },
+    {
+      "name": "Turkish STS Dataset",
+      "source": "https://github.com/erenyanic/sts-tr-dataset",
+      "revision": "cde9014bd45634328cd5a5664f4fdecc412bfd9a",
+      "license": "CC BY-SA 4.0",
+      "type": "small_human_annotated_sts",
+      "cases": 81,
+      "raw_data_committed": false
+    }
+  ]
+}

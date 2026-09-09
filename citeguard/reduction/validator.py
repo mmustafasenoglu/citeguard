@@ -3,8 +3,54 @@
 from __future__ import annotations
 
 from ..models import Verdict
+from ..similarity.lexical import normalize_turkish
 from .analyzer import extract_protected_tokens
 from .models import FixPlan, MeaningValidation, MeaningVerdict, RewriteCandidate, ValidationResult
+
+
+def _contains_any(text: str, phrases: tuple[str, ...]) -> bool:
+    return any(phrase in text for phrase in phrases)
+
+
+def _strengthens_claim(original: str, candidate: str) -> bool:
+    """Detect explicit English or Turkish epistemic-strength escalation."""
+    original_norm = normalize_turkish(original)
+    candidate_norm = normalize_turkish(candidate)
+    transitions = (
+        (("associated with",), ("caused", "causes")),
+        (("may ",), ("definitely", "certainly")),
+        (("could ",), ("will ", "eliminates")),
+        (("some ",), ("all ", "every ")),
+        (
+            ("ilişkili", "bağlantılı", "korelasyon", "birlikte değişim"),
+            ("neden oldu", "neden olur", "sebep oldu", "sebep olur", "yol açtı"),
+        ),
+        (
+            (
+                "olabilir",
+                "olabileceği",
+                "artırabilir",
+                "azaltabilir",
+                "uygulanabilir",
+                "muhtemeldir",
+                "gösterebilir",
+                "işaret etmektedir",
+            ),
+            ("kesindir", "kesin olarak", "mutlaka", "kanıtlamaktadır"),
+        ),
+        (
+            ("bazı", "bir kısmı", "belirli katılımcılar"),
+            ("tümü", "tüm ", "herkes", "bütün katılımcılar"),
+        ),
+        (
+            ("ön bulgular", "sınırlı kanıt", "gözlemsel sonuç"),
+            ("kesin kanıt", "kanıtlanmıştır", "nedensellik gösterilmiştir"),
+        ),
+    )
+    return any(
+        _contains_any(original_norm, weak) and _contains_any(candidate_norm, strong)
+        for weak, strong in transitions
+    )
 
 
 def validate_candidate(
@@ -18,9 +64,7 @@ def validate_candidate(
 ) -> ValidationResult:
     """Apply non-negotiable citation, numeric, and support gates."""
     reasons: list[str] = []
-    citations_preserved = all(
-        citation in candidate.text for citation in plan.preserve_citations
-    )
+    citations_preserved = all(citation in candidate.text for citation in plan.preserve_citations)
     if plan.preserve_citations and not citations_preserved:
         reasons.append("required citation tokens were removed")
 
@@ -34,23 +78,14 @@ def validate_candidate(
     factual_integrity = supported_verdict not in {Verdict.CONTRADICTED}
     original_lower = original_text.casefold()
     candidate_lower = candidate.text.casefold()
-    strength_changes = (
-        ("associated with" in original_lower and "caused" in candidate_lower),
-        ("may " in original_lower and "may " not in candidate_lower),
-        ("could " in original_lower and "will " in candidate_lower),
-        ("some " in original_lower and "some " not in candidate_lower),
-    )
-    if any(strength_changes):
+    if _strengthens_claim(original_lower, candidate_lower):
         factual_integrity = False
         reasons.append("candidate strengthens the claim beyond the original")
     if not factual_integrity:
         reasons.append("candidate contradicts source support")
     if unsupported:
         reasons.append("candidate introduces unsupported claims")
-    if (
-        meaning_validation is not None
-        and meaning_validation.verdict != MeaningVerdict.PRESERVED
-    ):
+    if meaning_validation is not None and meaning_validation.verdict != MeaningVerdict.PRESERVED:
         reasons.append("meaning preservation was not established")
 
     accepted = not reasons
