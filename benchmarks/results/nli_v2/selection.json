@@ -1,0 +1,22 @@
+{
+  "decision": "RETAIN_CURRENT_ARCHITECTURE",
+  "selected_architecture": "A_current_global",
+  "selected_models": [
+    "cross-encoder/nli-deberta-v3-base"
+  ],
+  "selected_thresholds": {},
+  "development_only_selection": {
+    "candidate": "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7",
+    "threshold": 0.5
+  },
+  "english_external_gate": false,
+  "turkish_external_improvement_gate": true,
+  "holdout_touched_before_selection": false,
+  "unmet_promotion_requirements": [
+    "Validation and a single locked-holdout pass were not run after an external gate failure.",
+    "The expanded English and Turkish rewrite-safety suites were not completed.",
+    "Synthetic development data alone cannot establish a production safety rate."
+  ],
+  "safety_claim": "INSUFFICIENT_SAMPLE_FOR_1_PERCENT_CLAIM: synthetic development data alone does not establish production safety.",
+  "reason": "The full official external gate is decisive before any production routing or model replacement."
+}

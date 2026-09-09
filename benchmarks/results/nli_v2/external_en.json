@@ -1,0 +1,194 @@
+{
+  "dataset": "official dev split",
+  "archive_sha256": "afb3d70a5af5d8de0d9d81e2637e0fb8c22d1235c2749d83125ca43dab0dbd3e",
+  "models": {
+    "cross-encoder/nli-deberta-v3-base": {
+      "model_id": "cross-encoder/nli-deberta-v3-base",
+      "revision": "6c749ce3425cd33b46d187e45b92bbf96ee12ec7",
+      "license": null,
+      "id2label": {
+        "0": "contradiction",
+        "1": "entailment",
+        "2": "neutral"
+      },
+      "label_mapping": {
+        "contradiction": 0,
+        "entailment": 1,
+        "neutral": 2
+      },
+      "cases": 9842,
+      "accuracy": 0.9270473480999797,
+      "macro_precision": 0.9272230907276381,
+      "macro_recall": 0.9269768488183033,
+      "macro_f1": 0.9270332146671589,
+      "per_class": {
+        "entailment": {
+          "precision": 0.9412304866850322,
+          "recall": 0.9237008110543706,
+          "f1-score": 0.9323832625833839,
+          "support": 3329.0
+        },
+        "neutral": {
+          "precision": 0.886672710788758,
+          "recall": 0.9069551777434313,
+          "f1-score": 0.8966992665036675,
+          "support": 3235.0
+        },
+        "contradiction": {
+          "precision": 0.9537660747091243,
+          "recall": 0.950274557657108,
+          "f1-score": 0.9520171149144254,
+          "support": 3278.0
+        }
+      },
+      "runtime_seconds": 79.298,
+      "single_pair_latency_ms_estimate": 6.041,
+      "p95_pair_latency_ms_estimate": 16.205,
+      "batch_size": 64,
+      "peak_rss_bytes": 508166144,
+      "cached_disk_bytes": 1497701074,
+      "device": "mps"
+    },
+    "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli": {
+      "model_id": "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
+      "revision": "8adb042d524ecd5c26d3e3ba0e3fbcf7e2d0864c",
+      "license": null,
+      "id2label": {
+        "0": "entailment",
+        "1": "neutral",
+        "2": "contradiction"
+      },
+      "label_mapping": {
+        "entailment": 0,
+        "neutral": 1,
+        "contradiction": 2
+      },
+      "cases": 9842,
+      "accuracy": 0.8056289372078845,
+      "macro_precision": 0.8086682469260381,
+      "macro_recall": 0.8055250082951567,
+      "macro_f1": 0.8063050998875791,
+      "per_class": {
+        "entailment": {
+          "precision": 0.8740644321509925,
+          "recall": 0.806848903574647,
+          "f1-score": 0.8391127772571072,
+          "support": 3329.0
+        },
+        "neutral": {
+          "precision": 0.7275337352856732,
+          "recall": 0.7833075734157651,
+          "f1-score": 0.7543911878535279,
+          "support": 3235.0
+        },
+        "contradiction": {
+          "precision": 0.8244065733414486,
+          "recall": 0.826418547895058,
+          "f1-score": 0.8254113345521024,
+          "support": 3278.0
+        }
+      },
+      "runtime_seconds": 86.795,
+      "single_pair_latency_ms_estimate": 7.767,
+      "p95_pair_latency_ms_estimate": 15.358,
+      "batch_size": 64,
+      "peak_rss_bytes": 958283776,
+      "cached_disk_bytes": 1156582236,
+      "device": "mps"
+    },
+    "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli": {
+      "model_id": "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli",
+      "revision": "0a71e92a985b6e1ad1828cf67ce9c459639c1dca",
+      "license": null,
+      "id2label": {
+        "0": "entailment",
+        "1": "neutral",
+        "2": "contradiction"
+      },
+      "label_mapping": {
+        "entailment": 0,
+        "neutral": 1,
+        "contradiction": 2
+      },
+      "cases": 9842,
+      "accuracy": 0.6817719975614712,
+      "macro_precision": 0.6876855632733196,
+      "macro_recall": 0.6810298628321568,
+      "macro_f1": 0.6809397875485677,
+      "per_class": {
+        "entailment": {
+          "precision": 0.7866580728327425,
+          "recall": 0.7332532291979573,
+          "f1-score": 0.7590174129353234,
+          "support": 3329.0
+        },
+        "neutral": {
+          "precision": 0.665470208183776,
+          "recall": 0.5731066460587326,
+          "f1-score": 0.6158445440956651,
+          "support": 3235.0
+        },
+        "contradiction": {
+          "precision": 0.6109284088034405,
+          "recall": 0.7367297132397803,
+          "f1-score": 0.6679574056147144,
+          "support": 3278.0
+        }
+      },
+      "runtime_seconds": 10.788,
+      "single_pair_latency_ms_estimate": 0.669,
+      "p95_pair_latency_ms_estimate": 1.638,
+      "batch_size": 64,
+      "peak_rss_bytes": 958283776,
+      "cached_disk_bytes": 900301456,
+      "device": "mps"
+    },
+    "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7": {
+      "model_id": "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7",
+      "revision": "b5113eb38ab63efdd7f280f8c144ea8b13f978ce",
+      "license": null,
+      "id2label": {
+        "0": "entailment",
+        "1": "neutral",
+        "2": "contradiction"
+      },
+      "label_mapping": {
+        "entailment": 0,
+        "neutral": 1,
+        "contradiction": 2
+      },
+      "cases": 9842,
+      "accuracy": 0.7349116033326559,
+      "macro_precision": 0.7782998754119647,
+      "macro_recall": 0.735396741401368,
+      "macro_f1": 0.73732747260767,
+      "per_class": {
+        "entailment": {
+          "precision": 0.8781173164734809,
+          "recall": 0.7509762691498949,
+          "f1-score": 0.8095854922279793,
+          "support": 3329.0
+        },
+        "neutral": {
+          "precision": 0.5863369656328583,
+          "recall": 0.8649149922720247,
+          "f1-score": 0.6988884725864868,
+          "support": 3235.0
+        },
+        "contradiction": {
+          "precision": 0.8704453441295547,
+          "recall": 0.5902989627821843,
+          "f1-score": 0.7035084530085439,
+          "support": 3278.0
+        }
+      },
+      "runtime_seconds": 81.029,
+      "single_pair_latency_ms_estimate": 7.347,
+      "p95_pair_latency_ms_estimate": 14.505,
+      "batch_size": 64,
+      "peak_rss_bytes": 958283776,
+      "cached_disk_bytes": 1156549996,
+      "device": "mps"
+    }
+  }
+}

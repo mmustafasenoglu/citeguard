@@ -1,0 +1,65 @@
+{
+  "threshold": 0.5,
+  "models": [
+    {
+      "model_id": "cross-encoder/nli-deberta-v3-base",
+      "english_macro_f1": 0.9270332146671589,
+      "english_contradiction_recall": 0.950274557657108,
+      "turkish_macro_f1": 0.4453032272636783,
+      "turkish_contradiction_recall": 0.28767541183648565,
+      "english_safe_preserved_recall": 0.3416666666666667,
+      "english_unsafe_preserved_rate": 0.0,
+      "turkish_safe_preserved_recall": 0.575,
+      "turkish_unsafe_preserved_rate": 0.1111111111111111,
+      "single_pair_latency_ms_estimate": 16.897,
+      "p95_pair_latency_ms_estimate": 24.79,
+      "peak_rss_bytes": 1119797248,
+      "cached_disk_bytes": 1497701074
+    },
+    {
+      "model_id": "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
+      "english_macro_f1": 0.8063050998875791,
+      "english_contradiction_recall": 0.826418547895058,
+      "turkish_macro_f1": 0.6830948612129243,
+      "turkish_contradiction_recall": 0.5649786455155583,
+      "english_safe_preserved_recall": 0.35,
+      "english_unsafe_preserved_rate": 0.0,
+      "turkish_safe_preserved_recall": 0.7333333333333333,
+      "turkish_unsafe_preserved_rate": 0.0,
+      "single_pair_latency_ms_estimate": 11.738,
+      "p95_pair_latency_ms_estimate": 34.252,
+      "peak_rss_bytes": 1119797248,
+      "cached_disk_bytes": 1156582236
+    },
+    {
+      "model_id": "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli",
+      "english_macro_f1": 0.6809397875485677,
+      "english_contradiction_recall": 0.7367297132397803,
+      "turkish_macro_f1": 0.5744172228159146,
+      "turkish_contradiction_recall": 0.4243441122635753,
+      "english_safe_preserved_recall": 0.18333333333333332,
+      "english_unsafe_preserved_rate": 0.0,
+      "turkish_safe_preserved_recall": 0.45,
+      "turkish_unsafe_preserved_rate": 0.13472222222222222,
+      "single_pair_latency_ms_estimate": 0.847,
+      "p95_pair_latency_ms_estimate": 2.101,
+      "peak_rss_bytes": 1119797248,
+      "cached_disk_bytes": 900301456
+    },
+    {
+      "model_id": "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7",
+      "english_macro_f1": 0.73732747260767,
+      "english_contradiction_recall": 0.5902989627821843,
+      "turkish_macro_f1": 0.6587865353283991,
+      "turkish_contradiction_recall": 0.48322147651006714,
+      "english_safe_preserved_recall": 0.6,
+      "english_unsafe_preserved_rate": 0.0,
+      "turkish_safe_preserved_recall": 0.6583333333333333,
+      "turkish_unsafe_preserved_rate": 0.0,
+      "single_pair_latency_ms_estimate": 10.027,
+      "p95_pair_latency_ms_estimate": 12.941,
+      "peak_rss_bytes": 1119797248,
+      "cached_disk_bytes": 1156549996
+    }
+  ]
+}

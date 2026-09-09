@@ -1,0 +1,18 @@
+{
+  "cross-encoder/nli-deberta-v3-base": {
+    "cases": 60,
+    "unsafe_preserved_rate": 0.0
+  },
+  "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli": {
+    "cases": 60,
+    "unsafe_preserved_rate": 0.0
+  },
+  "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli": {
+    "cases": 60,
+    "unsafe_preserved_rate": 0.0
+  },
+  "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7": {
+    "cases": 60,
+    "unsafe_preserved_rate": 0.0
+  }
+}

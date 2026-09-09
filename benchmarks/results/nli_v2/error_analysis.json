@@ -1,0 +1,22 @@
+{
+  "status": "NOT_EXPANDED_AFTER_EXTERNAL_GATE_FAILURE",
+  "reason": "No candidate passed the prerequisite external English gate; no production shortlist existed.",
+  "development_gate_attribution": {
+    "en": {
+      "NLI insufficient": 150,
+      "NLI contradiction": 138,
+      "claim_strengthening": 300,
+      "numeric": 60,
+      "unit": 60,
+      "unsupported_claim": 60
+    },
+    "tr": {
+      "NLI insufficient": 165,
+      "NLI contradiction": 236,
+      "claim_strengthening": 180,
+      "numeric": 60,
+      "unit": 60,
+      "unsupported_claim": 60
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "models": {
+    "cross-encoder/nli-deberta-v3-base": {
+      "model_id": "cross-encoder/nli-deberta-v3-base",
+      "revision": "6c749ce3425cd33b46d187e45b92bbf96ee12ec7",
+      "license": null,
+      "id2label": {
+        "0": "contradiction",
+        "1": "entailment",
+        "2": "neutral"
+      },
+      "label_mapping": {
+        "contradiction": 0,
+        "entailment": 1,
+        "neutral": 2
+      },
+      "max_length": 512,
+      "parameter_count": 184424451,
+      "cached_disk_bytes": 1497701074,
+      "runtime_seconds": 30.02,
+      "single_pair_latency_ms_estimate": 16.897,
+      "p95_pair_latency_ms_estimate": 24.79,
+      "batch_size": 32,
+      "peak_rss_bytes": 1119797248,
+      "device": "mps"
+    },
+    "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli": {
+      "model_id": "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
+      "revision": "8adb042d524ecd5c26d3e3ba0e3fbcf7e2d0864c",
+      "license": null,
+      "id2label": {
+        "0": "entailment",
+        "1": "neutral",
+        "2": "contradiction"
+      },
+      "label_mapping": {
+        "entailment": 0,
+        "neutral": 1,
+        "contradiction": 2
+      },
+      "max_length": 512,
+      "parameter_count": 278811651,
+      "cached_disk_bytes": 1156582236,
+      "runtime_seconds": 30.051,
+      "single_pair_latency_ms_estimate": 11.738,
+      "p95_pair_latency_ms_estimate": 34.252,
+      "batch_size": 32,
+      "peak_rss_bytes": 1119797248,
+      "device": "mps"
+    },
+    "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli": {
+      "model_id": "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli",
+      "revision": "0a71e92a985b6e1ad1828cf67ce9c459639c1dca",
+      "license": null,
+      "id2label": {
+        "0": "entailment",
+        "1": "neutral",
+        "2": "contradiction"
+      },
+      "label_mapping": {
+        "entailment": 0,
+        "neutral": 1,
+        "contradiction": 2
+      },
+      "max_length": 512,
+      "parameter_count": 106995075,
+      "cached_disk_bytes": 900301456,
+      "runtime_seconds": 1.842,
+      "single_pair_latency_ms_estimate": 0.847,
+      "p95_pair_latency_ms_estimate": 2.101,
+      "batch_size": 32,
+      "peak_rss_bytes": 1119797248,
+      "device": "mps"
+    },
+    "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7": {
+      "model_id": "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7",
+      "revision": "b5113eb38ab63efdd7f280f8c144ea8b13f978ce",
+      "license": null,
+      "id2label": {
+        "0": "entailment",
+        "1": "neutral",
+        "2": "contradiction"
+      },
+      "label_mapping": {
+        "entailment": 0,
+        "neutral": 1,
+        "contradiction": 2
+      },
+      "max_length": 512,
+      "parameter_count": 278811651,
+      "cached_disk_bytes": 1156549996,
+      "runtime_seconds": 17.715,
+      "single_pair_latency_ms_estimate": 10.027,
+      "p95_pair_latency_ms_estimate": 12.941,
+      "batch_size": 32,
+      "peak_rss_bytes": 1119797248,
+      "device": "mps"
+    }
+  },
+  "measurement": "Apple MPS; batch 32"
+}

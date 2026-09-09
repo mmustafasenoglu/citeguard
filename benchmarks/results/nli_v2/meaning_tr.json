@@ -1,0 +1,2532 @@
+{
+  "dataset": {
+    "total_cases": 1400,
+    "unsafe_cases": 1200,
+    "domains": [
+      "medicine",
+      "engineering",
+      "computer_science",
+      "economics",
+      "psychology",
+      "education",
+      "social_science",
+      "environment",
+      "statistics"
+    ],
+    "categories": [
+      "safe_paraphrase",
+      "citation_preserving_safe_rewrite",
+      "neutral_addition",
+      "contradiction",
+      "negation",
+      "association_to_causation",
+      "possibility_to_certainty",
+      "scope_strengthening",
+      "evidence_strengthening",
+      "numeric_change",
+      "unit_change",
+      "unsupported_claim",
+      "temporal_change",
+      "quantifier_change"
+    ],
+    "group_split": {
+      "holdout": 280,
+      "development": 840,
+      "validation": 280
+    }
+  },
+  "models": {
+    "cross-encoder/nli-deberta-v3-base": [
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.5,
+        "safe_preserved_recall": 0.575,
+        "unsafe_preserved_rate": 0.1111111111111111,
+        "contradiction_recall": 0.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.3333333333333333
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 217,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60,
+          "NLI contradiction": 114
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.55,
+        "safe_preserved_recall": 0.525,
+        "unsafe_preserved_rate": 0.1111111111111111,
+        "contradiction_recall": 0.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.3333333333333333
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 223,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60,
+          "NLI contradiction": 114
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.6,
+        "safe_preserved_recall": 0.5083333333333333,
+        "unsafe_preserved_rate": 0.10694444444444444,
+        "contradiction_recall": 0.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.2833333333333333
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 228,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60,
+          "NLI contradiction": 114
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.65,
+        "safe_preserved_recall": 0.475,
+        "unsafe_preserved_rate": 0.10694444444444444,
+        "contradiction_recall": 0.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.2833333333333333
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 232,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60,
+          "NLI contradiction": 114
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.7,
+        "safe_preserved_recall": 0.4583333333333333,
+        "unsafe_preserved_rate": 0.10555555555555556,
+        "contradiction_recall": 0.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.26666666666666666
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 235,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60,
+          "NLI contradiction": 114
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.75,
+        "safe_preserved_recall": 0.44166666666666665,
+        "unsafe_preserved_rate": 0.10277777777777777,
+        "contradiction_recall": 0.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.23333333333333334
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 239,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60,
+          "NLI contradiction": 114
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.8,
+        "safe_preserved_recall": 0.39166666666666666,
+        "unsafe_preserved_rate": 0.1,
+        "contradiction_recall": 0.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.2
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 247,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60,
+          "NLI contradiction": 114
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.85,
+        "safe_preserved_recall": 0.3416666666666667,
+        "unsafe_preserved_rate": 0.09583333333333334,
+        "contradiction_recall": 0.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.15
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 265,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60,
+          "NLI contradiction": 105
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.9,
+        "safe_preserved_recall": 0.225,
+        "unsafe_preserved_rate": 0.09305555555555556,
+        "contradiction_recall": 0.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.11666666666666667
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 288,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60,
+          "NLI contradiction": 98
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      }
+    ],
+    "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli": [
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.5,
+        "safe_preserved_recall": 0.7333333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 117,
+          "NLI contradiction": 275,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.55,
+        "safe_preserved_recall": 0.7333333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 119,
+          "NLI contradiction": 273,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.6,
+        "safe_preserved_recall": 0.7333333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 120,
+          "NLI contradiction": 272,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.65,
+        "safe_preserved_recall": 0.7333333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 123,
+          "NLI contradiction": 269,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.7,
+        "safe_preserved_recall": 0.7333333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 132,
+          "NLI contradiction": 260,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.75,
+        "safe_preserved_recall": 0.7333333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 142,
+          "NLI contradiction": 250,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.8,
+        "safe_preserved_recall": 0.7333333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 147,
+          "NLI contradiction": 245,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.85,
+        "safe_preserved_recall": 0.7333333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 148,
+          "NLI contradiction": 244,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.9,
+        "safe_preserved_recall": 0.7333333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 152,
+          "NLI contradiction": 240,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      }
+    ],
+    "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli": [
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.5,
+        "safe_preserved_recall": 0.45,
+        "unsafe_preserved_rate": 0.13472222222222222,
+        "contradiction_recall": 0.5,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.6166666666666667
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 209,
+          "NLI contradiction": 120,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.55,
+        "safe_preserved_recall": 0.45,
+        "unsafe_preserved_rate": 0.13472222222222222,
+        "contradiction_recall": 0.5,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.6166666666666667
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 209,
+          "NLI contradiction": 120,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.6,
+        "safe_preserved_recall": 0.44166666666666665,
+        "unsafe_preserved_rate": 0.13472222222222222,
+        "contradiction_recall": 0.5,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.6166666666666667
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 210,
+          "NLI contradiction": 120,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.65,
+        "safe_preserved_recall": 0.44166666666666665,
+        "unsafe_preserved_rate": 0.10972222222222222,
+        "contradiction_recall": 0.5,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.31666666666666665
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 228,
+          "NLI contradiction": 120,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.7,
+        "safe_preserved_recall": 0.44166666666666665,
+        "unsafe_preserved_rate": 0.1,
+        "contradiction_recall": 0.5,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.2
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 235,
+          "NLI contradiction": 120,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.75,
+        "safe_preserved_recall": 0.44166666666666665,
+        "unsafe_preserved_rate": 0.09027777777777778,
+        "contradiction_recall": 0.5,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.08333333333333333
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 242,
+          "NLI contradiction": 120,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.8,
+        "safe_preserved_recall": 0.44166666666666665,
+        "unsafe_preserved_rate": 0.09027777777777778,
+        "contradiction_recall": 0.5,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.08333333333333333
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 242,
+          "NLI contradiction": 120,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.85,
+        "safe_preserved_recall": 0.425,
+        "unsafe_preserved_rate": 0.08333333333333333,
+        "contradiction_recall": 0.5,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 249,
+          "NLI contradiction": 120,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.9,
+        "safe_preserved_recall": 0.39166666666666666,
+        "unsafe_preserved_rate": 0.08333333333333333,
+        "contradiction_recall": 0.5,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 1.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 254,
+          "NLI contradiction": 119,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      }
+    ],
+    "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7": [
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.5,
+        "safe_preserved_recall": 0.6583333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 165,
+          "NLI contradiction": 236,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.55,
+        "safe_preserved_recall": 0.6583333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 165,
+          "NLI contradiction": 236,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.6,
+        "safe_preserved_recall": 0.6583333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 169,
+          "NLI contradiction": 232,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.65,
+        "safe_preserved_recall": 0.6583333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 171,
+          "NLI contradiction": 230,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.7,
+        "safe_preserved_recall": 0.6083333333333333,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 181,
+          "NLI contradiction": 226,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.75,
+        "safe_preserved_recall": 0.6,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 187,
+          "NLI contradiction": 221,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.8,
+        "safe_preserved_recall": 0.5666666666666667,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 194,
+          "NLI contradiction": 218,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.85,
+        "safe_preserved_recall": 0.5,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 208,
+          "NLI contradiction": 212,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      },
+      {
+        "architecture": "B_multilingual_global",
+        "cases": 840,
+        "threshold": 0.9,
+        "safe_preserved_recall": 0.39166666666666666,
+        "unsafe_preserved_rate": 0.0,
+        "contradiction_recall": 1.0,
+        "association_to_causation_unsafe_preserved_rate": 0.0,
+        "evidence_strengthening_unsafe_preserved_rate": 0.0,
+        "category": {
+          "unit_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "quantifier_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "negation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "neutral_addition": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "possibility_to_certainty": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "unsupported_claim": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "association_to_causation": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "numeric_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "scope_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "contradiction": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "temporal_change": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          },
+          "evidence_strengthening": {
+            "cases": 60,
+            "unsafe_preserved_rate": 0.0
+          }
+        },
+        "rejection_gate_counts": {
+          "NLI insufficient": 232,
+          "NLI contradiction": 201,
+          "claim_strengthening": 180,
+          "numeric": 60,
+          "unit": 60,
+          "unsupported_claim": 60
+        },
+        "routing": "benchmark language metadata only; no production language detector is shipped"
+      }
+    ]
+  }
+}
