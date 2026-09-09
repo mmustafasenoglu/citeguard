@@ -67,7 +67,9 @@ def _classify(
         char in item.sentence.text for char in ('"', "\u201c", "\u201d", "\u00ab", "\u00bb")
     )
     if quoted and match.exact_overlap >= 0.70 and has_citation:
-        return ReductionRiskType.QUOTE_NEEDED, FixAction.ADD_QUOTATION, 0.98
+        return ReductionRiskType.ACCEPTABLE_OVERLAP, FixAction.LEAVE, 0.98
+    if quoted and match.exact_overlap >= 0.70:
+        return ReductionRiskType.MISSING_CITATION, FixAction.ADD_CITATION, 0.96
     if match.exact_overlap >= 0.70:
         if has_citation:
             return ReductionRiskType.TOO_CLOSE_PARAPHRASE, FixAction.PARAPHRASE, 0.92

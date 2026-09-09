@@ -148,12 +148,9 @@ class SentenceTransformerSemanticBackend:
                 _is_model_cached,
             )
 
-            if not self._allow_download and not _is_model_cached(
-                self._model_name
-            ):
+            if not self._allow_download and not _is_model_cached(self._model_name):
                 log.debug(
-                    "Semantic backend: model '%s' not cached, "
-                    "allow_download=False.",
+                    "Semantic backend: model '%s' not cached, allow_download=False.",
                     self._model_name,
                 )
                 self._backend = None
@@ -316,8 +313,7 @@ class TransformerNLIBackend:
 
                 if not _is_model_cached(self._model_name):
                     log.debug(
-                        "NLI backend: model '%s' not cached, "
-                        "allow_download=False.",
+                        "NLI backend: model '%s' not cached, allow_download=False.",
                         self._model_name,
                     )
                     self._model = None
@@ -327,9 +323,7 @@ class TransformerNLIBackend:
             if not self._allow_download:
                 # Enforce zero-network loading at the loader boundary.
                 loader_kwargs["local_files_only"] = True
-            tokenizer = AutoTokenizer.from_pretrained(
-                self._model_name, **loader_kwargs
-            )
+            tokenizer = AutoTokenizer.from_pretrained(self._model_name, **loader_kwargs)
             model = AutoModelForSequenceClassification.from_pretrained(
                 self._model_name, **loader_kwargs
             )
@@ -337,12 +331,8 @@ class TransformerNLIBackend:
 
             config = model.config
             if hasattr(config, "label2id") and config.label2id:
-                self._label2id = {
-                    k.lower(): v for k, v in config.label2id.items()
-                }
-                self._id2label = {
-                    v: k for k, v in self._label2id.items()
-                }
+                self._label2id = {k.lower(): v for k, v in config.label2id.items()}
+                self._id2label = {v: k for k, v in self._label2id.items()}
             else:
                 self._label2id = None
                 self._id2label = None
@@ -436,9 +426,7 @@ def validate_meaning(
     """
     thresholds = thresholds or MeaningThresholds()
     try:
-        semantic: float | None = semantic_backend.similarity(
-            original, candidate.text
-        )
+        semantic: float | None = semantic_backend.similarity(original, candidate.text)
     except LocalModelUnavailableError as exc:
         semantic = None
         log.debug("Semantic evidence unavailable: %s", exc)
@@ -449,9 +437,7 @@ def validate_meaning(
     reasons: list[str] = []
 
     if semantic is None:
-        reasons.append(
-            "real semantic evidence is unavailable (model not loaded)"
-        )
+        reasons.append("real semantic evidence is unavailable (model not loaded)")
     elif semantic < thresholds.semantic_minimum:
         reasons.append("semantic similarity is below the calibrated minimum")
     if forward_verdict == MeaningVerdict.CONTRADICTED:

@@ -30,6 +30,15 @@ _NEGATION_MARKERS = (
     "söylenemez",
     "doğrulanmamış",
 )
+_NAMED_ENTITY_RE = re.compile(
+    r"\b(?:[A-ZÇĞİÖŞÜ]{2,}|[A-ZÇĞİÖŞÜ][a-zçğıöşü]+(?:[A-ZÇĞİÖŞÜ][A-Za-zÇĞİÖŞÜçğıöşü]+)+|"
+    r"[A-ZÇĞİÖŞÜ][a-zçğıöşü]+(?:\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü]+)+)\b"
+)
+
+
+def _named_entities(text: str) -> tuple[str, ...]:
+    """Extract conservative proper-name/acronym tokens for preservation."""
+    return tuple(dict.fromkeys(match.group(0) for match in _NAMED_ENTITY_RE.finditer(text)))
 
 
 def _contains_asserted_phrase(text: str, phrases: tuple[str, ...]) -> bool:
@@ -157,6 +166,14 @@ def validate_candidate(
     if not numeric_integrity:
         reasons.append("numeric values were changed or removed")
 
+    original_entities = _named_entities(original_text)
+    candidate_folded = candidate.text.casefold()
+    named_entity_integrity = all(
+        entity.casefold() in candidate_folded for entity in original_entities
+    )
+    if not named_entity_integrity:
+        reasons.append("important named entities were changed or removed")
+
     unsupported = tuple(unsupported_claims or ())
     factual_integrity = supported_verdict not in {Verdict.CONTRADICTED}
     original_lower = original_text.casefold()
@@ -174,6 +191,7 @@ def validate_candidate(
     accepted = not reasons
     candidate.citations_preserved = citations_preserved
     candidate.numeric_integrity = numeric_integrity
+    candidate.named_entity_integrity = named_entity_integrity
     candidate.factual_integrity = factual_integrity
     candidate.verdict = supported_verdict
     if meaning_validation is not None:
@@ -185,6 +203,7 @@ def validate_candidate(
         citations_preserved=citations_preserved,
         numeric_integrity=numeric_integrity,
         factual_integrity=factual_integrity,
+        named_entity_integrity=named_entity_integrity,
         unsupported_new_claims=unsupported,
         reasons=tuple(reasons),
     )

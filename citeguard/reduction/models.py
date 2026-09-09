@@ -32,6 +32,9 @@ class FixAction(str, Enum):
     ADD_QUOTATION = "add_quotation"
     PARAPHRASE = "paraphrase"
     MANUAL_REVIEW = "manual_review"
+    QUOTE_AND_CITE = "quote_and_cite"
+    PARAPHRASE_WITH_CITATION = "paraphrase_with_citation"
+    REMOVE_REDUNDANT_COPY = "remove_redundant_copy"
 
 
 class MeaningVerdict(str, Enum):
@@ -132,6 +135,7 @@ class RewriteCandidate:
     source_support_score: float | None = None
     factual_integrity: bool | None = None
     numeric_integrity: bool | None = None
+    named_entity_integrity: bool | None = None
     introduced_claims: list[str] = field(default_factory=list)
     verdict: Verdict | None = None
     rejection_reasons: list[str] = field(default_factory=list)
@@ -146,6 +150,7 @@ class ValidationResult:
     citations_preserved: bool
     numeric_integrity: bool
     factual_integrity: bool
+    named_entity_integrity: bool = True
     unsupported_new_claims: tuple[str, ...] = ()
     reasons: tuple[str, ...] = ()
 

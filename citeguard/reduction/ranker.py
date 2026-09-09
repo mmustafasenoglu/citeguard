@@ -12,7 +12,8 @@ def rank_candidates(candidates: list[RewriteCandidate]) -> list[RewriteCandidate
     are excluded by their rejection reasons before scoring.
     """
     eligible = [
-        candidate for candidate in candidates
+        candidate
+        for candidate in candidates
         if not candidate.rejection_reasons
         and candidate.citations_preserved is True
         and candidate.numeric_integrity is True
@@ -25,18 +26,11 @@ def rank_candidates(candidates: list[RewriteCandidate]) -> list[RewriteCandidate
     def score(candidate: RewriteCandidate) -> float:
         meaning = candidate.meaning_score if candidate.meaning_score is not None else 0.0
         support = (
-            candidate.source_support_score
-            if candidate.source_support_score is not None
-            else 0.0
+            candidate.source_support_score if candidate.source_support_score is not None else 0.0
         )
         source_reduction = max(candidate.source_overlap_delta or 0.0, 0.0)
         structural = 1.0 - (candidate.lexical_overlap or 0.0)
-        value = (
-            0.40 * meaning
-            + 0.30 * support
-            + 0.20 * source_reduction
-            + 0.10 * structural
-        )
+        value = 0.40 * meaning + 0.30 * support + 0.20 * source_reduction + 0.10 * structural
         candidate.score = round(value, 6)
         return candidate.score
 
