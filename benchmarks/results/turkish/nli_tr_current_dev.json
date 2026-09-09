@@ -1,0 +1,32 @@
+{
+  "cases": 9842,
+  "accuracy": 0.50467384677911,
+  "macro_precision": 0.5111195973129777,
+  "macro_recall": 0.5034456294144731,
+  "macro_f1": 0.4886937811427959,
+  "per_class": {
+    "entailment": {
+      "precision": 0.4930583911800735,
+      "recall": 0.7254430759987984,
+      "f1-score": 0.5870912847939711,
+      "support": 3329.0
+    },
+    "neutral": {
+      "precision": 0.5048200514138818,
+      "recall": 0.4856259659969088,
+      "f1-score": 0.4950370253663148,
+      "support": 3235.0
+    },
+    "contradiction": {
+      "precision": 0.5354803493449781,
+      "recall": 0.299267846247712,
+      "f1-score": 0.38395303326810176,
+      "support": 3278.0
+    }
+  },
+  "status": "AVAILABLE",
+  "dataset": "NLI-TR SNLI-TR official dev",
+  "model": "cross-encoder/nli-deberta-v3-base",
+  "archive_sha256": "c8ecee6c532ada2a1a6f7b9c29f618c6737662dde12d18f21c437682b2bdd851",
+  "runtime_seconds": 343.84
+}

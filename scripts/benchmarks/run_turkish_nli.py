@@ -142,6 +142,7 @@ def main() -> None:
     parser.add_argument("--model", default="cross-encoder/nli-deberta-v3-base")
     parser.add_argument("--snli-archive", type=Path)
     parser.add_argument("--snli-split", choices=("dev", "test"), default="test")
+    parser.add_argument("--dataset-name", default="NLI-TR SNLI-TR")
     parser.add_argument("--stress-output", type=Path, required=True)
     parser.add_argument("--nli-output", type=Path, required=True)
     args = parser.parse_args()
@@ -175,7 +176,7 @@ def main() -> None:
         nli_report.update(
             {
                 "status": "AVAILABLE",
-                "dataset": f"NLI-TR SNLI-TR official {args.snli_split}",
+                "dataset": f"{args.dataset_name} official {args.snli_split}",
                 "model": args.model,
                 "archive_sha256": hashlib.sha256(args.snli_archive.read_bytes()).hexdigest(),
                 "runtime_seconds": round(runtime, 3),

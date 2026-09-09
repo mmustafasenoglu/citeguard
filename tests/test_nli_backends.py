@@ -5,6 +5,8 @@ All tests are offline and mocked.  No real model downloads occur.
 
 from __future__ import annotations
 
+import importlib.util
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -440,6 +442,30 @@ def test_offline_uncached_nli_no_network() -> None:
     )
     assert backend.available is False
     assert backend._load_model() is None
+
+
+def test_nli_meaning_benchmark_covers_required_safety_categories() -> None:
+    path = Path(__file__).parents[1] / "scripts/benchmarks/run_nli_meaning_validation.py"
+    spec = importlib.util.spec_from_file_location("nli_meaning_benchmark", path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    required = {
+        "safe_paraphrase",
+        "citation_preserving_safe_rewrite",
+        "negation",
+        "contradiction",
+        "causal_strengthening",
+        "modality_strengthening",
+        "scope_strengthening",
+        "evidence_strengthening",
+        "numeric_change",
+        "unit_change",
+    }
+    for language in ("en", "tr"):
+        cases = module.build_cases(language)
+        assert len(cases) >= 300
+        assert {case["category"] for case in cases} >= required
 
 
 # ===========================================================================

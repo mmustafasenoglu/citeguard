@@ -1,5 +1,5 @@
 {
-  "status": "production_model_retained_pending_safe_migration",
+  "status": "production_model_retained_after_english_regression",
   "model": "cross-encoder/nli-deberta-v3-base",
   "snli_tr_test_accuracy": 0.5071254071661238,
   "snli_tr_test_macro_f1": 0.4898106639417998,
@@ -8,5 +8,5 @@
   "alternative_development_accuracy": 0.7299329404592563,
   "alternative_development_macro_f1": 0.7252532534105525,
   "alternative_development_contradiction_recall": 0.6159243441122636,
-  "reason": "The multilingual alternative is materially better on Turkish development data, but production remains unchanged pending external English regression validation."
+  "reason": "The candidate materially improves Turkish development data, but its English macro-F1 and contradiction-recall regressions exceed the declared budget and its unsafe PRESERVED rate is 11.1 percent."
 }

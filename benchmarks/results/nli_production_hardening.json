@@ -1,0 +1,41 @@
+{
+  "decision": "RETAIN_CURRENT_MODEL",
+  "current_model": "cross-encoder/nli-deberta-v3-base",
+  "candidate_model": "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
+  "selection_policy": {
+    "maximum_english_macro_f1_degradation": 0.02,
+    "maximum_english_contradiction_recall_degradation": 0.03,
+    "maximum_unsafe_preserved_rate": 0.01
+  },
+  "english_development": {
+    "cases": 9842,
+    "current_macro_f1": 0.9313382192240917,
+    "candidate_macro_f1": 0.8369654110750094,
+    "current_contradiction_recall": 0.9527150701647346,
+    "candidate_contradiction_recall": 0.8502135448444174
+  },
+  "turkish_development": {
+    "cases": 9842,
+    "current_macro_f1": 0.4886937811427959,
+    "candidate_macro_f1": 0.7252532534105525,
+    "current_contradiction_recall": 0.299267846247712,
+    "candidate_contradiction_recall": 0.6159243441122636
+  },
+  "meaning_validation": {
+    "english_candidate_unsafe_preserved_rate": 0.1111111111111111,
+    "turkish_candidate_unsafe_preserved_rate": 0.1111111111111111
+  },
+  "performance": {
+    "current_200_pair_stress_runtime_seconds": 2.606,
+    "candidate_200_pair_stress_runtime_seconds": 2.895,
+    "current_cached_model_size_mib": 714,
+    "candidate_cached_model_size_mib": 554,
+    "tokenizer_max_length": 512
+  },
+  "promotion_blockers": [
+    "English macro-F1 regression exceeds budget.",
+    "English contradiction-recall regression exceeds budget.",
+    "Candidate unsafe PRESERVED rate exceeds the 1 percent safety limit."
+  ],
+  "production_default_changed": false
+}

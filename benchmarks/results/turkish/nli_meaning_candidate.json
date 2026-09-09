@@ -1,0 +1,27 @@
+{
+  "language": "tr",
+  "model": "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
+  "cases": 330,
+  "safe_preserved_recall": 1.0,
+  "unsafe_preserved_false_positive_rate": 0.1111111111111111,
+  "contradiction_recall": 1.0,
+  "verdict_counts": {
+    "meaning_preserved": 90,
+    "unknown": 30,
+    "contradicted": 210
+  },
+  "category_cases": {
+    "safe_paraphrase": 30,
+    "citation_preserving_safe_rewrite": 30,
+    "neutral_addition": 30,
+    "contradiction": 30,
+    "negation": 30,
+    "causal_strengthening": 30,
+    "modality_strengthening": 30,
+    "scope_strengthening": 30,
+    "evidence_strengthening": 30,
+    "numeric_change": 30,
+    "unit_change": 30
+  },
+  "implementation": "batched evaluation of CiteGuard's current bidirectional verdict contract"
+}
