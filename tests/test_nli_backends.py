@@ -468,6 +468,76 @@ def test_nli_meaning_benchmark_covers_required_safety_categories() -> None:
         assert {case["category"] for case in cases} >= required
 
 
+def test_nli_v2_benchmark_has_grouped_multilingual_safety_coverage() -> None:
+    """The expanded suite is large enough to measure, without split leakage."""
+    path = Path(__file__).parents[1] / "scripts/benchmarks/run_nli_v2.py"
+    spec = importlib.util.spec_from_file_location("nli_v2_benchmark", path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    required = {
+        "safe_paraphrase",
+        "citation_preserving_safe_rewrite",
+        "neutral_addition",
+        "association_to_causation",
+        "evidence_strengthening",
+        "unsupported_claim",
+        "temporal_change",
+        "quantifier_change",
+    }
+    for language in ("en", "tr"):
+        cases = module.build_meaning_cases(language)
+        module.validate_cases(cases)
+        assert len(cases) >= 1000
+        assert sum(case["expected"] == "unsafe" for case in cases) >= 700
+        assert {case["category"] for case in cases} >= required
+        groups: dict[str, set[str]] = {}
+        for case in cases:
+            groups.setdefault(case["group"], set()).add(case["split"])
+        assert all(len(splits) == 1 for splits in groups.values())
+
+
+def test_nli_v2_conservative_ensemble_and_metadata_routing_are_fail_closed() -> None:
+    """Only dual entailment passes; a neutral or contradiction veto rejects."""
+    path = Path(__file__).parents[1] / "scripts/benchmarks/run_nli_v2.py"
+    spec = importlib.util.spec_from_file_location("nli_v2_architecture", path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    en_case = next(
+        case for case in module.build_meaning_cases("en") if case["category"] == "safe_paraphrase"
+    )
+    tr_case = next(
+        case for case in module.build_meaning_cases("tr") if case["category"] == "safe_paraphrase"
+    )
+    entailed = (module.Direction(0.95, 0.04, 0.01),) * 2
+    neutral = (module.Direction(0.10, 0.85, 0.05),) * 2
+    contradicted = (module.Direction(0.01, 0.04, 0.95),) * 2
+    current = "current"
+    multilingual = "multilingual"
+    outputs = {current: [entailed, entailed], multilingual: [neutral, entailed]}
+    routed = module.score_architecture(
+        [en_case, tr_case],
+        outputs,
+        "C_metadata_routed",
+        current=current,
+        primary=multilingual,
+        threshold=0.70,
+    )
+    assert routed["safe_preserved_recall"] == 1.0
+    outputs[multilingual][1] = contradicted
+    ensemble = module.score_architecture(
+        [en_case, tr_case],
+        outputs,
+        "D_conservative_two_model",
+        current=current,
+        primary=multilingual,
+        threshold=0.70,
+    )
+    assert ensemble["safe_preserved_recall"] == 0.0
+    assert ensemble["rejection_gate_counts"]["NLI contradiction"] == 1
+
+
 # ===========================================================================
 # 14. Offline cached model can run locally
 # ===========================================================================

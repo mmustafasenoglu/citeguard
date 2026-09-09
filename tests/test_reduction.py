@@ -364,6 +364,55 @@ def test_turkish_negated_strengthening_is_not_flagged(original: str, candidate: 
     assert not _strengthens_claim(original, candidate)
 
 
+@pytest.mark.parametrize(
+    ("original", "candidate"),
+    [
+        ("Exposure correlated with the outcome.", "Exposure led to the outcome."),
+        ("Limited evidence indicates an effect.", "This proves an effect."),
+        (
+            "X ile Y arasında birlikte değişim gözlendi.",
+            "X, Y'ye yol açar.",
+        ),
+        (
+            "İlk bulgular bir etkiye işaret etmektedir.",
+            "Etki kesin olarak gösterilmiştir.",
+        ),
+    ],
+)
+def test_validator_rejects_general_association_and_evidence_strengthening(
+    original: str, candidate: str
+) -> None:
+    assert _strengthens_claim(original, candidate)
+
+
+@pytest.mark.parametrize(
+    ("original", "candidate"),
+    [
+        (
+            "X ile Y arasında ilişki bulundu.",
+            "X'in Y'ye neden olduğu kanıtlanmamıştır.",
+        ),
+        (
+            "X ile Y arasında ilişki bulundu.",
+            "X, Y'ye neden olur; mekanizması kanıtlanmamıştır.",
+        ),
+        (
+            "İlk bulgular bir ilişkiye işaret ediyor.",
+            "İlişki kesin değildir.",
+        ),
+        (
+            "İlk bulgular bir ilişkiye işaret ediyor.",
+            "İlişki kesin olarak etkilidir; nedeni bilinmemektedir.",
+        ),
+    ],
+)
+def test_clause_local_negation_neither_creates_nor_hides_strengthening(
+    original: str, candidate: str
+) -> None:
+    expected = "neden olur" in candidate or "kesin olarak etkilidir" in candidate
+    assert _strengthens_claim(original, candidate) is expected
+
+
 def test_offline_heuristic_does_not_claim_entailment() -> None:
     from citeguard.reduction.meaning import HeuristicEntailmentBackend
 

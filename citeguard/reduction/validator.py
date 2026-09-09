@@ -16,6 +16,12 @@ def _contains_any(text: str, phrases: tuple[str, ...]) -> bool:
 
 _CLAUSE_SPLIT_RE = re.compile(r"[;.!?]+")
 _NEGATION_MARKERS = (
+    "not ",
+    "no ",
+    "never ",
+    "does not ",
+    "did not ",
+    "cannot ",
     "değil",
     "gösterilmemiş",
     "kanıtlanmamış",
@@ -35,16 +41,41 @@ def _contains_asserted_phrase(text: str, phrases: tuple[str, ...]) -> bool:
 
 
 def _strengthens_claim(original: str, candidate: str) -> bool:
-    """Detect explicit English or Turkish epistemic-strength escalation."""
+    """Detect explicit English or Turkish epistemic-strength escalation.
+
+    These are deliberately relation-level transitions, not a vocabulary
+    blacklist: a strong marker is relevant only when the source includes the
+    corresponding weaker relation.  ``_contains_asserted_phrase`` keeps a
+    negation in a different clause from suppressing a real assertion.
+    """
     original_norm = normalize_turkish(original)
     candidate_norm = normalize_turkish(candidate)
     transitions = (
-        (("associated with",), ("caused", "causes")),
-        (("may ",), ("definitely", "certainly")),
-        (("could ",), ("will ", "eliminates")),
-        (("some ",), ("all ", "every ")),
         (
-            ("ilişkili", "bağlantılı", "korelasyon", "birlikte değişim"),
+            ("associated with", "correlated with", "linked to", "related to"),
+            ("caused", "causes", "led to", "results in"),
+        ),
+        (("may ", "might ", "possible"), ("definitely", "certainly", "proves")),
+        (("could ",), ("will ", "eliminates")),
+        (("some ", "a subset", "limited to"), ("all ", "every ", "universally")),
+        (
+            ("preliminary evidence", "initial evidence", "limited evidence", "suggests"),
+            (
+                "proves",
+                "conclusively established",
+                "conclusively demonstrated",
+                "definitive evidence",
+            ),
+        ),
+        (
+            (
+                "ilişkili",
+                "ilişki bulundu",
+                "ilişki gözlendi",
+                "bağlantılı",
+                "korelasyon",
+                "birlikte değişim",
+            ),
             (
                 "neden oldu",
                 "neden olur",
@@ -52,6 +83,7 @@ def _strengthens_claim(original: str, candidate: str) -> bool:
                 "sebep oldu",
                 "sebep olur",
                 "yol açtı",
+                "yol açar",
             ),
         ),
         (
@@ -64,16 +96,38 @@ def _strengthens_claim(original: str, candidate: str) -> bool:
                 "muhtemeldir",
                 "gösterebilir",
                 "işaret etmektedir",
+                "düşündürmektedir",
             ),
-            ("kesindir", "kesin olarak", "mutlaka", "kanıtlamaktadır"),
+            (
+                "kesindir",
+                "kesin olarak",
+                "mutlaka",
+                "kanıtlamaktadır",
+                "kesin olarak gösterilmiştir",
+                "kesin olarak etkilidir",
+            ),
         ),
         (
             ("bazı", "bir kısmı", "belirli katılımcılar"),
             ("tümü", "tüm ", "herkes", "bütün katılımcılar"),
         ),
         (
-            ("ön bulgular", "sınırlı kanıt", "gözlemsel sonuç"),
-            ("kesin kanıt", "kanıtlanmıştır", "nedensellik gösterilmiştir"),
+            (
+                "ön bulgular",
+                "ilk bulgular",
+                "sınırlı kanıt",
+                "işaret etmektedir",
+                "düşündürmektedir",
+                "gözlemsel sonuç",
+            ),
+            (
+                "kesin kanıt",
+                "kanıtlanmıştır",
+                "kanıtlamaktadır",
+                "kesin olarak gösterilmiştir",
+                "kesin olarak etkilidir",
+                "nedensellik gösterilmiştir",
+            ),
         ),
     )
     return any(
