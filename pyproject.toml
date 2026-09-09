@@ -23,7 +23,7 @@ classifiers = [
 ]
 dependencies = [
   "click>=8.1,<9",
-  "python-docx>=1.1,<2",
+  "python-docx>=1.2.0,<2",
   "rich>=13.7,<16",
   "python-dotenv>=1.0,<2",
   "scikit-learn>=1.4",
