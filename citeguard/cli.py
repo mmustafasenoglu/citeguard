@@ -129,6 +129,34 @@ def init_command(force: bool) -> None:
     console.print("[green]Created .env[/green]")
 
 
+@main.group("corpus")
+def corpus_group() -> None:
+    """Build and inspect reusable local similarity corpora."""
+
+
+@corpus_group.command("index")
+@click.argument("corpus_path", type=click.Path(exists=True, path_type=Path))
+@click.option("--output", type=click.Path(path_type=Path), default=None)
+def corpus_index_command(corpus_path: Path, output: Path | None) -> None:
+    """Build a versioned reusable index for a local corpus."""
+    from .plagiarism.indexing import save_cached_index
+    from .plagiarism.models import PlagiarismConfig
+    from .plagiarism.sources import build_sources
+
+    destination = output or (
+        corpus_path / ".citeguard-index"
+        if corpus_path.is_dir()
+        else corpus_path.with_suffix(corpus_path.suffix + ".ctac")
+    )
+    try:
+        config = PlagiarismConfig(offline=True, no_cache=True)
+        built = build_sources([corpus_path], [], [], config)
+        saved = save_cached_index(built.index, built.sources, config, directory=destination)
+    except (OSError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    console.print(f"Indexed {len(built.sources)} sources and {built.index.size} passages: {saved}")
+
+
 def _default_model_for(provider: str) -> str:
     return _PROVIDER_DEFAULT_MODELS.get(provider, "default")
 
@@ -154,7 +182,12 @@ def llm_doctor_command() -> None:
     )
 
     providers = [
-        "anthropic", "openai", "xai", "groq", "openrouter", "nvidia",
+        "anthropic",
+        "openai",
+        "xai",
+        "groq",
+        "openrouter",
+        "nvidia",
     ]
     custom_url = os.getenv("CITEGUARD_LLM_BASE_URL", "").strip()
 
@@ -164,9 +197,7 @@ def llm_doctor_command() -> None:
     table.add_column("Latency", justify="right")
     table.add_column("Detail")
 
-    active = auto_detect_provider() or os.getenv(
-        "CITEGUARD_LLM_PROVIDER", ""
-    ).strip().lower()
+    active = auto_detect_provider() or os.getenv("CITEGUARD_LLM_PROVIDER", "").strip().lower()
 
     for name in providers:
         key = _resolve_api_key(name)
@@ -259,10 +290,7 @@ def llm_doctor_command() -> None:
         console.print(f"[bold]Fallbacks:[/bold] {fallbacks}")
     else:
         console.print("[dim]No fallbacks configured.[/dim]")
-    console.print(
-        "\n[dim]Only connection status is tested. "
-        "No document content is sent.[/dim]"
-    )
+    console.print("\n[dim]Only connection status is tested. No document content is sent.[/dim]")
 
 
 @llm_group.command("list")
@@ -319,7 +347,6 @@ def llm_list_command() -> None:
         console.print(task_table)
 
 
-
 @main.command("inspect")
 @click.argument("file", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option(
@@ -335,9 +362,7 @@ def llm_list_command() -> None:
     show_default=True,
 )
 @click.option("--output", type=click.Path(dir_okay=False, path_type=Path))
-def inspect_command(
-    file: Path, details: bool, output_format: str, output: Path | None
-) -> None:
+def inspect_command(file: Path, details: bool, output_format: str, output: Path | None) -> None:
     """Inspect parsing and bibliography detection without using network APIs."""
     parsed = parse_document(file)
     _validate_parsed(parsed)
@@ -367,8 +392,7 @@ def inspect_command(
         citation_table.add_column("Bibliography")
         for citation in parsed.citations:
             matched = any(
-                citation_matches_entry(citation, entry)
-                for entry in parsed.bibliography_entries
+                citation_matches_entry(citation, entry) for entry in parsed.bibliography_entries
             )
             if citation.numbered_ref is not None:
                 match_status = "not checked"
@@ -521,7 +545,10 @@ def suggest_command(
     cache = FileCache(settings.cache_dir)
 
     claims = _extract_claims_hybrid(
-        parsed, max_claims=max_claims, severity=severity, verbose=verbose,
+        parsed,
+        max_claims=max_claims,
+        severity=severity,
+        verbose=verbose,
         offline=offline,
     )
 
@@ -561,9 +588,7 @@ def suggest_command(
                 description=f"[dim]Searching: {claim.text[:50]}...[/dim]",
             )
             try:
-                candidates = engine.search(
-                    claim.search_query, max_results=max_results
-                )
+                candidates = engine.search(claim.search_query, max_results=max_results)
             except Exception as exc:
                 console.print(f"[yellow]Provider error for claim: {exc}[/yellow]")
                 provider_failed = True
@@ -581,8 +606,8 @@ def suggest_command(
 
             match_results: list[MatchResult] = []
             for candidate in candidates:
-                metadata_score, support_score, verdict, reasoning, evidence = (
-                    match_claim_to_source(claim, candidate)
+                metadata_score, support_score, verdict, reasoning, evidence = match_claim_to_source(
+                    claim, candidate
                 )
                 has_entailment = any(e.entailment_score is not None for e in evidence)
                 confidence = overall_confidence(
@@ -601,16 +626,12 @@ def suggest_command(
                     )
                 )
 
-            filtered = [
-                m for m in match_results if m.overall_confidence >= threshold
-            ]
+            filtered = [m for m in match_results if m.overall_confidence >= threshold]
             suggestion_results.append(
                 VerificationResult(
                     claim=claim,
                     status=(
-                        VerificationStatus.SUGGESTED
-                        if filtered
-                        else VerificationStatus.NOT_FOUND
+                        VerificationStatus.SUGGESTED if filtered else VerificationStatus.NOT_FOUND
                     ),
                     citation=None,
                     matched=filtered[0] if filtered else None,
@@ -638,9 +659,7 @@ def suggest_command(
     _print_suggest_terminal(claims, suggestion_results, threshold, verbose)
 
     if provider_failed:
-        console.print(
-            "\n[yellow]Some providers failed. Results may be incomplete.[/yellow]"
-        )
+        console.print("\n[yellow]Some providers failed. Results may be incomplete.[/yellow]")
 
 
 @main.command("check")
@@ -710,17 +729,19 @@ def check_command(
     )
 
     if verbose:
+
         def _progress(done: int, total: int, msg: str) -> None:
             console.print(f"[dim]{msg}[/dim]")
+
         options.on_progress = _progress
 
     result = audit_document(parsed, options)
 
     if require_evidence:
         result.review_queue = [
-            item for item in result.review_queue
-            if item.get("matched") is not None
-            and item["matched"].get("evidence")
+            item
+            for item in result.review_queue
+            if item.get("matched") is not None and item["matched"].get("evidence")
         ]
 
     if output_format == "json":
@@ -758,14 +779,11 @@ def _print_audit_terminal(
         else:
             health_color = "red"
         console.print(
-            f"\n[{health_color}]Citation Health Score: "
-            f"{metrics.health_score}/100[/{health_color}]"
+            f"\n[{health_color}]Citation Health Score: {metrics.health_score}/100[/{health_color}]"
         )
     else:
         missing = ", ".join(metrics.unavailable_metrics) or "unknown"
-        console.print(
-            "\n[yellow]Citation Health Score: n/a (incomplete)[/yellow]"
-        )
+        console.print("\n[yellow]Citation Health Score: n/a (incomplete)[/yellow]")
         console.print(f"[dim]Unavailable metrics: {missing}[/dim]")
     console.print(
         "[dim]The health score is a review-prioritization heuristic, "
@@ -780,9 +798,7 @@ def _print_audit_terminal(
     table.add_row("Cited claims", str(metrics.cited_claims))
     table.add_row("Verified citations", str(metrics.verified_citations))
     table.add_row("Partially verified", str(metrics.partially_verified))
-    table.add_row(
-        "Weak cited-source matches", str(metrics.weak_cited_source_matches)
-    )
+    table.add_row("Weak cited-source matches", str(metrics.weak_cited_source_matches))
     table.add_row("Weak suggestions", str(metrics.weak_suggestions))
     table.add_row("Unresolved citations", str(metrics.unresolved_citations))
     table.add_row("Uncited high-severity claims", str(metrics.uncited_high_severity_claims))
@@ -815,10 +831,7 @@ def _print_audit_terminal(
             verdict = item.get("verdict", "n/a") or "n/a"
             color = _severity_color(sev.lower())
             console.print(
-                f"  [{color}]{sev}[/{color}]"
-                f" (confidence: {conf})"
-                f" - {txt[:70]}"
-                f" [verdict: {verdict}]"
+                f"  [{color}]{sev}[/{color}] (confidence: {conf}) - {txt[:70]} [verdict: {verdict}]"
             )
 
     if show_evidence and review_queue:
@@ -834,11 +847,7 @@ def _print_audit_terminal(
             verdict = matched.get("verdict", "n/a") or "n/a"
             conf = matched.get("overall_confidence", 0) or 0
             color = _severity_color(sev.lower())
-            console.print(
-                f"  [{color}]{sev}[/{color}]"
-                f" [verdict: {verdict}]"
-                f" (confidence: {conf})"
-            )
+            console.print(f"  [{color}]{sev}[/{color}] [verdict: {verdict}] (confidence: {conf})")
             console.print(f"    Claim: {item.get('claim_text', '')[:80]}")
             for i, ev in enumerate(evidence[:2], 1):
                 console.print(f"    Evidence {i} (relevance: {ev.get('relevance_score', 0)}/100):")
@@ -851,9 +860,7 @@ def _print_audit_terminal(
             console.print(f"  - {issue.kind.value}: {issue.detail}")
 
     if result.provider_phase_failed:
-        console.print(
-            "\n[yellow]Some providers failed. Results may be incomplete.[/yellow]"
-        )
+        console.print("\n[yellow]Some providers failed. Results may be incomplete.[/yellow]")
 
 
 def _print_suggest_terminal(
@@ -866,8 +873,10 @@ def _print_suggest_terminal(
     with_suggestions = [r for r in results if r.suggestions]
 
     console.print("\n[bold]Source Suggestions[/bold]")
-    console.print(f"Claims: {len(claims)} total, {len(uncited)} uncited, "
-                  f"{len(with_suggestions)} with suggestions\n")
+    console.print(
+        f"Claims: {len(claims)} total, {len(uncited)} uncited, "
+        f"{len(with_suggestions)} with suggestions\n"
+    )
 
     for result in results:
         if not result.suggestions:
@@ -889,9 +898,7 @@ def _print_suggest_terminal(
             )
         console.print()
 
-    console.print(
-        "[dim]Suggestions require human review and do not confirm source support.[/dim]"
-    )
+    console.print("[dim]Suggestions require human review and do not confirm source support.[/dim]")
 
 
 def _severity_color(severity: str) -> str:
@@ -929,9 +936,7 @@ def _write_text(text: str, output: Path | None) -> None:
 def _validate_parsed(parsed: ParsedDocument) -> None:
     """Fail fast when the document has no content."""
     if not parsed.paragraphs:
-        raise click.ClickException(
-            "The document is empty or contains only whitespace."
-        )
+        raise click.ClickException("The document is empty or contains only whitespace.")
 
 
 def _extract_claims_hybrid(
@@ -952,16 +957,12 @@ def _extract_claims_hybrid(
             break
         if parsed.bibliography_start_index is not None and index >= parsed.bibliography_start_index:
             continue
-        paragraph_citations = [
-            c for c in parsed.citations if c.paragraph_index == index
-        ]
+        paragraph_citations = [c for c in parsed.citations if c.paragraph_index == index]
 
         if offline:
             llm_claims = []
         else:
-            llm_claims = extract_claims_with_llm(
-                paragraph, index, paragraph_citations
-            )
+            llm_claims = extract_claims_with_llm(paragraph, index, paragraph_citations)
         if llm_claims:
             if verbose:
                 n = len(llm_claims)
@@ -969,7 +970,8 @@ def _extract_claims_hybrid(
             claims.extend(llm_claims)
         else:
             det_claims = extract_claims(
-                [paragraph], parsed.citations,
+                [paragraph],
+                parsed.citations,
                 bibliography_start=parsed.bibliography_start_index,
                 max_claims=None,
             )
@@ -993,6 +995,131 @@ def _load_similarity_corpus(
     from .corpus.loader import load_similarity_corpus
 
     return load_similarity_corpus(corpus_path, license_str)
+
+
+@main.command("plagiarism")
+@click.argument("file", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option(
+    "--corpus",
+    "corpora",
+    type=click.Path(exists=True, path_type=Path),
+    multiple=True,
+    help="Local corpus file or directory (repeatable).",
+)
+@click.option(
+    "--source",
+    "sources",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    multiple=True,
+    help="Explicit local source file (repeatable).",
+)
+@click.option("--source-url", "source_urls", multiple=True, help="Explicit source URL.")
+@click.option("--online/--offline", default=False, help="Allow or forbid source/model network use.")
+@click.option("--include-quotes/--exclude-quotes", default=False)
+@click.option("--include-bibliography/--exclude-bibliography", default=False)
+@click.option("--exclude-small-matches", type=click.IntRange(1, 100), default=6)
+@click.option("--exact-threshold", type=click.FloatRange(0.0, 1.0), default=0.90)
+@click.option("--lexical-threshold", type=click.FloatRange(0.0, 1.0), default=0.55)
+@click.option("--semantic-threshold", type=click.FloatRange(0.0, 1.0), default=0.82)
+@click.option("--semantic/--no-semantic", default=False, help="Enable optional embeddings.")
+@click.option(
+    "--discover-sources/--no-discover-sources",
+    default=False,
+    help="Search academic providers using bibliography metadata (online only).",
+)
+@click.option("--max-sources", type=click.IntRange(1, 10_000), default=100)
+@click.option("--max-matches", type=click.IntRange(1, 10_000), default=200)
+@click.option("--show-matches/--hide-matches", default=True)
+@click.option("--show-sources", is_flag=True, help="Show every compared source.")
+@click.option("--no-cache", is_flag=True, help="Do not read or write URL/corpus caches.")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["terminal", "json", "md", "both"]),
+    default="terminal",
+    show_default=True,
+)
+@click.option("--output", type=click.Path(dir_okay=False, path_type=Path))
+def plagiarism_command(
+    file: Path,
+    corpora: tuple[Path, ...],
+    sources: tuple[Path, ...],
+    source_urls: tuple[str, ...],
+    online: bool,
+    include_quotes: bool,
+    include_bibliography: bool,
+    exclude_small_matches: int,
+    exact_threshold: float,
+    lexical_threshold: float,
+    semantic_threshold: float,
+    semantic: bool,
+    discover_sources: bool,
+    max_sources: int,
+    max_matches: int,
+    show_matches: bool,
+    show_sources: bool,
+    no_cache: bool,
+    output_format: str,
+    output: Path | None,
+) -> None:
+    """Review source-aware textual overlap and attribution risk."""
+    from .plagiarism import PlagiarismConfig, scan_document
+    from .plagiarism.report import (
+        plagiarism_markdown,
+        plagiarism_report,
+        plagiarism_terminal,
+    )
+
+    if not corpora and not sources and not source_urls and not discover_sources:
+        raise click.UsageError(
+            "provide --corpus, --source, --source-url, or --discover-sources"
+        )
+    if source_urls and not online:
+        raise click.UsageError("--source-url requires --online")
+    if discover_sources and not online:
+        raise click.UsageError("--discover-sources requires --online")
+    try:
+        result = scan_document(
+            file,
+            corpora=list(corpora),
+            sources=list(sources),
+            source_urls=list(source_urls),
+            config=PlagiarismConfig(
+                exact_threshold=exact_threshold,
+                lexical_threshold=lexical_threshold,
+                semantic_threshold=semantic_threshold,
+                min_match_words=exclude_small_matches,
+                max_sources=max_sources,
+                max_matches=max_matches,
+                include_quotes=include_quotes,
+                include_bibliography=include_bibliography,
+                semantic=semantic,
+                discover_academic=discover_sources,
+                offline=not online,
+                no_cache=no_cache,
+            ),
+        )
+    except (OSError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    payload = plagiarism_report(result)
+    markdown = plagiarism_markdown(result, show_matches=show_matches)
+    terminal = plagiarism_terminal(result, show_matches=show_matches)
+    if show_sources and output_format == "terminal":
+        terminal += "\n\nCompared sources\n----------------\n" + "\n".join(
+            f"- {source.title} ({source.source_type})" for source in result.sources
+        )
+    if output_format == "json":
+        _write_json(payload, output)
+    elif output_format == "md":
+        _write_text(markdown, output)
+    elif output_format == "both":
+        json_path, md_path = _both_paths(output, file)
+        _write_json(payload, json_path)
+        _write_text(markdown, md_path)
+    elif output is not None:
+        _write_text(terminal + "\n", output)
+    else:
+        console.print(terminal)
 
 
 @main.command("similarity")
@@ -1041,7 +1168,7 @@ def similarity_command(
     from .extractor import parse_enriched_document
     from .similarity.engine import SimilarityEngine
     from .similarity.models import SimilarityConfig
-    
+
     # Corpus ingestion
     index = _load_similarity_corpus(corpus, corpus_license)
 
@@ -1078,8 +1205,14 @@ def similarity_command(
 @click.option(
     "--corpus",
     type=click.Path(exists=True, path_type=Path),
-    required=True,
+    required=False,
     help="Path to a licensed local corpus used for attribution analysis.",
+)
+@click.option(
+    "--from-report",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=None,
+    help="Reuse local sources recorded by a plagiarism JSON report.",
 )
 @click.option("--corpus-license", default=None, help="Explicit corpus license.")
 @click.option(
@@ -1103,18 +1236,15 @@ def similarity_command(
     help="Plan and report safe actions without changing the source document.",
 )
 @click.option("--apply", "apply_changes", is_flag=True, help="Apply validated rewrites.")
-@click.option(
-    "--candidates", type=click.IntRange(1, 10), default=3, show_default=True
-)
-@click.option(
-    "--max-iterations", type=click.IntRange(1, 10), default=2, show_default=True
-)
+@click.option("--candidates", type=click.IntRange(1, 10), default=3, show_default=True)
+@click.option("--max-iterations", type=click.IntRange(1, 10), default=2, show_default=True)
 @click.option("--offline", is_flag=True, help="Forbid all network and model downloads.")
 @click.option("--provider", default=None, help="Rewrite provider override.")
 @click.option("--model", default=None, help="Rewrite model override.")
 def improve_attribution_command(
     file: Path,
-    corpus: Path,
+    corpus: Path | None,
+    from_report: Path | None,
     corpus_license: str | None,
     output_format: str,
     output: Path | None,
@@ -1137,6 +1267,29 @@ def improve_attribution_command(
         raise click.UsageError("--apply requires --output")
     if apply_changes and output is not None and file.resolve() == output.resolve():
         raise click.UsageError("--output must differ from the input file")
+    if corpus is None and from_report is None:
+        raise click.UsageError("provide --corpus or --from-report")
+    similarity_index = None
+    report_payload: dict[str, Any] | None = None
+    report_sources: list[Path] = []
+    if from_report is not None:
+        try:
+            report_payload = json.loads(from_report.read_text(encoding="utf-8"))
+            if not str(report_payload.get("schema_version", "")).startswith("1."):
+                raise ValueError("unsupported plagiarism report schema")
+            report_sources = [
+                Path(item["path"]) for item in report_payload.get("sources", []) if item.get("path")
+            ]
+            if not report_sources:
+                raise ValueError("report contains no reusable local textual sources")
+            from .plagiarism.models import PlagiarismConfig
+            from .plagiarism.sources import build_sources
+
+            similarity_index = build_sources(
+                [], report_sources, [], PlagiarismConfig(offline=True)
+            ).index
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise click.ClickException(f"Invalid plagiarism report: {exc}") from exc
     try:
         result = improve_attribution(
             file,
@@ -1151,12 +1304,70 @@ def improve_attribution_command(
                 provider=provider,
                 model=model,
                 severity=severity,
+                similarity_index=similarity_index,
             ),
         )
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
     payload = reduction_result_report(result)
     markdown = reduction_result_markdown(result)
+    if report_payload is not None:
+        from .plagiarism import PlagiarismConfig, scan_document
+        from .plagiarism.report import plagiarism_report
+
+        before_summary = report_payload.get("summary", {})
+        after_summary = before_summary
+        if apply_changes and output is not None:
+            raw_config = dict(report_payload.get("configuration", {}))
+            allowed_config = {
+                key: value
+                for key, value in raw_config.items()
+                if key in PlagiarismConfig.__dataclass_fields__
+            }
+            allowed_config.update(
+                {"offline": True, "discover_academic": False, "semantic": False}
+            )
+            after_review = scan_document(
+                output,
+                sources=report_sources,
+                config=PlagiarismConfig(**allowed_config),
+            )
+            after_summary = plagiarism_report(after_review)["summary"]
+        applied_changes = [
+            change for change in result.changes if change.application_status == "applied"
+        ]
+        payload["plagiarism_rescan"] = {
+            "same_configuration": True,
+            "before": before_summary,
+            "after": after_summary,
+            "citations_added": sum(
+                change.action == "add_citation" for change in applied_changes
+            ),
+            "quotes_added": sum(
+                change.action == "add_quotation" for change in applied_changes
+            ),
+            "passages_rewritten": sum(
+                change.action == "paraphrase" for change in applied_changes
+            ),
+            "passages_removed": 0,
+            "manual_reviews_remaining": len(result.manual_review),
+        }
+        markdown += (
+            "\n\n## Plagiarism review rescan\n\n"
+            f"- Raw similarity: {before_summary.get('raw_similarity_percent', 0):.2f}% → "
+            f"{after_summary.get('raw_similarity_percent', 0):.2f}%\n"
+            "- Review-relevant similarity: "
+            f"{before_summary.get('review_similarity_percent', 0):.2f}% → "
+            f"{after_summary.get('review_similarity_percent', 0):.2f}%\n"
+            f"- Exact overlap: {before_summary.get('exact_similarity_percent', 0):.2f}% → "
+            f"{after_summary.get('exact_similarity_percent', 0):.2f}%\n"
+            "- Near-exact / lexical overlap: "
+            f"{before_summary.get('lexical_similarity_percent', 0):.2f}% → "
+            f"{after_summary.get('lexical_similarity_percent', 0):.2f}%\n"
+            "- Semantic overlap: "
+            f"{before_summary.get('semantic_similarity_percent', 0):.2f}% → "
+            f"{after_summary.get('semantic_similarity_percent', 0):.2f}%\n"
+        )
     if output_format == "json":
         _write_json(payload, None if apply_changes else output)
         return
@@ -1181,9 +1392,7 @@ def _similarity_to_markdown(result: SimilarityEngineResult, show_sentences: bool
     from citeguard.similarity.models import MatchType
 
     semantic_count = sum(
-        1 for r in result.results
-        for m in r.matches
-        if m.match_type == MatchType.SEMANTIC_OVERLAP
+        1 for r in result.results for m in r.matches if m.match_type == MatchType.SEMANTIC_OVERLAP
     )
 
     lines = [
@@ -1335,8 +1544,7 @@ def rewrite_command(
         raise click.ClickException(str(exc)) from exc
     if not rewrite_settings.enabled:
         raise click.ClickException(
-            "Rewrite is disabled by configuration "
-            "(CITEGUARD_REWRITE_ENABLED=0)."
+            "Rewrite is disabled by configuration (CITEGUARD_REWRITE_ENABLED=0)."
         )
 
     if provider:
@@ -1364,8 +1572,7 @@ def rewrite_command(
     if claim_index is not None:
         if claim_index < 0 or claim_index >= len(requests):
             raise click.ClickException(
-                f"claim-index {claim_index} out of range: "
-                f"{len(requests)} eligible suggestion(s)."
+                f"claim-index {claim_index} out of range: {len(requests)} eligible suggestion(s)."
             )
         requests = [requests[claim_index]]
     if max_rewrites is not None:
@@ -1378,11 +1585,7 @@ def rewrite_command(
         llm_provider = LLMRewriteProvider(
             model=model or rewrite_settings.model,
             offline=offline,
-            timeout=(
-                timeout
-                if timeout is not None
-                else rewrite_settings.timeout
-            ),
+            timeout=(timeout if timeout is not None else rewrite_settings.timeout),
         )
         with Progress(
             SpinnerColumn(),
@@ -1394,8 +1597,7 @@ def rewrite_command(
             for request in requests:
                 progress.update(
                     task,
-                    description="[dim]Rewriting: "
-                    f"{request.context.original_text[:50]}...[/dim]",
+                    description=f"[dim]Rewriting: {request.context.original_text[:50]}...[/dim]",
                 )
                 try:
                     results.append(llm_provider.rewrite(request))
@@ -1432,9 +1634,7 @@ def rewrite_command(
     _print_rewrite_terminal(payload, verbose)
 
 
-def _rewrite_report(
-    file: Path, mode: str, results: list[Any]
-) -> dict[str, object]:
+def _rewrite_report(file: Path, mode: str, results: list[Any]) -> dict[str, object]:
     """Build the JSON-safe rewrite suggestion payload."""
     suggestions: list[dict[str, object]] = []
     for index, result in enumerate(results):
@@ -1494,9 +1694,7 @@ def _rewrite_markdown(payload: dict[str, object]) -> str:
             lines.append("**Warnings:**\n")
             for warning in warnings:
                 lines.append(f"- {warning}\n")
-    lines.append(
-        f"\n*{payload['disclaimer']}*\n"
-    )
+    lines.append(f"\n*{payload['disclaimer']}*\n")
     return "".join(lines)
 
 
@@ -1515,9 +1713,7 @@ def _print_rewrite_terminal(payload: dict[str, object], verbose: bool) -> None:
         assert isinstance(item, dict)
         warnings = item["warnings"]
         warning_text = (
-            "; ".join(str(w) for w in warnings)
-            if isinstance(warnings, list) and warnings
-            else "-"
+            "; ".join(str(w) for w in warnings) if isinstance(warnings, list) and warnings else "-"
         )
         rewritten = item["rewritten_text"]
         table.add_row(
@@ -1545,9 +1741,7 @@ def _print_similarity_terminal(result: SimilarityEngineResult, show_sentences: b
     console = Console()
 
     semantic_count = sum(
-        1 for r in result.results
-        for m in r.matches
-        if m.match_type == MatchType.SEMANTIC_OVERLAP
+        1 for r in result.results for m in r.matches if m.match_type == MatchType.SEMANTIC_OVERLAP
     )
 
     table = Table(title="Citeguard Similarity Analysis")

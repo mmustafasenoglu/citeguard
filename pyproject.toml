@@ -61,6 +61,7 @@ packages = [
   "citeguard.corpus",
   "citeguard.similarity",
   "citeguard.similarity.embeddings",
+  "citeguard.plagiarism",
   "citeguard.reduction",
   "citeguard.rewrite",
 ]
