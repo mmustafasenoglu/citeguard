@@ -1,0 +1,83 @@
+[
+  {
+    "name": "exact-copy-valid-rewrite",
+    "source": "The intervention significantly reduced mortality by 12%.",
+    "original": "The intervention significantly reduced mortality by 12% (Smith, 2024).",
+    "candidate": "Following the intervention, mortality fell by 12% (Smith, 2024).",
+    "meaning": "meaning_preserved",
+    "support": "supported",
+    "unsupported": [],
+    "expected_accepted": true
+  },
+  {
+    "name": "number-removed",
+    "source": "The intervention significantly reduced mortality by 12%.",
+    "original": "The intervention significantly reduced mortality by 12% (Smith, 2024).",
+    "candidate": "Following the intervention, mortality fell (Smith, 2024).",
+    "meaning": "meaning_preserved",
+    "support": "supported",
+    "unsupported": [],
+    "expected_accepted": false
+  },
+  {
+    "name": "number-changed",
+    "source": "The intervention significantly reduced mortality by 12%.",
+    "original": "The intervention significantly reduced mortality by 12% (Smith, 2024).",
+    "candidate": "Following the intervention, mortality fell by 15% (Smith, 2024).",
+    "meaning": "meaning_preserved",
+    "support": "supported",
+    "unsupported": [],
+    "expected_accepted": false
+  },
+  {
+    "name": "citation-removed",
+    "source": "The intervention significantly reduced mortality by 12%.",
+    "original": "The intervention significantly reduced mortality by 12% (Smith, 2024).",
+    "candidate": "Following the intervention, mortality fell by 12%.",
+    "meaning": "meaning_preserved",
+    "support": "supported",
+    "unsupported": [],
+    "expected_accepted": false
+  },
+  {
+    "name": "contradiction",
+    "source": "The intervention significantly reduced mortality by 12%.",
+    "original": "The intervention significantly reduced mortality by 12% (Smith, 2024).",
+    "candidate": "The intervention did not reduce mortality by 12% (Smith, 2024).",
+    "meaning": "contradicted",
+    "support": "supported",
+    "unsupported": [],
+    "expected_accepted": false
+  },
+  {
+    "name": "unsupported-added-claim",
+    "source": "The method improved accuracy.",
+    "original": "The method improved accuracy (Smith, 2024).",
+    "candidate": "Accuracy improved and computational cost fell (Smith, 2024).",
+    "meaning": "meaning_preserved",
+    "support": "supported",
+    "unsupported": ["computational cost fell"],
+    "expected_accepted": false
+  },
+  {
+    "name": "association-strengthened-to-causation",
+    "source": "Exposure was associated with the outcome.",
+    "original": "Exposure was associated with the outcome (Smith, 2024).",
+    "candidate": "Exposure caused the outcome (Smith, 2024).",
+    "meaning": "meaning_preserved",
+    "support": "supported",
+    "unsupported": [],
+    "expected_accepted": false
+  },
+  {
+    "name": "quotation-action-not-rewritten",
+    "source": "The intervention significantly reduced mortality by 12%.",
+    "original": "\"The intervention significantly reduced mortality by 12%.\" (Smith, 2024)",
+    "candidate": "Mortality fell by 12% (Smith, 2024).",
+    "meaning": "meaning_preserved",
+    "support": "supported",
+    "unsupported": [],
+    "rewrite_allowed": false,
+    "expected_accepted": false
+  }
+]

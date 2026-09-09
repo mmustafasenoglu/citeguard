@@ -769,6 +769,7 @@ def test_rejected_candidate_cannot_become_winner() -> None:
         citations_preserved=True,
         numeric_integrity=True,
         factual_integrity=True,
+        source_overlap_improved=True,
     )
     good = RewriteCandidate(
         "Treatment reduced mortality.",
@@ -778,6 +779,7 @@ def test_rejected_candidate_cannot_become_winner() -> None:
         citations_preserved=True,
         numeric_integrity=True,
         factual_integrity=True,
+        source_overlap_improved=True,
     )
     ranked = rank_candidates([rejected, good])
     assert ranked[0] is good

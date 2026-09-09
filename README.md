@@ -36,6 +36,7 @@ metadata and source suggestions, and produces structured reports with determinis
 - **CLI evidence controls** — `--show-evidence` to display evidence passages, `--require-evidence` to filter
 - **Document similarity** — sentence-level overlap, lexical, and semantic similarity analysis against a corpus
 - **Optional rewrite suggestions** — explicit, evidence-grounded rewording proposals via remote LLM (`citeguard rewrite`); never automatic, never verification
+- **Validated attribution improvement** — preview or apply bounded, source-aware rewrites to a new Markdown, TXT, or conservatively supported DOCX output
 
 ## Installation
 
@@ -159,6 +160,7 @@ When no API key is available, citeguard falls back to the deterministic offline 
 | `citeguard suggest FILE` | Search academic providers for uncited claims |
 | `citeguard inspect FILE` | Offline parsing and bibliography detection |
 | `citeguard similarity FILE` | Document similarity analysis against a corpus |
+| `citeguard improve-attribution FILE` | Preview or apply validated source-overlap reduction |
 | `citeguard init` | Create a local `.env` template for API keys |
 | `citeguard llm doctor` | Test LLM provider connectivity |
 | `citeguard llm list` | Display current LLM configuration (no secrets) |
@@ -303,6 +305,59 @@ provider — the single claim, its citation token, the matched source metadata
 (title, authors, year, DOI), and bounded evidence passages. The full document,
 bibliography, and unrelated claims are never sent. Document and evidence text
 is treated as data, never as instructions.
+
+## Attribution improvement workflow
+
+Preview is the default and can be made explicit with `--dry-run`:
+
+```bash
+citeguard improve-attribution paper.md \
+  --corpus corpus.txt --corpus-license CC0 --dry-run
+```
+
+Validated application always requires a separate output path:
+
+```bash
+citeguard improve-attribution paper.md \
+  --corpus corpus.txt --corpus-license CC0 \
+  --apply --output paper.revised.md
+
+citeguard improve-attribution thesis.docx \
+  --corpus corpus.txt --corpus-license CC0 \
+  --apply --output thesis.revised.docx
+```
+
+The source is never overwritten. Bibliography paragraphs are excluded. Automatic
+rewriting requires an unambiguous mapping to verified supporting evidence, and
+every provider proposal must reduce exact or lexical overlap with the matched
+source while passing citation, numeric, factual, unsupported-claim, semantic,
+and bidirectional-entailment gates. Candidates are bounded with `--candidates`
+and rescans with `--max-iterations`; there is no detector-score target mode.
+
+Markdown and TXT replacements are exact and auditable. DOCX editing is limited
+to uniquely mapped text wholly contained in one ordinary run, preserving that
+run's formatting. Hyperlinks, fields (including citation-manager fields),
+tracked changes, embedded objects, ambiguous text, and unsafe multi-run spans
+are left for manual review. The actual revised output is rescanned against the
+same corpus; reported textual-overlap reduction is not a plagiarism verdict.
+`--offline` performs planning locally but makes zero provider calls or model
+downloads, so application fails closed when required validators are unavailable.
+
+Programmatic use:
+
+```python
+from citeguard.reduction import ReductionOptions, improve_attribution
+
+result = improve_attribution(
+    "paper.md",
+    ReductionOptions(
+        corpus="corpus.txt",
+        corpus_license="CC0",
+        apply=True,
+        output="paper.revised.md",
+    ),
+)
+```
 
 ## Privacy
 

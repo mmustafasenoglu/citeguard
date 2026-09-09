@@ -2,7 +2,7 @@
 
 All notable changes to citeguard will be documented here.
 
-## [Unreleased] — Attribution reduction MVP
+## [Unreleased] — Attribution reduction
 
 ### Added
 
@@ -11,6 +11,14 @@ All notable changes to citeguard will be documented here.
   integrity gates, deterministic ranking, and JSON reduction reports.
 - Added local deterministic tests for citation, numeric, support, and preview-only
   invariants.
+- Completed the end-to-end attribution-reduction service with verified grounding,
+  bounded candidate generation and iteration, and a public Python API.
+- Added source-aware exact/lexical before-and-after measurement, safe Markdown/TXT
+  output, conservative single-run DOCX application, and actual same-corpus rescans.
+- Added reduction report schema v2 and corrected percentage-point versus relative
+  percentage semantics.
+- Added a deterministic engineering reduction benchmark. This is not scientific
+  plagiarism validation and there is no detector-evasion target mode.
 
 ### Fixed
 
@@ -18,6 +26,8 @@ All notable changes to citeguard will be documented here.
 - Enforced a strict offline gate in the remote rewrite provider and CLI.
 - Added a fail-closed, evidence-grounded rewrite-provider adapter whose proposals
   still pass every attribution-reduction validation gate.
+- Ensured application is transactional, never overwrites the source, and protects
+  bibliography and unsafe DOCX structures.
 
 ## [1.0.1] - 2026-09-08
 

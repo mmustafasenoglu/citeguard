@@ -162,11 +162,13 @@ class LLMRewriteProvider:
         self,
         *,
         model: str | None = None,
+        provider: str | None = None,
         timeout: float = 30.0,
         max_tokens: int = 1024,
         offline: bool = False,
     ) -> None:
         self._model = model
+        self._provider = provider
         self._timeout = timeout
         self._max_tokens = max_tokens
         self._offline = offline
@@ -188,8 +190,10 @@ class LLMRewriteProvider:
             )
 
         from ..llm import _call_llm_detailed, _parse_json_response, _resolve
+        from ..llm_backends import resolve_backend
 
-        resolved = _resolve(model=self._model, task="rewrite")
+        backend = resolve_backend(self._provider) if self._provider else None
+        resolved = _resolve(backend=backend, model=self._model, task="rewrite")
         if resolved is None:
             return RewriteResult(
                 original_text=original,
@@ -217,6 +221,7 @@ class LLMRewriteProvider:
             resp = _call_llm_detailed(
                 REWRITE_SYSTEM_PROMPT,
                 prompt,
+                backend=backend,
                 model=self._model,
                 max_tokens=self._max_tokens,
                 timeout=self._timeout,

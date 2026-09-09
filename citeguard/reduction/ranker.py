@@ -18,6 +18,8 @@ def rank_candidates(candidates: list[RewriteCandidate]) -> list[RewriteCandidate
         and candidate.numeric_integrity is True
         and candidate.factual_integrity is True
         and candidate.meaning_verdict == MeaningVerdict.PRESERVED
+        and not candidate.introduced_claims
+        and candidate.source_overlap_improved is True
     ]
 
     def score(candidate: RewriteCandidate) -> float:
@@ -27,9 +29,14 @@ def rank_candidates(candidates: list[RewriteCandidate]) -> list[RewriteCandidate
             if candidate.source_support_score is not None
             else 0.0
         )
+        source_reduction = max(candidate.source_overlap_delta or 0.0, 0.0)
         structural = 1.0 - (candidate.lexical_overlap or 0.0)
-        overlap_penalty = (candidate.lexical_overlap or 0.0) + (candidate.exact_overlap or 0.0)
-        value = 0.30 * meaning + 0.25 * support + 0.15 * structural - 0.15 * overlap_penalty
+        value = (
+            0.40 * meaning
+            + 0.30 * support
+            + 0.20 * source_reduction
+            + 0.10 * structural
+        )
         candidate.score = round(value, 6)
         return candidate.score
 

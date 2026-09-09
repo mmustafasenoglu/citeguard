@@ -12,7 +12,19 @@ from ..similarity.models import (
 )
 from .models import FixAction, PassageRisk, ReductionRiskType
 
-_NUMBER_RE = re.compile(r"(?<!\w)(?:\d+(?:[.,]\d+)?%?|n\s*=\s*\d[\d,]*)", re.I)
+_NUMBER_RE = re.compile(
+    r"(?<!\w)(?:n\s*=\s*)?\d[\d,]*(?:\.\d+)?%?(?:\s*(?:mg|kg|g|ml|"
+    r"cm|mm|km|hz|mhz|ghz|°c|°f))?(?!\w)",
+    re.I,
+)
+_VERSION_RE = re.compile(r"\b(?:v(?:ersion)?\s*)?\d+(?:\.\d+){1,3}\b", re.I)
+_IDENTIFIER_RE = re.compile(r"\b[A-Za-z][A-Za-z0-9_-]*[-_][A-Za-z0-9_.-]*\d[A-Za-z0-9_.-]*\b")
+_DATE_RE = re.compile(
+    r"\b(?:\d{4}-\d{2}-\d{2}|(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|"
+    r"May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|"
+    r"Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},\s+\d{4})\b",
+    re.I,
+)
 
 
 def _citation_context(
@@ -123,3 +135,12 @@ def analyze_passage_risks(
 def extract_numbers(text: str) -> tuple[str, ...]:
     """Return normalized numeric tokens that a rewrite must preserve."""
     return tuple(_NUMBER_RE.findall(text))
+
+
+def extract_protected_tokens(text: str) -> tuple[str, ...]:
+    """Return numeric, date, unit, sample-size, and version tokens."""
+    tokens = list(extract_numbers(text))
+    tokens.extend(_VERSION_RE.findall(text))
+    tokens.extend(_IDENTIFIER_RE.findall(text))
+    tokens.extend(_DATE_RE.findall(text))
+    return tuple(dict.fromkeys(token.strip() for token in tokens if token.strip()))

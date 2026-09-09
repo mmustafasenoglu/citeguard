@@ -1085,7 +1085,7 @@ def similarity_command(
 @click.option(
     "--format",
     "output_format",
-    type=click.Choice(["terminal", "json"]),
+    type=click.Choice(["terminal", "json", "md", "both"]),
     default="terminal",
     show_default=True,
 )
@@ -1102,6 +1102,16 @@ def similarity_command(
     default=False,
     help="Plan and report safe actions without changing the source document.",
 )
+@click.option("--apply", "apply_changes", is_flag=True, help="Apply validated rewrites.")
+@click.option(
+    "--candidates", type=click.IntRange(1, 10), default=3, show_default=True
+)
+@click.option(
+    "--max-iterations", type=click.IntRange(1, 10), default=2, show_default=True
+)
+@click.option("--offline", is_flag=True, help="Forbid all network and model downloads.")
+@click.option("--provider", default=None, help="Rewrite provider override.")
+@click.option("--model", default=None, help="Rewrite model override.")
 def improve_attribution_command(
     file: Path,
     corpus: Path,
@@ -1110,65 +1120,60 @@ def improve_attribution_command(
     output: Path | None,
     severity: str | None,
     dry_run: bool,
+    apply_changes: bool,
+    candidates: int,
+    max_iterations: int,
+    offline: bool,
+    provider: str | None,
+    model: str | None,
 ) -> None:
-    """Analyze attribution risk and produce a reviewable improvement plan.
+    """Preview or apply validated attribution-risk reduction."""
+    from .reduction.report import reduction_result_markdown, reduction_result_report
+    from .reduction.service import ReductionOptions, improve_attribution
 
-    This MVP is non-destructive: it never rewrites or overwrites FILE.
-    Candidate generation and document application require later release stages.
-    """
-    from .extractor import parse_enriched_document
-    from .reduction.analyzer import analyze_passage_risks
-    from .reduction.planner import build_fix_plans
-    from .reduction.report import reduction_report
-    from .similarity.engine import SimilarityEngine
-    from .similarity.models import SimilarityConfig
-
-    if not dry_run:
-        console.print(
-            "[dim]Attribution improvement is preview-only in this release; "
-            "no document changes will be applied.[/dim]"
+    if apply_changes and dry_run:
+        raise click.UsageError("--apply and --dry-run cannot be used together")
+    if apply_changes and output is None:
+        raise click.UsageError("--apply requires --output")
+    if apply_changes and output is not None and file.resolve() == output.resolve():
+        raise click.UsageError("--output must differ from the input file")
+    try:
+        result = improve_attribution(
+            file,
+            ReductionOptions(
+                corpus=corpus,
+                corpus_license=corpus_license,
+                apply=apply_changes,
+                output=output if apply_changes else None,
+                candidate_count=candidates,
+                max_iterations=max_iterations,
+                offline=offline,
+                provider=provider,
+                model=model,
+                severity=severity,
+            ),
         )
-    index = _load_similarity_corpus(corpus, corpus_license)
-    enriched = parse_enriched_document(file)
-    result = SimilarityEngine(
-        config=SimilarityConfig()
-    ).analyze_document(
-        sentences=enriched.sentences,
-        index=index,
-        bibliography_entries=enriched.bibliography_entries,
-    )
-    risks = analyze_passage_risks(result)
-    if severity:
-        order = {"high": 3, "medium": 2, "low": 1}
-        minimum = order[severity]
-        risks = [
-            risk for risk in risks
-            if order.get(risk.attribution_risk.value, 0) >= minimum
-        ]
-    plans = build_fix_plans(risks)
-    payload = reduction_report(risks, plans)
-    payload["source"] = str(file)
-    payload["dry_run"] = True
-    payload["summary"] = {
-        "passages": len(risks),
-        "high_risk": sum(risk.attribution_risk.value == "high" for risk in risks),
-        "medium_risk": sum(risk.attribution_risk.value == "medium" for risk in risks),
-        "rewrite_plans": sum(plan.rewrite_allowed for plan in plans),
-        "manual_review": sum(
-            plan.action.value == "manual_review" for plan in plans
-        ),
-    }
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+    payload = reduction_result_report(result)
+    markdown = reduction_result_markdown(result)
     if output_format == "json":
-        _write_json(payload, output)
+        _write_json(payload, None if apply_changes else output)
         return
-    console.print("[bold]citeguard Attribution Improvement Preview[/bold]")
-    console.print(f"Document: {file}")
-    console.print(f"Passages analyzed: {payload['summary']['passages']}")
-    console.print(f"High risk: {payload['summary']['high_risk']}")
-    console.print(f"Medium risk: {payload['summary']['medium_risk']}")
-    console.print(f"Rewrite plans: {payload['summary']['rewrite_plans']}")
-    console.print(f"Manual review: {payload['summary']['manual_review']}")
-    console.print("[dim]No document changes were applied.[/dim]")
+    if output_format == "md":
+        _write_text(markdown, None if apply_changes else output)
+        return
+    if output_format == "both":
+        if apply_changes:
+            assert output is not None
+            json_path = output.with_suffix(output.suffix + ".citeguard.json")
+            md_path = output.with_suffix(output.suffix + ".citeguard.md")
+        else:
+            json_path, md_path = _both_paths(output, file)
+        _write_json(payload, json_path)
+        _write_text(markdown, md_path)
+        return
+    console.print(markdown)
 
 
 def _similarity_to_markdown(result: SimilarityEngineResult, show_sentences: bool) -> str:

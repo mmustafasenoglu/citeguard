@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ..models import Verdict
-from .analyzer import extract_numbers
+from .analyzer import extract_protected_tokens
 from .models import FixPlan, MeaningValidation, MeaningVerdict, RewriteCandidate, ValidationResult
 
 
@@ -24,14 +24,25 @@ def validate_candidate(
     if plan.preserve_citations and not citations_preserved:
         reasons.append("required citation tokens were removed")
 
-    original_numbers = extract_numbers(original_text)
-    candidate_numbers = extract_numbers(candidate.text)
-    numeric_integrity = all(number in candidate_numbers for number in original_numbers)
+    original_numbers = extract_protected_tokens(original_text)
+    candidate_numbers = extract_protected_tokens(candidate.text)
+    numeric_integrity = set(original_numbers) == set(candidate_numbers)
     if not numeric_integrity:
         reasons.append("numeric values were changed or removed")
 
     unsupported = tuple(unsupported_claims or ())
     factual_integrity = supported_verdict not in {Verdict.CONTRADICTED}
+    original_lower = original_text.casefold()
+    candidate_lower = candidate.text.casefold()
+    strength_changes = (
+        ("associated with" in original_lower and "caused" in candidate_lower),
+        ("may " in original_lower and "may " not in candidate_lower),
+        ("could " in original_lower and "will " in candidate_lower),
+        ("some " in original_lower and "some " not in candidate_lower),
+    )
+    if any(strength_changes):
+        factual_integrity = False
+        reasons.append("candidate strengthens the claim beyond the original")
     if not factual_integrity:
         reasons.append("candidate contradicts source support")
     if unsupported:

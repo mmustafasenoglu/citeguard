@@ -105,7 +105,13 @@ class FixPlan:
 
 @dataclass(slots=True)
 class RewriteCandidate:
-    """A proposed replacement and its validation measurements."""
+    """A proposed replacement and its validation measurements.
+
+    ``lexical_overlap`` and ``exact_overlap`` compare the original passage
+    with the candidate and describe structural change only. The ``source_*``
+    fields separately measure the actual reduction target against the matched
+    corpus passage.
+    """
 
     text: str
     generator: str
@@ -113,6 +119,12 @@ class RewriteCandidate:
     meaning_score: float | None = None
     lexical_overlap: float | None = None
     exact_overlap: float | None = None
+    source_exact_overlap_before: float | None = None
+    source_exact_overlap_after: float | None = None
+    source_lexical_similarity_before: float | None = None
+    source_lexical_similarity_after: float | None = None
+    source_overlap_improved: bool | None = None
+    source_overlap_delta: float | None = None
     semantic_similarity_to_original: float | None = None
     forward_entailment_score: float | None = None
     backward_entailment_score: float | None = None

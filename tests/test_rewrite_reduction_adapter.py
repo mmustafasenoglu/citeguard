@@ -162,6 +162,7 @@ class _EntailmentBackend:
 
 def _run_safety_path(candidate, *, meaning: MeaningVerdict):
     evaluate_candidate(ORIGINAL, candidate)
+    candidate.source_overlap_improved = True
     meaning_result = validate_meaning(
         ORIGINAL,
         candidate,

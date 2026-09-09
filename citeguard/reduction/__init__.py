@@ -37,6 +37,8 @@ from .models import (
 )
 from .planner import build_fix_plans
 from .ranker import rank_candidates
+from .service import ReductionOptions, ReductionResult, improve_attribution
+from .source_evaluator import evaluate_source_overlap
 from .validator import validate_candidate
 
 __all__ = [
@@ -62,6 +64,10 @@ __all__ = [
     "compute_reduction_metrics",
     "build_fix_plans",
     "rank_candidates",
+    "ReductionOptions",
+    "ReductionResult",
+    "improve_attribution",
+    "evaluate_source_overlap",
     "validate_candidate",
     "AppliedReplacement",
     "TextReplacement",

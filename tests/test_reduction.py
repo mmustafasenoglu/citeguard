@@ -143,6 +143,7 @@ def test_ranker_prefers_meaning_and_support_over_lower_overlap() -> None:
         numeric_integrity=True,
         factual_integrity=True,
         meaning_verdict=MeaningVerdict.PRESERVED,
+        source_overlap_improved=True,
     )
     drifted = RewriteCandidate(
         "The experiment transformed the field.",
@@ -155,6 +156,7 @@ def test_ranker_prefers_meaning_and_support_over_lower_overlap() -> None:
         numeric_integrity=True,
         factual_integrity=True,
         meaning_verdict=MeaningVerdict.PRESERVED,
+        source_overlap_improved=True,
     )
     assert rank_candidates([drifted, safe])[0] is safe
 
@@ -328,14 +330,14 @@ def test_reduction_metrics_use_absolute_and_relative_overlap() -> None:
     after.overall_similarity_pct = 12.4
     metrics = compute_reduction_metrics(before, after, rewritten_passages=2)
     assert metrics.absolute_reduction_pct == 14.4
-    assert round(metrics.relative_reduction_pct or 0, 3) == 0.537
+    assert round(metrics.relative_reduction_pct or 0, 3) == 53.731
     assert metrics.rewritten_passages == 2
 
 
 def test_reduction_report_is_json_safe() -> None:
     risks = analyze_passage_risks(_similarity_result("Copied text.", exact=0.9, lexical=0.9))
     report = reduction_report(risks, build_fix_plans(risks))
-    assert report["schema_version"] == "1"
+    assert report["schema_version"] == "2"
     assert report["risks"][0]["risk_type"] == "exact_copy"
 
 
