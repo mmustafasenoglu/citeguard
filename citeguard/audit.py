@@ -333,6 +333,7 @@ def _extract_claims_product(
                     parsed.citations,
                     bibliography_start=parsed.bibliography_start_index,
                     max_claims=None,
+                    paragraph_offset=index,
                 )
             )
     if options.max_claims is not None and len(claims) > options.max_claims:

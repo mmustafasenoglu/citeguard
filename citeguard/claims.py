@@ -8,21 +8,23 @@ from collections.abc import Sequence
 from .models import Claim, ClaimType, ExistingCitation, Severity
 
 _STATISTIC_SIGNALS = re.compile(
-    r"\b\d[\d,.]*\s*(?:%|percent|million|billion|trillion|thousand|hundred)"
-    r"|\b(?:approximately|roughly|about|nearly|over|around|up to)\s+\d"
-    r"|\b(?:increase|decrease|growth|rate|ratio|proportion|average|median|mean)"
+    r"(?:%\s*\d[\d,.]*|\b\d[\d,.]*\s*(?:%|percent|million|billion|trillion|thousand|hundred|milyon|milyar|bin))"
+    r"|\b(?:approximately|roughly|about|nearly|over|around|up to|yaklaşık|en az|en çok|yüzde)\s+\d"
+    r"|\b(?:increase|decrease|growth|rate|ratio|proportion|average|median|mean|artış|azalış|oran|ortalama)"
     r"\b.*\d",
     re.IGNORECASE,
 )
 _CAUSAL_SIGNALS = re.compile(
     r"\b(?:causes?|leads? to|results? in|due to|because of|contributes? to"
-    r"|is associated with|is linked to|correlates? with|affects?|influences?)\b",
+    r"|is associated with|is linked to|correlates? with|affects?|influences?"
+    r"|neden ol\w*|yol aç\w*|nedeniyle|kaynaklan\w*|etkile\w*|ilişkilidir)\b",
     re.IGNORECASE,
 )
 _COMPARATIVE_SIGNALS = re.compile(
     r"\b(?:more than|less than|fewer than|greater than|higher than|lower than"
     r"|compared to|in comparison|than the|outperform|underperform|exceeds?"
-    r"|surpasses?|exceeds?)\b",
+    r"|surpasses?|exceeds?"
+    r"|daha yüksek|daha düşük|daha fazla|daha az|kıyasla|oranla|kıyaslandığında)\b",
     re.IGNORECASE,
 )
 _HISTORICAL_SIGNALS = re.compile(
@@ -59,7 +61,8 @@ _TURKISH_DIRECTIVE_SIGNALS = re.compile(
     r"\b(?:beklenir|önerilir|istenir|yazılmalı(?:dır)?|hazırlanmalı(?:dır)?"
     r"|doldurulmalı(?:dır)?|açıklanmalı(?:dır)?|belirtilmeli(?:dir)?"
     r"|sunulmalı(?:dır)?|gösterilmemeli(?:dir)?|ortaya konulur"
-    r"|ifade edilir|belirtilir|eklenebilir|yazılır)\b",
+    r"|ifade edilir|belirtilir|eklenebilir|yazılır|sunulur|verilir|özetlenir"
+    r"|doldurularak)\b",
     re.IGNORECASE,
 )
 _FORM_FIELD_LABEL = re.compile(
@@ -126,6 +129,8 @@ def _is_non_claim_paragraph(paragraph: str) -> bool:
     if not stripped:
         return True
     if stripped.startswith("#"):
+        return True
+    if stripped.startswith("(*)") or stripped.startswith("(**)"):
         return True
     letters = [character for character in stripped if character.isalpha()]
     if len(letters) >= 4 and all(character.isupper() for character in letters):
@@ -216,7 +221,7 @@ def _cap_claim_text(text: str, max_words: int = 25) -> str:
 
 
 def _build_search_query(sentence: str) -> str:
-    cleaned = re.sub(r"[^a-zA-Z0-9\s]", " ", sentence)
+    cleaned = re.sub(r"[^\w\s]", " ", sentence)
     words = cleaned.split()
     stop_words = {
         "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
@@ -228,6 +233,10 @@ def _build_search_query(sentence: str) -> str:
         "so", "very", "just", "than", "too", "also", "about", "such",
         "it", "its", "they", "them", "their", "we", "our", "he", "she",
         "his", "her", "which", "who", "whom", "what", "where", "when",
+        "ve", "ile", "veya", "bu", "şu", "o", "bir", "için", "olarak", "gibi",
+        "olan", "daha", "tarafından", "üzerinde", "üzerine", "göre", "ise",
+        "kadar", "tüm", "bütün", "çok", "en", "ancak", "fakat",
+        "çünkü", "ayrıca", "böylece", "nedeniyle", "sonucunda",
     }
     meaningful = [w for w in words if w.lower() not in stop_words and len(w) > 2]
     return " ".join(meaningful[:12]) if meaningful else " ".join(words[:8])

@@ -240,8 +240,20 @@ def _normalize_author_key(authors: str | None) -> str:
     if not authors:
         return ""
     value = authors.lower().replace("&", "and")
-    value = re.sub(r"\bet\s+al\.?\b", "", value)
-    value = re.sub(r"[^a-zà-öø-ÿ]+", " ", value)
-    tokens = [token for token in value.split() if token not in {"and"}]
+    value = re.sub(r"(?:et\s+al\.|vd\.?)", " ", value)
+    value = (
+        value.replace("ı", "i")
+        .replace("ğ", "g")
+        .replace("ü", "u")
+        .replace("ş", "s")
+        .replace("ö", "o")
+        .replace("ç", "c")
+    )
+    value = re.sub(r"[^a-z]+", " ", value)
+    tokens = [
+        token
+        for token in value.split()
+        if token not in {"and", "ve", "vd", "et", "al"}
+    ]
     # First surname is the most stable cross-format key for v0.1.
     return tokens[0] if tokens else ""
