@@ -1215,6 +1215,13 @@ def similarity_command(
     default=None,
     help="Reuse local sources recorded by a plagiarism JSON report.",
 )
+@click.option(
+    "--source",
+    "sources",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    multiple=True,
+    help="Explicit local source file to compare against (repeatable).",
+)
 @click.option("--corpus-license", default=None, help="Explicit corpus license.")
 @click.option(
     "--format",
@@ -1246,6 +1253,7 @@ def improve_attribution_command(
     file: Path,
     corpus: Path | None,
     from_report: Path | None,
+    sources: tuple[Path, ...],
     corpus_license: str | None,
     output_format: str,
     output: Path | None,
@@ -1268,11 +1276,22 @@ def improve_attribution_command(
         raise click.UsageError("--apply requires --output")
     if apply_changes and output is not None and file.resolve() == output.resolve():
         raise click.UsageError("--output must differ from the input file")
-    if corpus is None and from_report is None:
-        raise click.UsageError("provide --corpus or --from-report")
+    if corpus is None and from_report is None and not sources:
+        raise click.UsageError("provide --corpus, --source, or --from-report")
     similarity_index = None
     report_payload: dict[str, Any] | None = None
     report_sources: list[Path] = []
+    if sources and from_report is None:
+        from .plagiarism.models import PlagiarismConfig
+        from .plagiarism.sources import build_sources
+
+        similarity_index = build_sources(
+            [corpus] if corpus is not None else [],
+            list(sources),
+            [],
+            PlagiarismConfig(offline=True),
+        ).index
+
     if from_report is not None:
         try:
             report_payload = json.loads(from_report.read_text(encoding="utf-8"))
@@ -1777,6 +1796,10 @@ def _print_similarity_terminal(result: SimilarityEngineResult, show_sentences: b
                 console.print(f"  Risk: {r.attribution_risk.value}")
             else:
                 console.print("- No matches")
+
+
+main.add_command(improve_attribution_command, name="reduce")
+main.add_command(improve_attribution_command, name="intihal-kaldir")
 
 
 if __name__ == "__main__":

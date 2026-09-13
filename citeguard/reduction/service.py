@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, Any
 
 from ..audit import AuditOptions, AuditResult, audit_document
 from ..models import Verdict
-from ..rewrite import EvidenceGroundedReductionBackend, LLMRewriteProvider, RewriteMode
-from ..rewrite.models import RewriteProvider
+from ..rewrite.models import RewriteMode, RewriteProvider
+from ..rewrite.provider import LLMRewriteProvider
 from .analyzer import analyze_passage_risks
 from .apply import TextReplacement, write_revised_text
 from .candidates import generate_candidates
@@ -397,6 +397,7 @@ def improve_attribution(
                 audit, risks, plans, mode=RewriteMode.CLARIFY
             )
             manual.update(grounding_manual)
+            from ..rewrite.reduction_adapter import EvidenceGroundedReductionBackend
             backend = EvidenceGroundedReductionBackend(provider, grounded, offline=options.offline)
             risk_map = {risk.passage_id: risk for risk in risks}
             source_texts = _source_texts(current_scan)

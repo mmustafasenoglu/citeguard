@@ -108,3 +108,17 @@ def test_verify_uses_crossref_and_can_write_json(tmp_path, monkeypatch) -> None:
     assert payload["provider"] == "crossref+openalex"
     assert payload["results"][0]["status"] == "verified"
     assert payload["results"][0]["scores"]["overall"] == 100
+
+
+
+def test_reduce_and_intihal_kaldir_commands_registered() -> None:
+    runner = CliRunner()
+    res_reduce = runner.invoke(main, ["reduce", "--help"])
+    assert res_reduce.exit_code == 0
+    assert "attribution-risk reduction" in res_reduce.output
+    assert "--source" in res_reduce.output
+
+    res_tr = runner.invoke(main, ["intihal-kaldir", "--help"])
+    assert res_tr.exit_code == 0
+    assert "attribution-risk reduction" in res_tr.output
+    assert "--source" in res_tr.output

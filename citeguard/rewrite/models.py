@@ -22,6 +22,8 @@ class RewriteMode(str, Enum):
     ALIGN_WITH_EVIDENCE = "align_with_evidence"
     REMOVE_UNSUPPORTED_DETAIL = "remove_unsupported_detail"
     CITATION_SAFE = "citation_safe"
+    PARAPHRASE = "paraphrase"
+    REDUCE_OVERLAP = "reduce_overlap"
 
 
 class RewriteStatus(str, Enum):
