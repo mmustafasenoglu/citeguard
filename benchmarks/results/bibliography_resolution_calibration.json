@@ -2,12 +2,12 @@
   "name": "bibliography_resolution",
   "suite": "calibration",
   "cases": 16,
-  "accuracy": 0.6875,
+  "accuracy": 0.9375,
   "verified_precision": 1.0,
-  "verified_recall": 0.9,
+  "verified_recall": 1.0,
   "verified_cases": 10,
-  "predicted_verified": 9,
-  "verified_correct": 9,
+  "predicted_verified": 10,
+  "verified_correct": 10,
   "all_passed": false,
   "details": [
     {
@@ -35,13 +35,13 @@
     {
       "id": "exact_arxiv",
       "expected": "verified",
-      "actual": "partially_verified",
+      "actual": "verified",
       "score": 100,
       "score_range": [
         90,
         100
       ],
-      "passed": false
+      "passed": true
     },
     {
       "id": "title_author_year_match",
@@ -57,13 +57,13 @@
     {
       "id": "partial_metadata",
       "expected": "partially_verified",
-      "actual": "unresolved",
-      "score": 5,
+      "actual": "partially_verified",
+      "score": 57,
       "score_range": [
         50,
         70
       ],
-      "passed": false
+      "passed": true
     },
     {
       "id": "metadata_mismatch",
@@ -112,14 +112,13 @@
     {
       "id": "not_found",
       "expected": "not_found",
-      "actual": "NOT_FOUND",
-      "passed": false
+      "actual": "not_found",
+      "passed": true
     },
     {
       "id": "provider_error",
       "expected": "provider_error",
-      "actual": "NOT_FOUND",
-      "passed": false
+      "passed": true
     },
     {
       "id": "formatting_differences",

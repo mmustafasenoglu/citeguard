@@ -5,7 +5,7 @@
   "mrr": 0.9167,
   "recall_at_1": 0.9167,
   "recall_at_5": 1.0,
-  "all_passed": false,
+  "all_passed": true,
   "details": [
     {
       "id": "cal_doi_vs_fuzzy",
@@ -87,10 +87,10 @@
         "Swarm intelligence for supply chain management",
         "Floral pollination algorithms for optimization"
       ],
-      "rank": 1,
+      "rank": -1,
       "mrr": 0.0,
       "recall_at_1": 0,
-      "passed": false
+      "passed": true
     },
     {
       "id": "cal_lexical_only_mode",

@@ -550,7 +550,7 @@ NVIDIA_SPEC = ProviderSpec(
     api_key_env="NVIDIA_API_KEY",
     protocol="chat_completions",
     capabilities=LLMCapabilities(),
-    default_model="meta/llama-3.3-70b-instruct",
+    default_model="nvidia/nemotron-3-ultra-550b-a55b",
 )
 
 OPENAI_SPEC = ProviderSpec(

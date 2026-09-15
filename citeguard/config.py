@@ -26,7 +26,7 @@ _PROVIDER_DEFAULT_MODELS: dict[str, str] = {
     "xai": "grok-3",
     "groq": "llama-3.3-70b-versatile",
     "openrouter": "anthropic/claude-sonnet-4-20250514",
-    "nvidia": "meta/llama-3.3-70b-instruct",
+    "nvidia": "nvidia/nemotron-3-ultra-550b-a55b",
 }
 
 # Provider-specific keys mapping

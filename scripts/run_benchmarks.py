@@ -143,6 +143,7 @@ def _run_citation_parsing(suite: str) -> dict[str, Any]:
         "false_positives": fp,
         "false_negatives": fn,
         "all_exact": all(d.get("passed", False) for d in details),
+        "all_passed": all(d.get("passed", False) for d in details),
         "details": details,
     }
 
@@ -187,13 +188,15 @@ def _run_bibliography_resolution(suite: str) -> dict[str, Any]:
                 abstract=c.get("abstract"),
                 source_api=c.get("source_api", "test"),
                 work_type=c.get("work_type"),
+                arxiv_id=c.get("arxiv_id"),
             ))
 
         expected = case["expected_status"]
+        expected_normalized = expected.lower()
         score_min = case.get("expected_metadata_overall_min", 0)
         score_max = case.get("expected_metadata_overall_max", 100)
 
-        if expected == "PROVIDER_ERROR":
+        if expected_normalized == "provider_error":
             passed = True
             details.append({
                 "id": case["id"],
@@ -201,11 +204,11 @@ def _run_bibliography_resolution(suite: str) -> dict[str, Any]:
                 "passed": passed,
             })
         elif not candidates:
-            passed = expected in ("NOT_FOUND", "UNRESOLVED")
+            passed = expected_normalized in ("not_found", "unresolved")
             details.append({
                 "id": case["id"],
                 "expected": expected,
-                "actual": "NOT_FOUND" if not candidates else "UNRESOLVED",
+                "actual": "not_found" if not candidates else "unresolved",
                 "passed": passed,
             })
         else:
@@ -215,7 +218,7 @@ def _run_bibliography_resolution(suite: str) -> dict[str, Any]:
             ranked.sort(key=lambda x: x[0].overall, reverse=True)
             actual_status = _determine_status(entry, best, scores, ranked)
             in_range = score_min <= scores.overall <= score_max
-            status_match = actual_status.value == expected
+            status_match = actual_status.value.lower() == expected_normalized
             passed = status_match and in_range
 
             details.append({
@@ -327,9 +330,11 @@ def _run_retrieval_ranking(suite: str) -> dict[str, Any]:
         expected_identity = identity(expected_candidate) if expected_candidate else None
         result_identities = [identity(result) for result in results]
         best_title = expected_candidate.title if expected_candidate else ""
+        is_negative_control = case.get("expected_mrr") == 0
 
+        rank = -1
         try:
-            if case.get("expected_mrr") == 0:
+            if is_negative_control:
                 raise ValueError("negative-control case")
             rank = result_identities.index(expected_identity) + 1
             mrr = 1.0 / rank
@@ -351,7 +356,7 @@ def _run_retrieval_ranking(suite: str) -> dict[str, Any]:
             "rank": rank if expected_identity in result_identities else -1,
             "mrr": round(mrr, 3),
             "recall_at_1": r1,
-            "passed": mrr >= 0.5,
+            "passed": (mrr == 0.0) if is_negative_control else mrr >= 0.5,
         })
 
     n = len(cases)

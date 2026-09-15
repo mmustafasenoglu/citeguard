@@ -12,6 +12,7 @@
       "false_positives": 0,
       "false_negatives": 0,
       "all_exact": true,
+      "all_passed": true,
       "details": [
         {
           "id": "complex_multi_source",

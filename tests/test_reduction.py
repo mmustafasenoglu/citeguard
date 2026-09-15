@@ -83,6 +83,20 @@ def test_analyzer_classifies_uncited_exact_overlap_as_citation_fix() -> None:
     assert risks[0].recommended_action == FixAction.ADD_CITATION
 
 
+def test_planner_keeps_citation_fix_for_exact_copy_and_missing_citation() -> None:
+    risks = analyze_passage_risks(
+        _similarity_result(
+            "The method improved accuracy by 12%.",
+            exact=0.91,
+            lexical=0.88,
+        )
+    )
+    assert risks[0].risk_type == ReductionRiskType.EXACT_COPY
+    plan = build_fix_plans(risks)[0]
+    assert plan.action == FixAction.ADD_CITATION
+    assert plan.rewrite_allowed is False
+
+
 def test_planner_preserves_citations_and_numbers() -> None:
     risk = analyze_passage_risks(
         _similarity_result(

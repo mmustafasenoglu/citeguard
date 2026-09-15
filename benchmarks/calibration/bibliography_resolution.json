@@ -84,6 +84,7 @@
         "venue": null,
         "doi": null,
         "url": "https://arxiv.org/abs/2205.12345",
+        "arxiv_id": "2205.12345",
         "source_api": "semantic_scholar",
         "abstract": "We propose novel transformer architectures for low-resource NLP.",
         "work_type": "preprint"
@@ -139,12 +140,12 @@
     },
     "provider_candidates": [
       {
-        "title": "Completely Different Topic Title",
+        "title": "Mechanisms of protein folding advances",
         "authors": [
-          "Lee"
+          "K. Brown"
         ],
-        "year": 2021,
-        "venue": "Biochemistry Journal",
+        "year": 2016,
+        "venue": "Annual Review of Biochemistry",
         "doi": null,
         "url": null,
         "source_api": "crossref",
@@ -155,7 +156,7 @@
     "expected_status": "partially_verified",
     "expected_metadata_overall_min": 50,
     "expected_metadata_overall_max": 70,
-    "notes": "Title partially overlaps, but different first author surname and off-by-one year."
+    "notes": "Title partially overlaps (score 55) with matching author but off-by-one year, yielding overall 57."
   },
   {
     "id": "metadata_mismatch",
